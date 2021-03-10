@@ -1,0 +1,107 @@
+name: momentu
+version: 0.1.0.0
+synopsis: Purely functional animated GUI framework
+description: Purely functional animated GUI framework
+github: "lamdu/momentu"
+license: BSD3
+author: "Yair Chuchem, Eyal Lotem"
+maintainer: "eyal.lotem@gmail.com"
+category: Graphics
+
+default-extensions:
+- OverloadedStrings
+- PartialTypeSignatures
+- LambdaCase
+- DeriveTraversable
+- DeriveGeneric
+- DeriveAnyClass
+- DerivingStrategies
+- FlexibleContexts
+- TypeOperators
+
+ghc-options:
+- -Wall
+- -Widentities
+- -Wimplicit-prelude
+- -Wmissing-home-modules
+- -Wincomplete-patterns
+- -Wnoncanonical-monad-instances
+- -Wsemigroup
+- -Wincomplete-record-updates
+- -Wredundant-constraints
+
+dependencies:
+- base >=4.12
+
+data-dir: fonts
+
+library:
+  source-dirs: src
+  default-extensions:
+  - NoImplicitPrelude
+  ghc-options:
+  - -O2
+  dependencies:
+  - aeson >= 1.1
+  - base-compat >= 0.8.2 && < 0.12
+  - binary >=0.7
+  - bytestring
+  - containers >=0.4
+  - deepseq >=1.4 && <1.5
+  - generic-data >= 0.7
+  - GLFW-b >= 3.3.0.0 && < 3.4
+  - graphics-drawingcombinators >= 1.7.1
+  - lens >=4.18
+  - mtl >=2.2
+  - OpenGL
+  - pretty >=1.1.2 && <1.2
+  - safe-exceptions >= 0.1.4
+  - stm
+  - template-haskell
+  - text
+  - time >= 1.2
+  - timeit
+  - unicode-properties
+
+tests:
+  momentu-test:
+    source-dirs: test
+    main: TestMain.hs
+    default-extensions:
+    - NoImplicitPrelude
+    dependencies:
+    - containers
+    - lens
+    - generic-random
+    - GLFW-b
+    - HUnit
+    - momentu
+    - QuickCheck
+    - test-framework
+    - test-framework-hunit
+    - test-framework-quickcheck2
+    ghc-options:
+    - -O0
+
+executables:
+  choice:
+    main: choice.hs
+    source-dirs: examples
+    dependencies:
+    - base-compat
+    - lens
+    - momentu
+    - text
+  sys-info:
+    main: sys-info.hs
+    source-dirs: examples
+    dependencies:
+    - GLFW-b
+    - momentu
+  hello-world:
+    main: hello-world.hs
+    source-dirs: examples
+    dependencies:
+    - base-compat
+    - lens
+    - momentu

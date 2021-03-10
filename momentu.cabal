@@ -1,204 +1,202 @@
-cabal-version:       >=1.10
-name:                momentu
-version:             0.1.0.0
-synopsis:            Purely functional animated GUI framework
-description:         Purely functional animated GUI framework
-homepage:            https://github.com/lamdu/momentu
-license:             BSD3
-license-file:        LICENSE
-author:              Yair Chuchem, Eyal Lotem
-maintainer:          eyal.lotem@gmail.com
-category:            Graphics
-build-type:          Simple
-data-files:          fonts/DejaVuSans.ttf
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: a5383d4fab5d4cc3d902584f885f23630c007435cdae8222527c49a37d464673
+
+name:           momentu
+version:        0.1.0.0
+synopsis:       Purely functional animated GUI framework
+description:    Purely functional animated GUI framework
+category:       Graphics
+homepage:       https://github.com/lamdu/momentu#readme
+bug-reports:    https://github.com/lamdu/momentu/issues
+author:         Yair Chuchem, Eyal Lotem
+maintainer:     eyal.lotem@gmail.com
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+data-dir:       fonts
 
 source-repository head
   type: git
-  location: https://github.com/lamdu/momentu.git
-
-executable choice
-  main-is:             choice.hs
-  default-extensions:  NoImplicitPrelude
-                     , OverloadedStrings
-                     , PartialTypeSignatures
-                     , LambdaCase
-                     , DeriveTraversable
-                     , DeriveGeneric
-                     , DeriveAnyClass
-                     , DerivingStrategies
-                     , FlexibleContexts
-                     , TypeOperators
-  build-depends:       base
-                     , lens
-                     , base-compat
-                     , text
-                     , momentu
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  ghc-options: -rtsopts -with-rtsopts=-A128M -O2 -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
-
-executable sys-info
-  main-is:             sys-info.hs
-  default-extensions:  NoImplicitPrelude
-  build-depends:       base
-                     , momentu
-                     , GLFW-b
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  ghc-options: -rtsopts -with-rtsopts=-A128M -O2 -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
-
-
-test-suite momentu-test
-  default-language:    Haskell2010
-  default-extensions:  NoImplicitPrelude
-                     , OverloadedStrings
-                     , PartialTypeSignatures
-                     , LambdaCase
-                     , DeriveTraversable
-                     , DeriveGeneric
-                     , DeriveAnyClass
-                     , DerivingStrategies
-                     , FlexibleContexts
-                     , TypeOperators
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             TestMain.hs
-  other-modules:       Test.Momentu.Env
-                     , Test.Momentu.Instances
-                     , Test.Momentu.Prelude
-                     , Tests.Momentu
-                     , Tests.WidgetGlue
-                     , Tests.Hover
-  build-depends:       base, containers, momentu, lens, GLFW-b
-                     , HUnit, QuickCheck, generic-random
-                     , test-framework, test-framework-hunit, test-framework-quickcheck2
-  ghc-options: -O0 -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
-
-executable hello-world
-  main-is:             hello-world.hs
-  default-extensions:  NoImplicitPrelude
-                     , OverloadedStrings
-                     , PartialTypeSignatures
-                     , LambdaCase
-                     , DeriveTraversable
-                     , DeriveGeneric
-                     , DeriveAnyClass
-                     , DerivingStrategies
-                     , FlexibleContexts
-                     , TypeOperators
-  build-depends:       base
-                     , lens
-                     , base-compat
-                     , momentu
-  hs-source-dirs:      examples
-  default-language:    Haskell2010
-  ghc-options: -rtsopts -with-rtsopts=-A128M -O2 -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
+  location: https://github.com/lamdu/momentu
 
 library
-  other-modules:       Paths_momentu
-  exposed-modules:     Control.Concurrent.Extended
-                     , Data.Aeson.TH.Extended
-                     , Data.Binary.Extended
-                     , Data.ByteString.Extended
-                     , Data.Has
-                     , Data.List.Extended
-                     , Data.Maybe.Extended
-                     , Data.MRUMemo
-                     , Data.Property
-                     , Data.Text.Bidi
-                     , Data.Vector.Vector2
-                     , Debug.Trace.Warned
-                     , Foreign.C.Types.Instances
-                     , GUI.Momentu
-                     , GUI.Momentu.Align
-                     , GUI.Momentu.Animation
-                     , GUI.Momentu.Animation.Engine
-                     , GUI.Momentu.Animation.Id
-                     , GUI.Momentu.DataFiles
-                     , GUI.Momentu.DefaultEnv
-                     , GUI.Momentu.Direction
-                     , GUI.Momentu.Draw
-                     , GUI.Momentu.Draw.FPS
-                     , GUI.Momentu.Element
-                     , GUI.Momentu.EventMap
-                     , GUI.Momentu.FocusDirection
-                     , GUI.Momentu.Font
-                     , GUI.Momentu.Glue
-                     , GUI.Momentu.Hover
-                     , GUI.Momentu.I18N
-                     , GUI.Momentu.Main
-                     , GUI.Momentu.Main.Animation
-                     , GUI.Momentu.Main.Config
-                     , GUI.Momentu.Main.Events
-                     , GUI.Momentu.Main.Events.Loop
-                     , GUI.Momentu.MetaKey
-                     , GUI.Momentu.ModKey
-                     , GUI.Momentu.Prelude
-                     , GUI.Momentu.Rect
-                     , GUI.Momentu.Render
-                     , GUI.Momentu.Responsive
-                     , GUI.Momentu.Responsive.Expression
-                     , GUI.Momentu.Responsive.Options
-                     , GUI.Momentu.Responsive.TaggedList
-                     , GUI.Momentu.Scroll
-                     , GUI.Momentu.State
-                     , GUI.Momentu.Test
-                     , GUI.Momentu.View
-                     , GUI.Momentu.Widget
-                     , GUI.Momentu.Widget.Id
-                     , GUI.Momentu.Widget.Instances
-                     , GUI.Momentu.Widget.Types
-                     , GUI.Momentu.Widgets.Choice
-                     , GUI.Momentu.Widgets.Cursor
-                     , GUI.Momentu.Widgets.EventMapHelp
-                     , GUI.Momentu.Widgets.FocusDelegator
-                     , GUI.Momentu.Widgets.Grid
-                     , GUI.Momentu.Widgets.GridView
-                     , GUI.Momentu.Widgets.Label
-                     , GUI.Momentu.Widgets.Menu
-                     , GUI.Momentu.Widgets.Menu.Search
-                     , GUI.Momentu.Widgets.Spacer
-                     , GUI.Momentu.Widgets.StdKeys
-                     , GUI.Momentu.Widgets.TextEdit
-                     , GUI.Momentu.Widgets.TextEdit.Property
-                     , GUI.Momentu.Widgets.TextView
-                     , GUI.Momentu.Zoom
-                     , Graphics.DrawingCombinators.Extended
-                     , Graphics.UI.GLFW.Instances
-                     , Graphics.UI.GLFW.Utils
-                     , Numeric.Extended
-  default-extensions:  NoImplicitPrelude
-                     , OverloadedStrings
-                     , PartialTypeSignatures
-                     , LambdaCase
-                     , DeriveTraversable
-                     , DeriveGeneric
-                     , DeriveAnyClass
-                     , DerivingStrategies
-                     , FlexibleContexts
-                     , TypeOperators
-  build-depends:       aeson >= 1.1
-                     , GLFW-b >= 3.3.0.0 && < 3.4
-                     , base >=4.12
-                     , base-compat >= 0.8.2 && < 0.12
-                     , binary >=0.7
-                     , bytestring
-                     , containers >=0.4
-                     , deepseq >=1.4 && <1.5
-                     , generic-data >= 0.7
-                     , graphics-drawingcombinators >= 1.7.1
-                     , lens >=4.18
-                     , mtl >=2.2
-                     , OpenGL
-                     , pretty >=1.1.2 && <1.2
-                     , safe-exceptions >= 0.1.4
-                     , stm
-                     , template-haskell
-                     , text
-                     , time >= 1.2
-                     , timeit
-                     , unicode-properties
-  hs-source-dirs:      src
-  default-language:    Haskell2010
-  ghc-options:       -O2 -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup
-                     -Wincomplete-record-updates -Wredundant-constraints
+  exposed-modules:
+      Control.Concurrent.Extended
+      Data.Aeson.TH.Extended
+      Data.Binary.Extended
+      Data.ByteString.Extended
+      Data.Has
+      Data.List.Extended
+      Data.Maybe.Extended
+      Data.MRUMemo
+      Data.Property
+      Data.Text.Bidi
+      Data.Vector.Vector2
+      Debug.Trace.Warned
+      Foreign.C.Types.Instances
+      Graphics.DrawingCombinators.Extended
+      Graphics.UI.GLFW.Instances
+      Graphics.UI.GLFW.Utils
+      GUI.Momentu
+      GUI.Momentu.Align
+      GUI.Momentu.Animation
+      GUI.Momentu.Animation.Engine
+      GUI.Momentu.Animation.Id
+      GUI.Momentu.DataFiles
+      GUI.Momentu.DefaultEnv
+      GUI.Momentu.Direction
+      GUI.Momentu.Draw
+      GUI.Momentu.Draw.FPS
+      GUI.Momentu.Element
+      GUI.Momentu.EventMap
+      GUI.Momentu.FocusDirection
+      GUI.Momentu.Font
+      GUI.Momentu.Glue
+      GUI.Momentu.Hover
+      GUI.Momentu.I18N
+      GUI.Momentu.Main
+      GUI.Momentu.Main.Animation
+      GUI.Momentu.Main.Config
+      GUI.Momentu.Main.Events
+      GUI.Momentu.Main.Events.Loop
+      GUI.Momentu.MetaKey
+      GUI.Momentu.ModKey
+      GUI.Momentu.Prelude
+      GUI.Momentu.Rect
+      GUI.Momentu.Render
+      GUI.Momentu.Responsive
+      GUI.Momentu.Responsive.Expression
+      GUI.Momentu.Responsive.Options
+      GUI.Momentu.Responsive.TaggedList
+      GUI.Momentu.Scroll
+      GUI.Momentu.State
+      GUI.Momentu.Test
+      GUI.Momentu.View
+      GUI.Momentu.Widget
+      GUI.Momentu.Widget.Id
+      GUI.Momentu.Widget.Instances
+      GUI.Momentu.Widget.Types
+      GUI.Momentu.Widgets.Choice
+      GUI.Momentu.Widgets.Cursor
+      GUI.Momentu.Widgets.EventMapHelp
+      GUI.Momentu.Widgets.FocusDelegator
+      GUI.Momentu.Widgets.Grid
+      GUI.Momentu.Widgets.GridView
+      GUI.Momentu.Widgets.Label
+      GUI.Momentu.Widgets.Menu
+      GUI.Momentu.Widgets.Menu.Search
+      GUI.Momentu.Widgets.Spacer
+      GUI.Momentu.Widgets.StdKeys
+      GUI.Momentu.Widgets.TextEdit
+      GUI.Momentu.Widgets.TextEdit.Property
+      GUI.Momentu.Widgets.TextView
+      GUI.Momentu.Zoom
+      Numeric.Extended
+  other-modules:
+      Paths_momentu
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators NoImplicitPrelude
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -O2
+  build-depends:
+      GLFW-b >=3.3.0.0 && <3.4
+    , OpenGL
+    , aeson >=1.1
+    , base >=4.12
+    , base-compat >=0.8.2 && <0.12
+    , binary >=0.7
+    , bytestring
+    , containers >=0.4
+    , deepseq >=1.4 && <1.5
+    , generic-data >=0.7
+    , graphics-drawingcombinators >=1.7.1
+    , lens >=4.18
+    , mtl >=2.2
+    , pretty >=1.1.2 && <1.2
+    , safe-exceptions >=0.1.4
+    , stm
+    , template-haskell
+    , text
+    , time >=1.2
+    , timeit
+    , unicode-properties
+  default-language: Haskell2010
+
+executable choice
+  main-is: choice.hs
+  other-modules:
+      Paths_momentu
+  hs-source-dirs:
+      examples
+  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints
+  build-depends:
+      base >=4.12
+    , base-compat
+    , lens
+    , momentu
+    , text
+  default-language: Haskell2010
+
+executable hello-world
+  main-is: hello-world.hs
+  other-modules:
+      Paths_momentu
+  hs-source-dirs:
+      examples
+  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints
+  build-depends:
+      base >=4.12
+    , base-compat
+    , lens
+    , momentu
+  default-language: Haskell2010
+
+executable sys-info
+  main-is: sys-info.hs
+  other-modules:
+      Paths_momentu
+  hs-source-dirs:
+      examples
+  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints
+  build-depends:
+      GLFW-b
+    , base >=4.12
+    , momentu
+  default-language: Haskell2010
+
+test-suite momentu-test
+  type: exitcode-stdio-1.0
+  main-is: TestMain.hs
+  other-modules:
+      Test.Momentu.Env
+      Test.Momentu.Instances
+      Test.Momentu.Prelude
+      Tests.Hover
+      Tests.Momentu
+      Tests.WidgetGlue
+      Paths_momentu
+  hs-source-dirs:
+      test
+  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators NoImplicitPrelude
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -O0
+  build-depends:
+      GLFW-b
+    , HUnit
+    , QuickCheck
+    , base >=4.12
+    , containers
+    , generic-random
+    , lens
+    , momentu
+    , test-framework
+    , test-framework-hunit
+    , test-framework-quickcheck2
+  default-language: Haskell2010
