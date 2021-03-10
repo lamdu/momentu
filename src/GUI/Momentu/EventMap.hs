@@ -44,8 +44,6 @@ import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.Widget.Id (Id)
-import qualified Graphics.UI.GLFW as GLFW
-import qualified Graphics.UI.GLFW.Utils as GLFWUtils
 import qualified GUI.Momentu.Prelude as Prelude
 
 import           GUI.Momentu.Prelude hiding (lookup, filter, repeat)
@@ -199,7 +197,7 @@ overrides
     where
         filteredYMap = filterByKey (not . isKeyConflict) yMap
         isKeyConflict (KeyEvent _ (ModKey mods key))
-            | isCharMods mods = any (isCharConflict x) (GLFWUtils.charOfKey key)
+            | isCharMods mods = any (isCharConflict x) (ModKey.charOfKey key)
             | otherwise = False
         filteredYCharGroups =
             filterCharGroups (not . isCharConflict x) yCharGroups
@@ -254,13 +252,13 @@ filterChars p val =
             guard $ p c
             handler c
 
-isCharMods :: GLFW.ModifierKeys -> Bool
+isCharMods :: ModKey.ModifierKeys -> Bool
 isCharMods modKeys =
-        not $ any ($ modKeys)
-        [ GLFW.modifierKeysSuper
-        , GLFW.modifierKeysControl
-        , GLFW.modifierKeysAlt
-        ]
+    not $ any (modKeys ^.)
+    [ ModKey.mSuper
+    , ModKey.mControl
+    , ModKey.mAlt
+    ]
 
 filterByKey :: (k -> Bool) -> Map k v -> Map k v
 filterByKey p = Map.filterWithKey (const . p)

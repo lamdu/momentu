@@ -3,21 +3,22 @@ module GUI.Momentu.Main.Events
     ) where
 
 import           Data.Vector.Vector2 (Vector2(..))
+import           GUI.Momentu.ModKey (Key, KeyState, ModifierKeys)
 import qualified Graphics.UI.GLFW as GLFW
 
 import           Prelude
 
 data KeyEvent = KeyEvent
-    { keKey :: GLFW.Key
+    { keKey :: Key
     , keScanCode :: Int
-    , keState :: GLFW.KeyState
-    , keModKeys :: GLFW.ModifierKeys
+    , keState :: KeyState
+    , keModKeys :: ModifierKeys
     } deriving (Show, Eq)
 
 data MouseButtonEvent = MouseButtonEvent
     { mbButton :: GLFW.MouseButton
     , mbButtonState :: GLFW.MouseButtonState
-    , mbModKeys :: GLFW.ModifierKeys
+    , mbModKeys :: ModifierKeys
     , mbPosition :: Vector2 Double
     -- ^ Position in frame buffer coordinates, which may not be the same as
     -- "window coordinates"

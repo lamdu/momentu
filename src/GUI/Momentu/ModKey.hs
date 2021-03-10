@@ -1,39 +1,62 @@
 -- | ModKey type: Grouping the modifier keys with the key
-{-# OPTIONS -fno-warn-orphans #-}
+{-# LANGUAGE TemplateHaskell #-}
 module GUI.Momentu.ModKey
-    ( ModKey(..), ctrlMods, altMods, shiftMods, superMods
-    , GLFW.KeyState(..), GLFW.Key(..)
+    ( ModifierKeys(..), mControl, mAlt, mShift, mSuper
+    , fromGLFWModifiers
+    , ModKey(..), ctrlMods, altMods, shiftMods, superMods
+    , GLFW.KeyState(..), GLFW.Key(..), GLFWUtils.charOfKey
     , ctrl, alt, shift, super
     , prettyKey
     , pretty
     ) where
 
+import qualified Control.Lens as Lens
 import           Data.Aeson (ToJSON(..), FromJSON(..))
 import           Data.List (isPrefixOf)
 import qualified Data.Text as Text
 import qualified Graphics.UI.GLFW as GLFW
+import qualified Graphics.UI.GLFW.Utils as GLFWUtils
 import           Graphics.UI.GLFW.Instances ()
 import qualified System.Info as SysInfo
 
 import           GUI.Momentu.Prelude
 
-instance Semigroup GLFW.ModifierKeys where
-    GLFW.ModifierKeys a0 b0 c0 d0 e0 f0 <> GLFW.ModifierKeys a1 b1 c1 d1 e1 f1 =
-        GLFW.ModifierKeys (a0||a1) (b0||b1) (c0||c1) (d0||d1) (e0||e1) (f0||f1)
-instance Monoid GLFW.ModifierKeys where
-    mempty = GLFW.ModifierKeys False False False False False False
+data ModifierKeys = ModifierKeys
+    { _mControl :: !Bool
+    , _mAlt :: !Bool
+    , _mShift :: !Bool
+    , _mSuper :: !Bool
+    }
+    deriving stock (Generic, Show, Eq, Ord)
+    deriving anyclass (ToJSON, FromJSON)
+Lens.makeLenses ''ModifierKeys
 
-ctrlMods :: GLFW.ModifierKeys
-ctrlMods = mempty { GLFW.modifierKeysControl = True }
+fromGLFWModifiers :: GLFW.ModifierKeys -> ModifierKeys
+fromGLFWModifiers mods = 
+    ModifierKeys
+    { _mControl = GLFW.modifierKeysControl mods
+    , _mAlt = GLFW.modifierKeysAlt mods
+    , _mShift = GLFW.modifierKeysShift mods
+    , _mSuper = GLFW.modifierKeysSuper mods
+    }
 
-altMods :: GLFW.ModifierKeys
-altMods = mempty { GLFW.modifierKeysAlt = True }
+instance Semigroup ModifierKeys where
+    ModifierKeys a0 b0 c0 d0 <> ModifierKeys a1 b1 c1 d1 =
+        ModifierKeys (a0||a1) (b0||b1) (c0||c1) (d0||d1)
+instance Monoid ModifierKeys where
+    mempty = ModifierKeys False False False False
 
-shiftMods :: GLFW.ModifierKeys
-shiftMods = mempty { GLFW.modifierKeysShift = True }
+ctrlMods :: ModifierKeys
+ctrlMods = mempty { _mControl = True }
 
-superMods :: GLFW.ModifierKeys
-superMods = mempty { GLFW.modifierKeysSuper = True }
+altMods :: ModifierKeys
+altMods = mempty { _mAlt = True }
+
+shiftMods :: ModifierKeys
+shiftMods = mempty { _mShift = True }
+
+superMods :: ModifierKeys
+superMods = mempty { _mSuper = True }
 
 ctrl :: GLFW.Key -> ModKey
 ctrl = ModKey ctrlMods
@@ -47,7 +70,7 @@ shift = ModKey shiftMods
 super :: GLFW.Key -> ModKey
 super = ModKey superMods
 
-data ModKey = ModKey GLFW.ModifierKeys GLFW.Key
+data ModKey = ModKey ModifierKeys GLFW.Key
     deriving stock (Generic, Show, Eq, Ord)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -56,13 +79,13 @@ prettyKey k
     | "Key'" `isPrefixOf` show k = Text.pack $ drop 4 $ show k
     | otherwise = Text.pack $ show k
 
-prettyModKeys :: GLFW.ModifierKeys -> Text
+prettyModKeys :: ModifierKeys -> Text
 prettyModKeys ms =
     mconcat $
-    [superName | GLFW.modifierKeysSuper ms] ++
-    ["Ctrl+" | GLFW.modifierKeysControl ms] ++
-    ["Alt+" | GLFW.modifierKeysAlt ms] ++
-    ["Shift+" | GLFW.modifierKeysShift ms]
+    [superName | ms ^. mSuper] ++
+    ["Ctrl+" | ms ^. mControl] ++
+    ["Alt+" | ms ^. mAlt] ++
+    ["Shift+" | ms ^. mShift]
     where
         superName
             | SysInfo.os /= "darwin" = "Win+"

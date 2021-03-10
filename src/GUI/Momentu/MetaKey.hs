@@ -8,7 +8,7 @@ module GUI.Momentu.MetaKey
     , MetaKey(..), modifiers, key
     , ModKey.Key(..), ModKey.KeyState(..)
     , parse, format
-    , toModKey, toGLFWModifiers
+    , toModKey, toModKeyModifiers
     ) where
 
 import qualified Control.Lens as Lens
@@ -16,8 +16,6 @@ import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
 import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.ModKey as ModKey
-import qualified Graphics.UI.GLFW as GLFW
-import           Graphics.UI.GLFW.Instances ()
 import qualified System.Info as SysInfo
 import qualified Text.PrettyPrint as Pretty
 import           Text.PrettyPrint.HughesPJClass (Pretty(..))
@@ -97,12 +95,14 @@ instance Aeson.FromJSON MetaKey where
 instance Aeson.ToJSON MetaKey where
     toJSON m = format m & Aeson.String
 
-toGLFWModifiers :: ModifierKeys -> GLFW.ModifierKeys
-toGLFWModifiers (ModifierKeys cmd_ alt_ shift_ meta_)
-    | SysInfo.os == "darwin" =
-        GLFW.ModifierKeys shift_ meta_ alt_ cmd_ False False
-    | otherwise =
-        GLFW.ModifierKeys shift_ cmd_ alt_ meta_ False False
+toModKeyModifiers :: ModifierKeys -> ModKey.ModifierKeys
+toModKeyModifiers (ModifierKeys cmd_ alt_ shift_ meta_) =
+    ModKey.ModifierKeys
+    { ModKey._mAlt = alt_
+    , ModKey._mShift = shift_
+    , ModKey._mControl = if SysInfo.os == "darwin" then meta_ else cmd_
+    , ModKey._mSuper = if SysInfo.os == "darwin" then cmd_ else meta_
+    }
 
 toModKey :: MetaKey -> ModKey
-toModKey (MetaKey mods k) = ModKey (toGLFWModifiers mods) k
+toModKey (MetaKey mods k) = ModKey (toModKeyModifiers mods) k

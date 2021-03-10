@@ -12,6 +12,7 @@ import qualified Control.Exception as E
 import           Data.Typeable (Typeable)
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Main.Events
+import           GUI.Momentu.ModKey (fromGLFWModifiers)
 import qualified Graphics.UI.GLFW as GLFW
 import qualified Graphics.UI.GLFW.Utils as GLFW.Utils
 
@@ -42,7 +43,7 @@ mouseButtonEvent win handler button buttonState modKeys =
         EventMouseButton MouseButtonEvent
             { mbButton = button
             , mbButtonState = buttonState
-            , mbModKeys = modKeys
+            , mbModKeys = fromGLFWModifiers modKeys
             , mbPosition = p * fbSize / winSize
             , mbPositionInWindowCoords = p
             } & handler
@@ -53,7 +54,7 @@ keyEvent handler key scanCode keyState modKeys =
     { keKey = key
     , keScanCode = scanCode
     , keState = keyState
-    , keModKeys = modKeys
+    , keModKeys = fromGLFWModifiers modKeys
     } & handler
 
 framebufferSizeEvent :: (Event -> a) -> Int -> Int -> a
