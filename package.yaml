@@ -54,7 +54,6 @@ library:
   - lens >=4.18
   - mtl >=2.2
   - OpenGL
-  - pretty >=1.1.2 && <1.2
   - safe-exceptions >= 0.1.4
   - stm
   - template-haskell

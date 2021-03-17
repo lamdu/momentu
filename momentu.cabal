@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a5383d4fab5d4cc3d902584f885f23630c007435cdae8222527c49a37d464673
+-- hash: a3e77e93451fbc51f66492dea507e7068963b8a35299d4929377ca7ce9eb3ccb
 
 name:           momentu
 version:        0.1.0.0
@@ -117,7 +117,6 @@ library
     , graphics-drawingcombinators >=1.7.1
     , lens >=4.18
     , mtl >=2.2
-    , pretty >=1.1.2 && <1.2
     , safe-exceptions >=0.1.4
     , stm
     , template-haskell

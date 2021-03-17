@@ -17,8 +17,6 @@ import qualified Data.Text as Text
 import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.ModKey as ModKey
 import qualified System.Info as SysInfo
-import qualified Text.PrettyPrint as Pretty
-import           Text.PrettyPrint.HughesPJClass (Pretty(..))
 import           Text.Read (readMaybe)
 
 import           GUI.Momentu.Prelude
@@ -74,9 +72,6 @@ parse s =
             , _shiftOn = "Shift" `elem` modsTexts
             , _metaOn = "Meta" `elem` modsTexts
             }
-
-instance Pretty MetaKey where
-    pPrint = Pretty.text . Text.unpack . format
 
 format :: MetaKey -> Text
 format (MetaKey mods k) =
