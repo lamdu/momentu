@@ -291,11 +291,11 @@ wrapMakeWidget zoom options lookupModeRef mkWidgetUnmemod size =
             then
                 pure w
             else
-                env
-                & State.cursor .~ mempty
-                & mkWidgetUnmemod
-                >>= assertFocused
-                >>= showInvalidCursor (env ^. State.cursor)
+                do
+                    putStrLn ("Invalid cursor: " <> show (env ^. State.cursor))
+                    showInvalidCursor <*>
+                        mkWidgetUnmemod (env & State.cursor .~ mempty)
+                        >>= assertFocused
             )
             <&> Widget.eventMapMaker . Lens.mapped %~ (moreEvents <>)
             >>= (config ^. MainConfig.cPostProcess) zoom (env ^. eWindowSize)
@@ -305,15 +305,12 @@ wrapMakeWidget zoom options lookupModeRef mkWidgetUnmemod size =
             | otherwise = fail "Creating widget on the empty cursor failed"
         bgColorAnimId :: AnimId
         bgColorAnimId = ["invalid-cursor-background"]
-        showInvalidCursor :: Widget.Id -> Widget IO -> IO (Widget IO)
-        showInvalidCursor cursor widget =
-            do
-                putStrLn $ "Invalid cursor: " ++ show cursor
-                color <- _cInvalidCursorOverlayColor
-                widget
-                    & Element.setLayeredImage . Element.layers <. Lens.reversed . Lens.ix 0 %@~
-                    (<>) . (`Anim.scale` Anim.coloredRectangle bgColorAnimId color)
-                    & pure
+        showInvalidCursor :: IO (Widget IO -> Widget IO)
+        showInvalidCursor =
+            _cInvalidCursorOverlayColor <&>
+            \color ->
+            Element.setLayeredImage . Element.layers <. Lens.reversed . Lens.ix 0 %@~
+            (<>) . (`Anim.scale` Anim.coloredRectangle bgColorAnimId color)
         Config{_cInvalidCursorOverlayColor} = config
         Options{stateStorage, debug, config} = options
 
