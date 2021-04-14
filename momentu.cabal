@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a3e77e93451fbc51f66492dea507e7068963b8a35299d4929377ca7ce9eb3ccb
+-- hash: 0c618dba10cae17f2f48c5882b6ed59a4ecaed5b36d4083bc28356d6d3b8d3e0
 
 name:           momentu
 version:        0.1.0.0
@@ -133,7 +133,7 @@ executable choice
   hs-source-dirs:
       examples
   default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
   build-depends:
       base >=4.12
     , base-compat
@@ -149,7 +149,7 @@ executable hello-world
   hs-source-dirs:
       examples
   default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
   build-depends:
       base >=4.12
     , base-compat

@@ -91,6 +91,8 @@ executables:
     - lens
     - momentu
     - text
+    ghc-options:
+    - -threaded
   sys-info:
     main: sys-info.hs
     source-dirs: examples
@@ -104,3 +106,5 @@ executables:
     - base-compat
     - lens
     - momentu
+    ghc-options:
+    - -threaded
