@@ -334,6 +334,7 @@ make makeSearchTerm makeOptions ann myId =
             <&> \term placement ->
                 term ^. termWidget <&> makeMenu placement
                 <&> Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap)
+                <&> Widget.enterResultCursor .~ myId
     & Reader.local (Element.animIdPrefix .~ toAnimId myId)
     & assignCursor myId (options ^.. traverse . Menu.oId)
 
