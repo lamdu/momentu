@@ -18,7 +18,7 @@ maintainer:     eyal.lotem@gmail.com
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-data-dir:       fonts
+data-files:     fonts/DejaVuSans.ttf
 
 source-repository head
   type: git
