@@ -333,7 +333,9 @@ make makeSearchTerm makeOptions ann myId =
         makeSearchTerm mPickFirst
             <&> \term placement ->
                 term ^. termWidget <&> makeMenu placement
-                <&> Widget.weakerEventsWithoutPreevents (term ^. termEditEventMap)
+                <&> Widget.eventMapMaker . Lens.mapped %~ traceId "before weakerEvents: "
+                <&> Widget.weakerEventsWithoutPreevents (traceId "termEditEventMap: " (term ^. termEditEventMap))
+                <&> Widget.eventMapMaker . Lens.mapped %~ traceId "after weakerEvents: "
                 <&> Widget.enterResultCursor .~ myId
     & Reader.local (Element.animIdPrefix .~ toAnimId myId)
     & assignCursor myId (options ^.. traverse . Menu.oId)

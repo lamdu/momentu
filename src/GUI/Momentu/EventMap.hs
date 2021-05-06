@@ -100,6 +100,9 @@ data AllCharsHandler a = AllCharsHandler
     } deriving (Generic, Functor)
 Lens.makeLenses ''AllCharsHandler
 
+instance Show (AllCharsHandler a) where
+    show (AllCharsHandler inputDoc _) = "(AllCharsHandler " ++ show inputDoc ++ " ..)"
+
 chDocHandlers :: Lens.IndexedTraversal' InputDoc (AllCharsHandler a) (DocHandler (Char -> Maybe a))
 chDocHandlers f (AllCharsHandler inputDoc docHandler) =
     AllCharsHandler inputDoc
@@ -110,6 +113,10 @@ data CharGroupHandler a = CharGroupHandler
     , _cgDocHandler :: DocHandler (Map Char a)
     } deriving (Generic, Functor)
 Lens.makeLenses ''CharGroupHandler
+
+instance Show (CharGroupHandler a) where
+    show (CharGroupHandler mi (DocHandler doc _loc chars)) =
+        unwords ["(CharGroup", show (mi ^.. Lens._Just), show doc, show (Map.keys chars), ")"]
 
 cgDocHandlers :: Lens.IndexedTraversal' InputDoc (CharGroupHandler a) (DocHandler (Map Char a))
 cgDocHandlers f (CharGroupHandler mInputDoc docHandler) =
@@ -153,6 +160,9 @@ data EventMap a = EventMap
     deriving stock (Generic, Functor)
 
 Lens.makeLenses ''EventMap
+
+instance Show (EventMap a) where
+    show (EventMap _km _dh cgh ach) = "(EventMap " ++ show cgh ++ " " ++ show ach ++ ")"
 
 instance Semigroup (EventMap a) where (<>) = overrides
 deriving via Generically (EventMap a) instance Monoid (EventMap a)
@@ -273,6 +283,7 @@ data Event
      = EventKey Events.KeyEvent
      | EventChar Char
      | EventDropPaths [FilePath]
+    deriving Show
 
 lookup ::
     Applicative f =>
