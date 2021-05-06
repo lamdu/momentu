@@ -38,6 +38,7 @@ module GUI.Momentu.Widget
 
     , makeFocusableView
     , makeFocusableWidget
+    , makeFocusableWidgetWith
 
     , respondToCursorPrefix
     , respondToCursorBy
@@ -259,8 +260,16 @@ makeFocusableWidget ::
     (MonadReader env m, HasCursor env, Applicative f) =>
     m (Id -> Widget f -> Widget f)
 makeFocusableWidget =
+    makeFocusableWidgetWith
+    <&> \makeFocusableWith myIdPrefix ->
+            makeFocusableWith myIdPrefix (const (pure myIdPrefix))
+
+makeFocusableWidgetWith ::
+    (MonadReader env m, HasCursor env, Applicative f) =>
+    m (Id -> (FocusDirection -> f Id) -> Widget f -> Widget f)
+makeFocusableWidgetWith =
     respondToCursorPrefix
-    <&> \respond myIdPrefix w ->
+    <&> \respond myIdPrefix enter w ->
     w
     & respond myIdPrefix
-    & takesFocus (const (pure myIdPrefix))
+    & takesFocus enter

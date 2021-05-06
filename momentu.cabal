@@ -82,6 +82,7 @@ library
       GUI.Momentu.Widget.Instances
       GUI.Momentu.Widget.Types
       GUI.Momentu.Widgets.Choice
+      GUI.Momentu.Widgets.Clickable
       GUI.Momentu.Widgets.Cursor
       GUI.Momentu.Widgets.EventMapHelp
       GUI.Momentu.Widgets.FocusDelegator
