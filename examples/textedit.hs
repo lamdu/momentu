@@ -12,6 +12,8 @@ import           Data.MRUMemo (memoIO)
 import           Data.Text (Text)
 import           GUI.Momentu ((/-/))
 import qualified GUI.Momentu as M
+import           GUI.Momentu.Align (Aligned(..))
+import qualified GUI.Momentu.Align as Align
 import           GUI.Momentu.DataFiles (getDefaultFontPath)
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.State as State
@@ -37,16 +39,17 @@ main =
         & M.withGLFW
 
 mkTextEdit ::
-    (State.HasCursor env, TextEdit.HasTexts env, TextEdit.HasStyle env) =>
+    TextEdit.Deps env =>
     IORef ioref -> Text -> Text -> Widget.Id -> Lens.ALens' ioref Text ->
-    IO (env -> M.WithTextPos (Widget.Widget IO))
+    IO (env -> Widget.Widget IO)
 mkTextEdit textRef uempty fempty myId alens =
     readIORef textRef
     <&> (^# alens)
     <&> \curText localEnv ->
     TextEdit.make localEnv (TextEdit.Modes uempty fempty)
     curText myId
-    & M.tValue . Widget.updates %~
+    & (^. M.tValue)
+    & Widget.updates %~
     \(newText, update) ->
         update <$ modifyIORef textRef (alens #~ newText)
 
@@ -58,12 +61,12 @@ makeWidget getFont textRef mainLoopEnv =
         let env =
                 M.defaultEnvWithCursor (mainLoopEnv ^. M.eState) font
                 & State.cursor %~ assignCursor
-        ltrTextEdit <- mkTextEdit textRef "Unfocused empty" "Focused empty" ltrId _1
+        ltrTextEdit <- mkTextEdit textRef "Unfocused empty text" "Focused empty text" ltrId _1
         rtlTextEdit <-
-            mkTextEdit textRef "ריק ללא פוקוס" "ריק עם פוקוס" rtlId _2
+            mkTextEdit textRef "ריק ולא בפוקוס" "ריק ובפוקוס" rtlId _2
             <&> Reader.local (has .~ Dir.RightToLeft)
-        env & ltrTextEdit /-/ rtlTextEdit
-            & (^. M.tValue)
+        env & (Aligned 1 . ltrTextEdit) /-/ (Aligned 1 . rtlTextEdit)
+            & (^. Align.value)
             & M.weakerEvents (M.quitEventMap env)
             & pure
     where
