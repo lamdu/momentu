@@ -22,10 +22,12 @@ import qualified Data.Aeson.TH.Extended as JsonTH
 import qualified Data.Binary.Extended as Binary
 import           Data.Char (isSpace)
 import           Data.List.Extended (genericLength, minimumOn)
+import           Data.List.NonEmpty (NonEmpty(..))
+import           Data.Semigroup (Max(..), sconcat)
 import qualified Data.Text as Text
 import qualified Data.Text.Bidi as Bidi
 import           Data.Vector.Vector2 (Vector2(..))
-import           GUI.Momentu.Align (TextWidget)
+import           GUI.Momentu.Align (TextWidget, WithTextPos)
 import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
@@ -41,6 +43,8 @@ import qualified GUI.Momentu.ModKey as ModKey
 import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
+import           GUI.Momentu.View (View)
+import qualified GUI.Momentu.View as View
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.TextView as TextView
 import qualified Graphics.DrawingCombinators as Draw
@@ -99,6 +103,9 @@ data Modes a = Modes
 Lens.makeLenses ''Modes
 JsonTH.derivePrefixed "_" ''Modes
 
+toNonEmpty :: Modes a -> NonEmpty a
+toNonEmpty (Modes u f) = u :| [f]
+
 type EmptyStrings = Modes Text
 
 data Style = Style
@@ -109,9 +116,9 @@ data Style = Style
     }
 Lens.makeLenses ''Style
 
-type HasStyle env = (Has Style env, Has TextView.Style env)
+type HasStyle env = (Has Style env, TextView.HasStyle env)
 
-type Deps env = (HasStyle env, HasTexts env)
+type Deps env = (State.HasCursor env, HasStyle env, HasTexts env)
 
 instance Has TextView.Style Style where has = sTextViewStyle
 
@@ -156,26 +163,27 @@ cursorRects s str =
         addFirstCursor y = (Rect (Vector2 0 y) (Vector2 0 lineHeight) :)
         lineHeight = TextView.lineHeight s
 
+mkView :: (Has Dir.Layout env, Has TextView.Style env, Has Style s) =>
+                s -> [ByteString] -> Text -> (s -> env) -> WithTextPos View
+mkView env animId displayStr setColor =
+    TextView.make (setColor env) displayStr animId
+    & Element.padAround (Vector2 (env ^. has . sCursorWidth / 2) 0)
+
 makeInternal ::
-    (Has Dir.Layout env, HasStyle env) =>
+    HasStyle env =>
     env -> (forall a. Lens.Getting a (Modes a) a) ->
-    Text -> EmptyStrings -> Anim.AnimId -> Widget.Id ->
-    (Widget.Size, TextWidget ((,) Text))
-makeInternal env mode str emptyStrings animId myId =
+    Text -> Modes (WithTextPos View) -> Anim.AnimId -> Widget.Id ->
+    TextWidget ((,) Text)
+makeInternal env mode str emptyViews animId myId =
     v
     & Align.tValue %~ Widget.fromView
     & Align.tValue . Widget.wState . Widget._StateUnfocused . Widget.uMEnter ?~
         Widget.enterFuncAddVirtualCursor (Rect 0 (v ^. Element.size))
         (enterFromDirection env (v ^. Element.size) str myId)
-    & (,) (emptyView ^. Element.size)
     where
-        emptyColor = env ^. has . sEmptyStringsColors . mode
-        emptyView = mkView (emptyStrings ^. mode) (TextView.color .~ emptyColor)
-        nonEmptyView = mkView (Text.take 5000 str) id
-        v = if Text.null str then emptyView else nonEmptyView
-        mkView displayStr setColor =
-            TextView.make (setColor env) displayStr animId
-            & Element.padAround (Vector2 (env ^. has . sCursorWidth / 2) 0)
+        v
+            | Text.null str = emptyViews ^. mode
+            | otherwise = mkView env animId (Text.take 5000 str) id
 
 minimumIndex :: Ord a => [a] -> Int
 minimumIndex xs =
@@ -187,7 +195,7 @@ cursorNearRect s str fromRect =
     & minimumIndex -- cursorRects(TextView.letterRects) should never return an empty list
 
 enterFromDirection ::
-    (Has Dir.Layout env, HasStyle env) =>
+    HasStyle env =>
     env -> Widget.Size -> Text -> Widget.Id ->
     FocusDirection -> Widget.EnterResult (Text, State.Update)
 enterFromDirection env sz str myId dir =
@@ -224,17 +232,17 @@ eventResult myId newText newCursor =
 -- | Note: maxLines prevents the *user* from exceeding it, not the
 -- | given text...
 makeFocused ::
-    (HasTexts env, HasStyle env) =>
-    env -> Text -> EmptyStrings -> Cursor -> Anim.AnimId -> Widget.Id ->
-    (Widget.Size, TextWidget ((,) Text))
-makeFocused env str empty cursor animId myId =
-    makeInternal env focused str empty animId myId
-    & _2 . Element.bottomLayer <>~ cursorFrame
-    & _2 . Align.tValue %~
+    Deps env =>
+    env -> Text -> EmptyStrings -> Modes (WithTextPos View) -> Cursor -> Anim.AnimId -> Widget.Id ->
+    TextWidget ((,) Text)
+makeFocused env str emptyStr emptyViews cursor animId myId =
+    makeInternal env focused str emptyViews animId myId
+    & Element.bottomLayer <>~ cursorFrame
+    & Align.tValue %~
         Widget.setFocusedWith cursorRect
         (eventMap env cursor str myId)
     where
-        actualStr = if Text.null str then empty ^. focused else str
+        actualStr = if Text.null str then emptyStr ^. focused else str
         cursorRect@(Rect origin size) = mkCursorRect env cursor actualStr
         cursorFrame =
             Anim.unitSquare ["text-cursor"]
@@ -245,7 +253,7 @@ makeFocused env str empty cursor animId myId =
             & Anim.scale size
             & Anim.translate origin
 
-mkCursorRect :: (HasStyle env, Has Dir.Layout env) => env -> Cursor -> Text -> Rect
+mkCursorRect :: HasStyle env => env -> Cursor -> Text -> Rect
 mkCursorRect env cursor str =
     Rect cursorPos cursorSize
     where
@@ -440,7 +448,7 @@ getCursor =
                 decodeCursor _ = Text.length str
 
 make ::
-    (MonadReader env m, State.HasCursor env, HasStyle env, HasTexts env) =>
+    (MonadReader env m, Deps env) =>
     m ( EmptyStrings -> Text -> Widget.Id ->
         TextWidget ((,) Text)
       )
@@ -448,11 +456,18 @@ make = makeWithAnimId <&> Lens.mapped . Lens.mapped %~ \f w -> f (Widget.toAnimI
 
 align ::
     (Element.SizedElement a, Has Dir.Layout env) =>
-    env -> (Widget.Size, Align.WithTextPos a) -> Align.WithTextPos a
-align env (emptySize, widget) = widget & Align.tValue %~ Element.padToSize env emptySize 0
+    env -> Modes (WithTextPos View) -> Align.WithTextPos a -> Align.WithTextPos a
+align env emptyViews widget =
+    widget & Align.tValue %~ Element.padToSize env emptySize 0
+    where
+        emptySize :: Widget.Size
+        emptySize =
+            toNonEmpty emptyViews
+            <&> (^. Align.tValue . View.vSize)
+            <&> Lens.mapped %~ Max & sconcat <&> getMax
 
 makeWithAnimId ::
-    (MonadReader env m, State.HasCursor env, HasStyle env, HasTexts env) =>
+    (MonadReader env m, Deps env) =>
     m ( EmptyStrings -> Text -> Anim.AnimId -> Widget.Id ->
         TextWidget ((,) Text)
       )
@@ -460,8 +475,12 @@ makeWithAnimId =
     do
         get <- getCursor
         env <- Lens.view id
-        pure $ \empty str animId myId ->
-            case get str myId of
-            Nothing -> makeInternal env unfocused str empty animId myId
-            Just pos -> makeFocused env str empty pos animId  myId
-            & align env
+        pure $ \emptyStr str animId myId ->
+            do
+                let mkEmptyView color = mkView env animId ?? (TextView.color .~ color)
+                let emptyColors = env ^. has . sEmptyStringsColors
+                let emptyViews = mkEmptyView <$> emptyColors <*> emptyStr
+                case get str myId of
+                    Nothing -> makeInternal env unfocused str emptyViews animId myId
+                    Just pos -> makeFocused env str emptyStr emptyViews pos animId  myId
+                    & align env emptyViews
