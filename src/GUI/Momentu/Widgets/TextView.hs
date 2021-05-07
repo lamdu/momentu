@@ -1,7 +1,8 @@
-{-# LANGUAGE TemplateHaskell, BangPatterns #-}
+{-# LANGUAGE TemplateHaskell, BangPatterns, ConstraintKinds #-}
 module GUI.Momentu.Widgets.TextView
     ( Font.Underline(..), Font.underlineColor, Font.underlineWidth
     , Style(..), styleColor, styleFont, styleUnderline, whiteText
+    , HasStyle
     , color, font, underline
     , lineHeight
 
@@ -64,10 +65,11 @@ fontRender :: Style -> Text -> RenderedText (Draw.Image ())
 fontRender s =
     Font.render (s ^. styleFont) (s ^. styleColor) (s ^. styleUnderline) . Bidi.toVisual
 
+type HasStyle env = (Has Dir.Layout env, Has Style env)
+
 nestedFrame ::
-    (Show a, Has Dir.Layout env, Has Style env) =>
-    env ->
-    (a, RenderedText (Draw.Image ())) -> RenderedText (AnimId -> Anim.Frame)
+    (Show a, HasStyle env) =>
+    env -> (a, RenderedText (Draw.Image ())) -> RenderedText (AnimId -> Anim.Frame)
 nestedFrame env (i, RenderedText size img) =
     RenderedText size draw
     where
@@ -104,16 +106,13 @@ letterRects s text =
                     Rect (Vector2 (xpos ^. advance) 0) (size ^. bounding)
 
 drawText ::
-    (MonadReader env m, Has Dir.Layout env, Has Style env) =>
-    m (Text -> RenderedText (AnimId -> Anim.Frame))
+    (MonadReader env m, HasStyle env) => m (Text -> RenderedText (AnimId -> Anim.Frame))
 drawText =
     Lens.view id
     <&> \env text ->
     nestedFrame env ("text" :: Text, fontRender (env ^. has) text)
 
-make ::
-    (MonadReader env m, Has Dir.Layout env, Has Style env) =>
-    m (Text -> AnimId -> WithTextPos View)
+make :: (MonadReader env m, HasStyle env) => m (Text -> AnimId -> WithTextPos View)
 make =
     drawText <&> \draw text animId ->
     let RenderedText textSize frame = draw text
@@ -123,9 +122,7 @@ make =
         }
 
 makeFocusable ::
-    ( MonadReader env m, Applicative f, State.HasCursor env
-    , Has Dir.Layout env, Has Style env
-    ) =>
+    (MonadReader env m, Applicative f, State.HasCursor env, HasStyle env) =>
     m (Text -> Widget.Id -> TextWidget f)
 makeFocusable =
     do
