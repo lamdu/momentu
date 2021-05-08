@@ -9,13 +9,15 @@ module GUI.Momentu.Font
     , TextSize(..), bounding, advance
     , LCDSubPixelEnabled(..), openFont
     , height
-    , textSize, textWidth
+    , textSize, textWidth, textPositions
     , renderText
     ) where
 
 import           Control.Applicative (liftA2)
 import qualified Control.Lens as Lens
 import qualified Data.Text as Text
+import           Data.Vector.Unboxed (Vector)
+import qualified Data.Vector.Unboxed as Vector
 import           Data.Vector.Vector2 (Vector2(..))
 import           Graphics.DrawingCombinators ((%%), R)
 import qualified Graphics.DrawingCombinators.Extended as Draw
@@ -85,6 +87,10 @@ drawUnderline font size (Underline color relativeWidth) =
     & Draw.tint color
     where
         width = relativeWidth * height font
+
+textPositions :: Font -> Text -> Vector R
+textPositions (Font font) str = Draw.textPositions font str
+textPositions (FontDebug x) str = Vector.fromList $ take (Text.length str) $ iterate (+x) x
 
 textWidth :: Font -> Text -> TextSize R
 textWidth (Font font) str =

@@ -119,6 +119,7 @@ library
     , lens >=4.18
     , mtl >=2.2
     , safe-exceptions >=0.1.4
+    , vector
     , stm
     , template-haskell
     , text
