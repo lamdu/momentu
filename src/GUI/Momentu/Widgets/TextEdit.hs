@@ -218,9 +218,10 @@ makeInternal env mode str emptyViews animId myId =
     -- & Align.tValue %~ _addCursorRects env animId str
     & Align.tValue %~ Widget.fromView
     & Align.tValue . Widget.wState . Widget._StateUnfocused . Widget.uMEnter ?~
-        Widget.enterFuncAddVirtualCursor (Rect 0 (v ^. Element.size))
-        (enterFromDirection env (v ^. Element.size) str myId)
+        Widget.enterFuncAddVirtualCursor rect
+        (enterFromDirection env rect str myId)
     where
+        rect = Rect 0 (v ^. Element.size)
         v
             | Text.null str = emptyViews ^. mode
             | otherwise = mkView env animId (Text.take 5000 str) id
@@ -236,13 +237,13 @@ cursorNearRect env str fromRect =
 
 enterFromDirection ::
     HasStyle env =>
-    env -> Widget.Size -> Text -> Widget.Id ->
+    env -> Rect -> Text -> Widget.Id ->
     FocusDirection -> Widget.EnterResult (Text, State.Update)
-enterFromDirection env sz str myId dir =
+enterFromDirection env rect str myId dir =
     encodeCursor myId cursor
     & State.updateCursor
     & (,) str
-    & Widget.EnterResult cursorRect 0
+    & Widget.EnterResult rect 0
     where
         cursor =
             case dir of
@@ -252,9 +253,8 @@ enterFromDirection env sz str myId dir =
             FromRight r -> edgeRect _1 & Rect.verticalRange   .~ r & fromRect
             FromAbove r -> Rect 0 0    & Rect.horizontalRange .~ r & fromRect
             FromBelow r -> edgeRect _2 & Rect.horizontalRange .~ r & fromRect
-        edgeRect l = Rect (0 & Lens.cloneLens l .~ sz ^. Lens.cloneLens l) 0
-        cursorRect = mkCursorRect env cursor str & maybeInvert
-        width = sz ^. _1
+        edgeRect l = Rect (0 & Lens.cloneLens l .~ rect ^. Rect.size . Lens.cloneLens l) 0
+        width = rect ^. Rect.size . _1
         needsInvert
             | Text.null str = env ^. has == Dir.RightToLeft
             | otherwise = not (Bidi.isLeftToRight str)
