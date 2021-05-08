@@ -13,16 +13,13 @@ import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.ModKey as ModKey
-import qualified GUI.Momentu.State as State
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.TextEdit as TextEdit
 
 import           GUI.Momentu.Prelude
 
 make ::
-    ( MonadReader env m, Applicative f
-    , State.HasCursor env, TextEdit.Deps env
-    ) =>
+    (MonadReader env m, Applicative f, TextEdit.Deps env) =>
     m
     (TextEdit.EmptyStrings -> Property f Text -> Widget.Id ->
      TextWidget f)
@@ -42,9 +39,7 @@ deleteKeyEventHandler :: ModKey -> EventMap a -> EventMap a
 deleteKeyEventHandler = E.deleteKey . E.KeyEvent ModKey.KeyState'Pressed
 
 makeLineEdit ::
-    ( MonadReader env m, Applicative f
-    , State.HasCursor env, TextEdit.Deps env
-    ) =>
+    (MonadReader env m, Applicative f, TextEdit.Deps env) =>
     m
     (TextEdit.EmptyStrings -> Property f Text -> Widget.Id ->
      TextWidget f)
@@ -56,9 +51,7 @@ makeLineEdit =
     deleteKeyEventHandler (ModKey mempty ModKey.Key'Enter)
 
 makeWordEdit ::
-    ( MonadReader env m, Applicative f
-    , State.HasCursor env, TextEdit.Deps env
-    ) =>
+    (MonadReader env m, Applicative f, TextEdit.Deps env) =>
     m
     (TextEdit.EmptyStrings -> Property f Text -> Widget.Id -> TextWidget f)
 makeWordEdit =
