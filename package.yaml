@@ -33,7 +33,7 @@ ghc-options:
 dependencies:
 - base >=4.12
 
-data-dir: fonts
+data-files: fonts/DejaVuSans.ttf
 
 library:
   source-dirs: src
@@ -61,6 +61,7 @@ library:
   - time >= 1.2
   - timeit
   - unicode-properties
+  - vector
 
 tests:
   momentu-test:
@@ -106,5 +107,15 @@ executables:
     - base-compat
     - lens
     - momentu
+    ghc-options:
+    - -threaded
+  textedit:
+    main: textedit.hs
+    source-dirs: examples
+    dependencies:
+    - base-compat
+    - lens
+    - momentu
+    - text
     ghc-options:
     - -threaded

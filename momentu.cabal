@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0c618dba10cae17f2f48c5882b6ed59a4ecaed5b36d4083bc28356d6d3b8d3e0
+-- hash: 968b862bccba00300e7030be6932e805faf2c2ffd32d38389b95a6d0eb76e23f
 
 name:           momentu
 version:        0.1.0.0
@@ -18,7 +18,8 @@ maintainer:     eyal.lotem@gmail.com
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-data-files:     fonts/DejaVuSans.ttf
+data-files:
+    fonts/DejaVuSans.ttf
 
 source-repository head
   type: git
@@ -119,13 +120,13 @@ library
     , lens >=4.18
     , mtl >=2.2
     , safe-exceptions >=0.1.4
-    , vector
     , stm
     , template-haskell
     , text
     , time >=1.2
     , timeit
     , unicode-properties
+    , vector
   default-language: Haskell2010
 
 executable choice
@@ -142,23 +143,6 @@ executable choice
     , lens
     , momentu
     , text
-  default-language: Haskell2010
-
-executable textedit
-  main-is: textedit.hs
-  other-modules:
-      Paths_momentu
-  hs-source-dirs:
-      examples
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators BlockArguments
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
-  build-depends:
-      base >=4.12
-    , base-compat
-    , lens
-    , momentu
-    , text
-    , mtl
   default-language: Haskell2010
 
 executable hello-world
@@ -188,6 +172,22 @@ executable sys-info
       GLFW-b
     , base >=4.12
     , momentu
+  default-language: Haskell2010
+
+executable textedit
+  main-is: textedit.hs
+  other-modules:
+      Paths_momentu
+  hs-source-dirs:
+      examples
+  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
+  build-depends:
+      base >=4.12
+    , base-compat
+    , lens
+    , momentu
+    , text
   default-language: Haskell2010
 
 test-suite momentu-test
