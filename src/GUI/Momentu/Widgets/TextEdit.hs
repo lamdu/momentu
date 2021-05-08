@@ -26,12 +26,14 @@ import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Semigroup (Max(..), sconcat)
 import qualified Data.Text as Text
 import qualified Data.Text.Bidi as Bidi
+import qualified Data.Vector.Unboxed as Vector
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (TextWidget, WithTextPos)
 import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element (Element)
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
@@ -142,15 +144,28 @@ tillEndOfWord xs = spaces <> nonSpaces
 encodeCursor :: Widget.Id -> Cursor -> Widget.Id
 encodeCursor myId = Widget.joinId myId . (:[]) . Binary.encodeS
 
-rightSideOfRect :: Rect -> Rect
-rightSideOfRect rect =
-    rect
-    & Rect.left .~ rect ^. Rect.right
-    & Rect.width .~ 0
+-- | Returns at least one rect
+letterRects :: Has TextView.Style env => env -> Text -> [[Rect]]
+letterRects env text =
+    zipWith locateLineHeight (iterate (+ height) 0) textLines
+    where
+        -- splitOn returns at least one string:
+        textLines = Text.splitOn "\n" text <&> makeLine
+        locateLineHeight y = Lens.mapped . Rect.top +~ y
+        font = env ^. has . TextView.styleFont
+        height = TextView.lineHeight (env ^. has)
+        makeLine textLine =
+            zipWith letterRect boundingSizes (0 : advances)
+            where
+                advances = Font.textPositions font textLine & Vector.toList
+                letterRect boundingSize xpos = Rect (Vector2 xpos 0) boundingSize
+                boundingSizes =
+                    Text.unpack textLine <&> Text.singleton <&> Font.textSize font
+                    <&> (^. Font.bounding)
 
-cursorRects :: TextView.Style -> Text -> [Rect]
-cursorRects s str =
-    TextView.letterRects s str
+cursorRects :: HasStyle env => env -> Text -> [Rect]
+cursorRects env str =
+    letterRects env str
     <&> Lens.mapped %~ rightSideOfRect
     & zipWith addFirstCursor (iterate (+lineHeight) 0)
     -- A bit ugly: letterRects returns rects for all but newlines, and
@@ -160,14 +175,37 @@ cursorRects s str =
     -- original string index-wise.
     & concat
     where
-        addFirstCursor y = (Rect (Vector2 0 y) (Vector2 0 lineHeight) :)
-        lineHeight = TextView.lineHeight s
+        rightSideOfRect rect =
+            rect
+            & Rect.left .~ rect ^. Rect.right
+            & Rect.width .~ cursorWidth
+        cursorWidth = env ^. has . sCursorWidth
+        addFirstCursor y = (Rect (Vector2 0 y) (Vector2 cursorWidth lineHeight) :)
+        lineHeight = TextView.lineHeight (env ^. has)
 
 mkView :: (Has Dir.Layout env, Has TextView.Style env, Has Style s) =>
                 s -> [ByteString] -> Text -> (s -> env) -> WithTextPos View
 mkView env animId displayStr setColor =
     TextView.make (setColor env) displayStr animId
     & Element.padAround (Vector2 (env ^. has . sCursorWidth / 2) 0)
+
+-- A debugging facility, showing all the potential locations of all cursors
+_drawCursorRects :: HasStyle env => Anim.AnimId -> env -> Text -> Anim.Frame
+_drawCursorRects animId env str =
+    cursorRects env str
+    & Lens.traversed %@~ drawRect
+    & mconcat
+    where
+        drawRect i rect =
+            Anim.augmentId i (animId ++ ["text-cursor"])
+            & Anim.unitSquare
+            -- & Anim.unitImages %~ Draw.tint (Draw.Color 1 1 1 1)
+            & Anim.scale (rect ^. Rect.size)
+            & Anim.translate (rect ^. Rect.topLeft)
+
+_addCursorRects :: (Element t, HasStyle env) => env -> Anim.AnimId -> Text -> t -> t
+_addCursorRects env animId str =
+    Element.setLayeredImage . Element.layers %~ (_drawCursorRects animId env str :)
 
 makeInternal ::
     HasStyle env =>
@@ -176,6 +214,8 @@ makeInternal ::
     TextWidget ((,) Text)
 makeInternal env mode str emptyViews animId myId =
     v
+    -- TODO: Control with debug config variable?
+    -- & Align.tValue %~ _addCursorRects env animId str
     & Align.tValue %~ Widget.fromView
     & Align.tValue . Widget.wState . Widget._StateUnfocused . Widget.uMEnter ?~
         Widget.enterFuncAddVirtualCursor (Rect 0 (v ^. Element.size))
@@ -189,9 +229,9 @@ minimumIndex :: Ord a => [a] -> Int
 minimumIndex xs =
     xs ^@.. Lens.traversed & minimumOn snd & fst
 
-cursorNearRect :: TextView.Style -> Text -> Rect -> Cursor
-cursorNearRect s str fromRect =
-    cursorRects s str <&> Rect.sqrDistance fromRect
+cursorNearRect :: HasStyle env => env -> Text -> Rect -> Cursor
+cursorNearRect env str fromRect =
+    cursorRects env str <&> Rect.sqrDistance fromRect
     & minimumIndex -- cursorRects(TextView.letterRects) should never return an empty list
 
 enterFromDirection ::
@@ -221,7 +261,7 @@ enterFromDirection env sz str myId dir =
         maybeInvert
             | needsInvert = Rect.horizontalRange . Rect.rangeStart %~ (width -)
             | otherwise = id
-        fromRect = cursorNearRect (env ^. has . sTextViewStyle) str . maybeInvert
+        fromRect = cursorNearRect env str . maybeInvert
 
 eventResult :: Widget.Id -> Text -> Cursor -> (Text, State.Update)
 eventResult myId newText newCursor =

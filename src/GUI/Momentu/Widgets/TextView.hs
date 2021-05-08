@@ -10,11 +10,9 @@ module GUI.Momentu.Widgets.TextView
     , Font.TextSize(..), bounding, advance
     , RenderedText(..), renderedText, renderedTextSize
     , drawText
-    , letterRects
     ) where
 
 import qualified Control.Lens as Lens
-import qualified Data.Text as Text
 import qualified Data.Text.Bidi as Bidi
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (WithTextPos(..), TextWidget)
@@ -24,8 +22,6 @@ import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import           GUI.Momentu.Font (Font, RenderedText(..), renderedText, renderedTextSize, bounding, advance)
 import qualified GUI.Momentu.Font as Font
-import           GUI.Momentu.Rect (Rect(Rect))
-import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
 import qualified GUI.Momentu.View as View
@@ -82,28 +78,6 @@ nestedFrame env (i, RenderedText size img) =
                 (Draw.translateV (-widthV) Draw.%% img) & toFrame animId
                 & Anim.translate widthV
         anchorSize = env ^. has & lineHeight & pure
-
--- | Returns at least one rect
-letterRects :: Style -> Text -> [[Rect]]
-letterRects s text =
-    zipWith locateLineHeight (iterate (+ height) 0) textLines
-    where
-        -- splitOn returns at least one string:
-        textLines = map makeLine $ Text.splitOn "\n" text
-        locateLineHeight y = Lens.mapped . Rect.top +~ y
-        height = lineHeight s
-        makeLine textLine =
-            sizes
-            <&> fmap (^. _1)
-            -- scanl returns at least one element:
-            & scanl (+) 0
-            & zipWith makeLetterRect sizes
-            where
-                sizes =
-                    Text.unpack textLine
-                    <&> Font.textSize (s ^. styleFont) . Text.singleton
-                makeLetterRect size xpos =
-                    Rect (Vector2 (xpos ^. advance) 0) (size ^. bounding)
 
 drawText ::
     (MonadReader env m, HasStyle env) => m (Text -> RenderedText (AnimId -> Anim.Frame))
