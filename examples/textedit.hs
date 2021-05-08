@@ -5,7 +5,6 @@ module Main where
 import qualified Control.Lens as Lens
 import           Control.Lens.Operators
 import           Control.Lens.Tuple
-import qualified Control.Monad.Reader as Reader
 import           Data.Has (has)
 import           Data.IORef (IORef, newIORef, readIORef, modifyIORef)
 import           Data.MRUMemo (memoIO)
@@ -64,7 +63,7 @@ makeWidget getFont textRef mainLoopEnv =
         ltrTextEdit <- mkTextEdit textRef "Unfocused empty text" "Focused empty text" ltrId _1
         rtlTextEdit <-
             mkTextEdit textRef "ריק ולא בפוקוס" "ריק ובפוקוס" rtlId _2
-            <&> Reader.local (has .~ Dir.RightToLeft)
+            <&> (. (has .~ Dir.RightToLeft))
         env & (Aligned 1 . ltrTextEdit) /-/ (Aligned 1 . rtlTextEdit)
             & (^. Align.value)
             & M.weakerEvents (M.quitEventMap env)
