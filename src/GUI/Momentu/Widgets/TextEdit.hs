@@ -517,7 +517,7 @@ makeWithAnimId =
         env <- Lens.view id
         pure $ \emptyStr str animId myId ->
             do
-                let mkEmptyView color = mkView env animId ?? (TextView.color .~ color)
+                let mkEmptyView color = mkView env animId ?? TextView.color .~ color
                 let emptyColors = env ^. has . sEmptyStringsColors
                 let emptyViews = mkEmptyView <$> emptyColors <*> emptyStr
                 case get str myId of
