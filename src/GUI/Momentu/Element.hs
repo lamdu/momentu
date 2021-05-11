@@ -11,7 +11,6 @@ module GUI.Momentu.Element
     ) where
 
 import qualified Control.Lens as Lens
-import qualified Control.Monad.Reader as Reader
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Animation (AnimId, R, Size)
 import qualified GUI.Momentu.Animation as Anim
@@ -90,7 +89,7 @@ instance HasAnimIdPrefix [ByteString] where animIdPrefix = id
 
 locallyAugmented ::
     (HasAnimIdPrefix env, MonadReader env m, Show t) => t -> m a -> m a
-locallyAugmented x = Reader.local (animIdPrefix %~ Anim.augmentId x)
+locallyAugmented x = Lens.locally animIdPrefix (Anim.augmentId x)
 
 subAnimId :: (MonadReader env m, HasAnimIdPrefix env) => m (AnimId -> AnimId)
 subAnimId = Lens.view animIdPrefix <&> (++)

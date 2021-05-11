@@ -12,7 +12,6 @@ module GUI.Momentu.State
     ) where
 
 import qualified Control.Lens as Lens
-import qualified Control.Monad.Reader as Reader
 import           Data.Binary.Extended (decodeOrFail, encodeS)
 import           Data.ByteString.Extended as BS
 import qualified Data.Map as Map
@@ -88,7 +87,7 @@ assignCursor ::
     (HasCursor env, MonadReader env m) =>
     Id -> Id -> m a -> m a
 assignCursor src dest =
-    Reader.local (cursor %~ replace)
+    Lens.locally cursor replace
     where
         replace c
             | c == src = dest
@@ -98,7 +97,7 @@ assignCursorPrefix ::
     (HasCursor env, MonadReader env m) =>
     Id -> (AnimId -> Id) -> m a -> m a
 assignCursorPrefix srcFolder dest =
-    Reader.local (cursor %~ replace)
+    Lens.locally cursor replace
     where
         replace c = Id.subId srcFolder c & maybe c dest
 
