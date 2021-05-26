@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 75d8bd86cfb11a115ba1357255f1eef41bea69ecc6647b7f939ee1ce7688fd8a
+-- hash: ccb1829ad2a293df33f0e06657120b8aa6d29fc01832e148ea8608a64ab0b48f
 
 name:           momentu
 version:        0.1.0.0
@@ -160,6 +160,22 @@ executable hello-world
     , base-compat
     , lens
     , momentu
+  default-language: Haskell2010
+
+executable searchmenu
+  main-is: searchmenu.hs
+  other-modules:
+      Paths_momentu
+  hs-source-dirs:
+      examples
+  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
+  build-depends:
+      base >=4.12
+    , base-compat
+    , lens
+    , momentu
+    , text
   default-language: Haskell2010
 
 executable sys-info

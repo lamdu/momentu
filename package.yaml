@@ -120,3 +120,14 @@ executables:
     ghc-options:
     - -threaded
     - -Wno-partial-type-signatures
+  searchmenu:
+    main: searchmenu.hs
+    source-dirs: examples
+    dependencies:
+    - base-compat
+    - lens
+    - momentu
+    - text
+    ghc-options:
+    - -threaded
+    - -Wno-partial-type-signatures
