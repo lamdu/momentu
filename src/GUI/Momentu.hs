@@ -54,8 +54,8 @@ module GUI.Momentu
     , GLFWUtils.getVideoModeSize
     , GLFWUtils.withGLFW
 
-    , WindowMode(..)
-    , createWindow, GLFW.Window
+    , Window.WindowMode(..)
+    , createWindow, Window.Window
 
     -- | Main loop
     , Zoom, Zoom.getZoomFactor
@@ -65,6 +65,10 @@ module GUI.Momentu
 
     , DefaultEnv, defaultEnv
     , DefaultEnvWithCursor, defaultEnvWithCursor
+
+    , Setup.defaultSetup
+    , Setup.SetupOptions(..), Setup.setupWindowMode, Setup.setupLcdSubPixel, Setup.setupFontSize
+    , Setup.defaultSetupOptions
 
     -- | Basic types
     , Vector2(..)
@@ -83,12 +87,14 @@ import           GUI.Momentu.Glue ((/-/), (/|/), Glued)
 import qualified GUI.Momentu.Main as MainLoop
 import           GUI.Momentu.MetaKey (MetaKey(..))
 import qualified GUI.Momentu.MetaKey as MetaKey
+import qualified GUI.Momentu.Setup as Setup
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View)
 import qualified GUI.Momentu.View as View
 import           GUI.Momentu.Widget (Widget)
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.Spacer as Spacer
+import qualified GUI.Momentu.Window as Window
 import           GUI.Momentu.Zoom (Zoom)
 import qualified GUI.Momentu.Zoom as Zoom
 import qualified Graphics.UI.GLFW as GLFW
@@ -98,17 +104,8 @@ import           GUI.Momentu.Prelude
 
 type MainLoopEnv = MainLoop.Env
 
-data WindowMode = FullScreen | Maximized
-
-createWindow :: String -> WindowMode -> IO GLFW.Window
-createWindow title mode =
-    do
-        monitor <- GLFWUtils.getPrimaryMonitor
-        videoModeSize <- GLFWUtils.getVideoModeSize monitor
-        let createWin = GLFWUtils.createWindow title
-        case mode of
-            FullScreen -> createWin (Just monitor) videoModeSize
-            Maximized  -> createWin Nothing (videoModeSize - 1)
+createWindow :: String -> Window.WindowMode -> IO GLFW.Window
+createWindow = Window.create
 
 type WidgetId = Widget.Id
 pattern WidgetId :: AnimId -> Widget.Id

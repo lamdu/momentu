@@ -119,3 +119,4 @@ executables:
     - text
     ghc-options:
     - -threaded
+    - -Wno-partial-type-signatures

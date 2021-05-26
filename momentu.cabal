@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 968b862bccba00300e7030be6932e805faf2c2ffd32d38389b95a6d0eb76e23f
+-- hash: 75d8bd86cfb11a115ba1357255f1eef41bea69ecc6647b7f939ee1ce7688fd8a
 
 name:           momentu
 version:        0.1.0.0
@@ -75,6 +75,7 @@ library
       GUI.Momentu.Responsive.Options
       GUI.Momentu.Responsive.TaggedList
       GUI.Momentu.Scroll
+      GUI.Momentu.Setup
       GUI.Momentu.State
       GUI.Momentu.Test
       GUI.Momentu.View
@@ -97,6 +98,7 @@ library
       GUI.Momentu.Widgets.TextEdit
       GUI.Momentu.Widgets.TextEdit.Property
       GUI.Momentu.Widgets.TextView
+      GUI.Momentu.Window
       GUI.Momentu.Zoom
       Numeric.Extended
   other-modules:
@@ -181,7 +183,7 @@ executable textedit
   hs-source-dirs:
       examples
   default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
   build-depends:
       base >=4.12
     , base-compat

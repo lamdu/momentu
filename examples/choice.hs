@@ -5,7 +5,6 @@ module Main (main) where
 import           Control.Lens.Operators
 import qualified Data.IORef as IORef
 import           Data.IORef (IORef)
-import           Data.MRUMemo (memoIO)
 import qualified Data.Property as Property
 import           Data.Text (Text)
 import           GUI.Momentu ((/-/))
@@ -19,20 +18,9 @@ import           Prelude.Compat
 main :: IO ()
 main =
     do
-        win <- M.createWindow "Hello World" M.Maximized
         fontPath <- getDefaultFontPath
-        getFont <- memoIO (M.openFont M.LCDSubPixelEnabled ?? fontPath)
-        helpFont <- getFont 72
-        mainLoop <- M.mainLoopWidget
-        opts <- M.defaultOptions (M.defaultEnv helpFont)
         choiceRef <- IORef.newIORef "blue"
-        let handlers =
-                M.Handlers
-                { M.makeWidget = makeWidget choiceRef getFont
-                , M.options = opts
-                }
-        M.runMainLoop mainLoop win handlers
-    & M.withGLFW
+        M.defaultSetup "Choice" fontPath M.defaultSetupOptions (makeWidget choiceRef)
 
 colors :: [(Text, M.Color)]
 colors =
@@ -46,16 +34,9 @@ colors =
     , ("grey"  , M.Color 0.5 0.5 0.5 1)
     ]
 
-makeWidget ::
-    IORef Text -> (Float -> IO M.Font) -> M.MainLoopEnv ->
-    IO (M.Widget IO)
-makeWidget choiceRef getFont mainEnv =
+makeWidget :: IORef Text -> (Float -> IO M.Font) -> M.DefaultEnvWithCursor -> IO (M.Widget IO)
+makeWidget choiceRef _getFont env =
     do
-        sizeFactor <- M.getZoomFactor (mainEnv ^. M.eZoom)
-        font <- getFont (sizeFactor * 20)
-        let env = M.defaultEnvWithCursor (mainEnv ^. M.eState) font
-        let makeChoice (name, _color) =
-                (name, Label.makeFocusable name env)
         prop <- Property.fromIORef choiceRef ^. Property.mkProperty
         let choiceWidget =
                 Choice.make env prop (map makeChoice colors)
@@ -69,3 +50,5 @@ makeWidget choiceRef getFont mainEnv =
         (pure box /-/ pure choiceWidget) env
             & M.weakerEvents (M.quitEventMap env)
             & pure
+    where
+        makeChoice (name, _color) = (name, Label.makeFocusable name env)
