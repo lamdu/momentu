@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 75d8bd86cfb11a115ba1357255f1eef41bea69ecc6647b7f939ee1ce7688fd8a
+-- hash: 01d39a31a7cd339ac1b90313f7076e37dcebfcbd1844a51215dc3521b0ff1076
 
 name:           momentu
 version:        0.1.0.0
@@ -105,7 +105,17 @@ library
       Paths_momentu
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators NoImplicitPrelude
+  default-extensions:
+      OverloadedStrings
+      PartialTypeSignatures
+      LambdaCase
+      DeriveTraversable
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingStrategies
+      FlexibleContexts
+      TypeOperators
+      NoImplicitPrelude
   ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -O2
   build-depends:
       GLFW-b >=3.3.0.0 && <3.4
@@ -116,7 +126,7 @@ library
     , binary >=0.7
     , bytestring
     , containers >=0.4
-    , deepseq >=1.4 && <1.5
+    , deepseq ==1.4.*
     , generic-data >=0.7
     , graphics-drawingcombinators >=1.7.1
     , lens >=4.18
@@ -137,7 +147,16 @@ executable choice
       Paths_momentu
   hs-source-dirs:
       examples
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  default-extensions:
+      OverloadedStrings
+      PartialTypeSignatures
+      LambdaCase
+      DeriveTraversable
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingStrategies
+      FlexibleContexts
+      TypeOperators
   ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
   build-depends:
       base >=4.12
@@ -153,7 +172,16 @@ executable hello-world
       Paths_momentu
   hs-source-dirs:
       examples
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  default-extensions:
+      OverloadedStrings
+      PartialTypeSignatures
+      LambdaCase
+      DeriveTraversable
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingStrategies
+      FlexibleContexts
+      TypeOperators
   ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
   build-depends:
       base >=4.12
@@ -168,7 +196,16 @@ executable sys-info
       Paths_momentu
   hs-source-dirs:
       examples
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  default-extensions:
+      OverloadedStrings
+      PartialTypeSignatures
+      LambdaCase
+      DeriveTraversable
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingStrategies
+      FlexibleContexts
+      TypeOperators
   ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints
   build-depends:
       GLFW-b
@@ -182,7 +219,16 @@ executable textedit
       Paths_momentu
   hs-source-dirs:
       examples
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  default-extensions:
+      OverloadedStrings
+      PartialTypeSignatures
+      LambdaCase
+      DeriveTraversable
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingStrategies
+      FlexibleContexts
+      TypeOperators
   ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
   build-depends:
       base >=4.12
@@ -205,7 +251,17 @@ test-suite momentu-test
       Paths_momentu
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators NoImplicitPrelude
+  default-extensions:
+      OverloadedStrings
+      PartialTypeSignatures
+      LambdaCase
+      DeriveTraversable
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingStrategies
+      FlexibleContexts
+      TypeOperators
+      NoImplicitPrelude
   ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -O0
   build-depends:
       GLFW-b
