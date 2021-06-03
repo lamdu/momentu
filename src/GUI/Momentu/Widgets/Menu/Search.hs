@@ -9,7 +9,6 @@ module GUI.Momentu.Widgets.Menu.Search
     , defaultEmptyStrings
     , addPickFirstResultEvent
     , addSearchTermBgColor, addSearchTermEmptyColors
-    , addSearchTermStyle
     , addDelSearchTerm
     , searchTermEdit
 
@@ -170,8 +169,8 @@ defaultEmptyStrings :: TextEdit.EmptyStrings
 defaultEmptyStrings = TextEdit.Modes "  " "  "
 
 -- | Basic search term edit:
---   * no bg color / no Has TermStyle needed --> use addSearchTermStyle
---     to add it
+--   * no bg color --> use addSearchTermBgColor to add it
+--   * no empty colors --> use addSearchTermEmptyColors to add it
 --   * no pick of first result / no Has Menu.Config needed --> use
 --     addPickFirstResultEvent to add it
 basicSearchTermEdit ::
@@ -231,7 +230,7 @@ addDelSearchTerm myId =
 
 addSearchTermBgColor ::
     ( MonadReader env m, State.HasCursor env, Has TermStyle env, Functor f
-    ) => Id -> m (Term f -> Term f)
+    ) => Id -> m (TextWidget f -> TextWidget f)
 addSearchTermBgColor myId =
     do
         isActive <- State.isSubCursor ?? myId
@@ -239,7 +238,7 @@ addSearchTermBgColor myId =
             Lens.view
             (has . bgColors .
                 if isActive then TextEdit.focused else TextEdit.unfocused)
-        termWidget %~ Draw.backgroundColor bgAnimId bgColor & pure
+        Draw.backgroundColor bgAnimId bgColor & pure
     where
         bgAnimId = Widget.toAnimId myId <> ["hover background"]
 
@@ -252,15 +251,6 @@ addSearchTermEmptyColors act =
         colors <- Lens.view (has . emptyStringsColors)
         Reader.local (has . TextEdit.sEmptyStringsColors .~ colors) act
 
-addSearchTermStyle ::
-    ( MonadReader env m, Has TermStyle env, Has TextEdit.Style env
-    , Functor f, State.HasCursor env
-    ) =>
-    Widget.Id -> m (Term f) -> m (Term f)
-addSearchTermStyle myId act =
-    addSearchTermBgColor myId <*> act
-    & addSearchTermEmptyColors
-
 searchTermEdit ::
     ( MonadReader env m, Applicative f, Has TermStyle env
     , TextEdit.Deps env, Has Menu.Config env, State.HasState env
@@ -268,19 +258,25 @@ searchTermEdit ::
     ) =>
     Widget.Id -> (Text -> TermCtx Bool) -> Menu.PickFirstResult f -> m (Term f)
 searchTermEdit myId allowedSearchTerm mPickFirst =
-    Lens.view (has . emptyStrings)
-    >>= basicSearchTermEdit (searchTermEditId myId & Widget.toAnimId) myId allowedSearchTerm
-    & (addDelSearchTerm myId <*>)
-    & addSearchTermStyle myId
-    & (addPickFirstResultEvent myId mPickFirst <*>)
+    ( (.)
+        <$> addPickFirstResultEvent myId mPickFirst
+        <*> addSearchTermBgColor myId
+        <&> (termWidget %~)
+    )
+    <*>
+        ( Lens.view (has . emptyStrings)
+            >>= basicSearchTermEdit (searchTermEditId myId & Widget.toAnimId) myId allowedSearchTerm
+            & (addDelSearchTerm myId <*>)
+        )
+    & addSearchTermEmptyColors
 
 -- Add events on search term to pick the first result.
 addPickFirstResultEvent ::
     ( MonadReader env m, Has Menu.Config env, HasTexts env, HasState env
     , Applicative f
     ) =>
-    Id -> Menu.PickFirstResult f->
-    m (Term f -> Term f)
+    Id -> Menu.PickFirstResult f ->
+    m (TextWidget f -> TextWidget f)
 addPickFirstResultEvent myId mPickFirst =
     do
         pickEventMap <-
@@ -288,7 +284,7 @@ addPickFirstResultEvent myId mPickFirst =
             Menu.NoPickFirstResult -> emptyPickEventMap
             Menu.PickFirstResult pickFirst -> Menu.makePickEventMap ?? pickFirst
         searchTerm <- readSearchTerm myId
-        pure $ termWidget . Align.tValue %~
+        pure $ Align.tValue %~
             if Text.null searchTerm
             then Widget.weakerEvents pickEventMap
             else addPre . Widget.weakerEvents pickEventMap
