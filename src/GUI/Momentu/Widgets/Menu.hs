@@ -6,8 +6,7 @@ module GUI.Momentu.Widgets.Menu
     , Config(..), configStyle, configKeys
     , configLens
     , Submenu(..), _SubmenuEmpty, _SubmenuItems
-    , OptionList(..), _TooMany, _FullList, _Truncated
-        , olOptions, olIsTruncated, toOptionList
+    , OptionList(..), olOptions, olIsTruncated
     , PickResult(..), pickDest, pickMNextEntry
     , PickFirstResult(..)
     , RenderedOption(..), rWidget, rPick
@@ -189,10 +188,10 @@ makeNoResults ::
     , Has TextView.Style env
     , HasTexts env
     ) =>
-    m (WithTextPos View)
-makeNoResults =
+    Bool -> m (WithTextPos View)
+makeNoResults isTruncated =
     TextView.make
-    <*> Lens.view (has . noResults)
+    <*> (if isTruncated then pure "..." else Lens.view (has . noResults))
     <*> (Element.subAnimId ?? ["no results"])
 
 blockEvents ::
@@ -234,25 +233,11 @@ makeSubmenuSymbol isSelected =
             | isSelected = submenuSymbolColorSelected
             | otherwise = submenuSymbolColorUnselected
 
-data OptionList a
-    = TooMany -- e.g: Null search term
-    | FullList [a]
-    | Truncated [a]
-    deriving (Functor, Foldable, Traversable)
-Lens.makePrisms ''OptionList
-
-olOptions :: OptionList a -> [a]
-olOptions TooMany = []
-olOptions (FullList xs) = xs
-olOptions (Truncated xs) = xs
-
-olIsTruncated :: OptionList a -> Bool
-olIsTruncated Truncated {} = True
-olIsTruncated _ = False
-
-toOptionList :: [a] -> Bool -> OptionList a
-toOptionList xs False = FullList xs
-toOptionList xs True = Truncated xs
+data OptionList a = OptionList
+    { _olIsTruncated :: Bool
+    , _olOptions :: [a]
+    } deriving (Functor, Foldable, Traversable)
+Lens.makeLenses ''OptionList
 
 layoutOption ::
     ( MonadReader env m, Applicative f, Has (Texts Text) env
@@ -280,7 +265,7 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
                     anc <- Hover.anchor
                     hoverBeside <- Hover.hoverBesideOptionsAxis
                     (_, submenus) <-
-                        action <&> FullList
+                        action <&> OptionList False
                         >>= make (optionId `Widget.joinId` ["submenu"]) 0
                     let anchored = base & Align.tValue %~ anc
                     anchored
@@ -295,11 +280,8 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
         padToWidth w r = Element.padToSize ?? Vector2 w 0 ?? 0 ?? r
 
 instance Semigroup (OptionList a) where
-    TooMany <> y = y
-    x <> TooMany = x
-    Truncated xs <> y = Truncated (xs ++ olOptions y)
-    x <> Truncated ys = Truncated (olOptions x ++ ys)
-    FullList xs <> FullList ys = FullList (xs ++ ys)
+    OptionList xtrunc xopts <> OptionList ytrunc yopts =
+        OptionList (xtrunc || ytrunc) (xopts <> yopts)
 
 makePickEventMap ::
     (MonadReader env m, Has Config env, Has (Texts Text) env, Applicative f) =>
@@ -353,55 +335,48 @@ make ::
     ) =>
     Widget.Id -> Widget.R -> OptionList (Option m f) ->
     m (PickFirstResult f, Hover.Ordered (TextWidget f))
-make myId minWidth options =
-    case options of
-    TooMany -> pure (NoPickFirstResult, pure Element.empty)
-    Truncated [] -> error "empty truncated list of options is not supported"
-    FullList [] ->
-        (Widget.makeFocusableView ?? noResultsId myId <&> (Align.tValue %~))
-        <*> makeNoResults
-        <&> pure
-        <&> (,) NoPickFirstResult
-    Truncated opts -> makeOpts opts
-    FullList opts -> makeOpts opts
-    where
-        makeOpts opts =
-            do
-                submenuSymbolWidth <-
-                    TextView.drawText <*> Lens.view (has . submenuSymbol)
-                    <&> (^. TextView.renderedTextSize . TextView.bounding . _1)
-                let optionMinWidth (_, (_, w, submenu)) =
-                        w ^. Element.width +
-                        case submenu of
-                        SubmenuEmpty -> 0
-                        SubmenuItems {} -> submenuSymbolWidth
-                addPick <- addPickers
-                let render (Option optionId optRender submenu) =
-                        optRender <&>
-                        \r -> (r ^. rPick, (optionId, r ^. rWidget <&> addPick (r ^. rPick), submenu))
-                rendered <- traverse render opts
-                let mPickFirstResult = rendered ^? Lens.ix 0 . _1
-                let maxOptionWidth = rendered <&> optionMinWidth & maximum & max minWidth
-                laidOutOptions <-
-                    rendered
-                    <&> snd
-                    & traverse (layoutOption maxOptionWidth)
-                hiddenOptionsWidget <-
-                    if olIsTruncated options
-                    then Label.make "..." <&> Align.tValue %~ Widget.fromView
-                    else pure Element.empty
-                vbox <- Glue.vbox
-                env <- Lens.view id
-                pure
-                    ( maybe NoPickFirstResult PickFirstResult mPickFirstResult
-                    , (blockEvents env <&> (Align.tValue %~)) <*>
-                        ( Hover.Ordered
-                            { _forward = id
-                            , _backward = reverse
-                            } ?? laidOutOptions ++ [hiddenOptionsWidget]
-                            <&> vbox
-                        )
-                    )
+make myId _ (OptionList isTruncated []) =
+    (Widget.makeFocusableView ?? noResultsId myId <&> (Align.tValue %~))
+    <*> makeNoResults isTruncated
+    <&> pure
+    <&> (,) NoPickFirstResult
+make _ minWidth (OptionList isTruncated opts) =
+    do
+        submenuSymbolWidth <-
+            TextView.drawText <*> Lens.view (has . submenuSymbol)
+            <&> (^. TextView.renderedTextSize . TextView.bounding . _1)
+        let optionMinWidth (_, (_, w, submenu)) =
+                w ^. Element.width +
+                case submenu of
+                SubmenuEmpty -> 0
+                SubmenuItems {} -> submenuSymbolWidth
+        addPick <- addPickers
+        let render (Option optionId optRender submenu) =
+                optRender <&>
+                \r -> (r ^. rPick, (optionId, r ^. rWidget <&> addPick (r ^. rPick), submenu))
+        rendered <- traverse render opts
+        let mPickFirstResult = rendered ^? Lens.ix 0 . _1
+        let maxOptionWidth = rendered <&> optionMinWidth & maximum & max minWidth
+        laidOutOptions <-
+            rendered
+            <&> snd
+            & traverse (layoutOption maxOptionWidth)
+        hiddenOptionsWidget <-
+            if isTruncated
+            then Label.make "..." <&> Align.tValue %~ Widget.fromView
+            else pure Element.empty
+        vbox <- Glue.vbox
+        env <- Lens.view id
+        pure
+            ( maybe NoPickFirstResult PickFirstResult mPickFirstResult
+            , (blockEvents env <&> (Align.tValue %~)) <*>
+                ( Hover.Ordered
+                    { _forward = id
+                    , _backward = reverse
+                    } ?? laidOutOptions ++ [hiddenOptionsWidget]
+                    <&> vbox
+                )
+            )
 
 -- | You may want to limit the placement of hovering pop-up menus,
 -- so that they don't cover other ui elements.
