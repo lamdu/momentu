@@ -332,8 +332,8 @@ make makeSearchTerm makeOptions ann myId =
         (mPickFirst, makeMenu) <- Menu.makeHovered myId ann options
         makeSearchTerm mPickFirst
             <&> \term placement ->
-                term ^. termWidget <&> makeMenu placement
-                <&> Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap)
+                term ^. termWidget
+                <&> makeMenu placement (Align.tValue %~ Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap))
                 <&> Widget.enterResultCursor .~ myId
     & Reader.local (Element.animIdPrefix .~ toAnimId myId)
     & assignCursor myId (options ^.. traverse . Menu.oId)
