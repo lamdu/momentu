@@ -229,7 +229,7 @@ executable textedit
       DerivingStrategies
       FlexibleContexts
       TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
   build-depends:
       base >=4.12
     , base-compat
