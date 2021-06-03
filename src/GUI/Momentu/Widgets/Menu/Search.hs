@@ -14,6 +14,7 @@ module GUI.Momentu.Widgets.Menu.Search
     , searchTermEdit
 
     , TermStyle(..), bgColors, emptyStrings, emptyStringsColors
+        , defaultTermStyle
     , enterWithSearchTerm
     , Term(..), termWidget, termEditEventMap
 
@@ -98,6 +99,25 @@ data TermStyle = TermStyle
     , _emptyStringsColors :: TextEdit.Modes Draw.Color
     } deriving (Eq, Show)
 JsonTH.derivePrefixed "_"''TermStyle
+
+defaultTermStyle :: TermStyle
+defaultTermStyle = TermStyle
+    { _bgColors =
+        TextEdit.Modes
+        { TextEdit._unfocused = Draw.Color 0.25 0.28 0.50 1.0
+        , TextEdit._focused   = Draw.Color 0.30 0.50 0.25 1.0
+        }
+    , _emptyStrings =
+        TextEdit.Modes
+        { TextEdit._unfocused = "?"
+        , TextEdit._focused   = "_"
+        }
+    , _emptyStringsColors =
+        TextEdit.Modes
+        { TextEdit._focused   = Draw.Color 0.7 0.7 0.7 1.0
+        , TextEdit._unfocused = Draw.Color 1.0 1.0 1.0 1.0
+        }
+    }
 
 Lens.makeLenses ''TermStyle
 
