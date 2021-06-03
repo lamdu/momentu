@@ -461,14 +461,14 @@ makeHovered ::
     OptionList (Option m f) ->
     m
     ( PickFirstResult f
-    , Placement -> Widget f -> Widget f
+    , Placement -> (TextWidget f -> TextWidget f) -> Widget f -> Widget f
     )
 makeHovered myId ann options =
     do
         mkHoverOptions <- hoverOptions
         anc <- Hover.anchor
         make myId (ann ^. Element.width) options
-            <&> _2 %~ \menu placement term ->
+            <&> _2 %~ \menu placement postProc term ->
                 let a = anc term
                 in
-                Hover.hoverInPlaceOf (mkHoverOptions placement ann menu a) a
+                Hover.hoverInPlaceOf (mkHoverOptions placement ann (menu <&> postProc) a) a
