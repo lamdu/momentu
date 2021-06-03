@@ -259,16 +259,16 @@ searchTermEdit ::
     , HasTexts env
     ) =>
     Widget.Id -> (Text -> TermCtx Bool) -> Menu.PickFirstResult f -> m (Term f)
-searchTermEdit myId allowedSearchTerm mPickFirst =
+searchTermEdit menuId allowedSearchTerm mPickFirst =
     ( (.)
-        <$> addPickFirstResultEvent myId mPickFirst
-        <*> addSearchTermBgColor myId
+        <$> addPickFirstResultEvent menuId mPickFirst
+        <*> addSearchTermBgColor menuId
         <&> (termWidget %~)
     )
     <*>
         ( Lens.view (has . emptyStrings)
-            >>= basicSearchTermEdit (searchTermEditId myId & Widget.toAnimId) myId allowedSearchTerm
-            & (addDelSearchTerm myId <*>)
+            >>= basicSearchTermEdit (searchTermEditId menuId & Widget.toAnimId) menuId allowedSearchTerm
+            & (addDelSearchTerm menuId <*>)
         )
     & addSearchTermEmptyColors
 
@@ -279,13 +279,13 @@ addPickFirstResultEvent ::
     ) =>
     Id -> Menu.PickFirstResult f ->
     m (TextWidget f -> TextWidget f)
-addPickFirstResultEvent myId mPickFirst =
+addPickFirstResultEvent menuId mPickFirst =
     do
         pickEventMap <-
             case mPickFirst of
             Menu.NoPickFirstResult -> emptyPickEventMap
             Menu.PickFirstResult pickFirst -> Menu.makePickEventMap ?? pickFirst
-        searchTerm <- readSearchTerm myId
+        searchTerm <- readSearchTerm menuId
         pure $ Align.tValue %~
             if Text.null searchTerm
             then Widget.weakerEvents pickEventMap
