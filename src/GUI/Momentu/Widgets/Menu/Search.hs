@@ -215,15 +215,15 @@ searchTermDoc env subtitle =
 addDelSearchTerm ::
     (MonadReader env m, State.HasState env, HasTexts env, Applicative f) =>
     Id -> m (Term f -> Term f)
-addDelSearchTerm myId =
+addDelSearchTerm menuId =
     Lens.view id
     <&>
     \env term ->
-    let searchTerm = readSearchTerm myId env
+    let searchTerm = readSearchTerm menuId env
         delSearchTerm
             | Text.null searchTerm = mempty
             | otherwise =
-                enterWithSearchTerm "" myId & pure
+                enterWithSearchTerm "" menuId & pure
                 & E.keyPress (toModKey (MetaKey noMods MetaKey.Key'Escape))
                 (searchTermDoc env (has . MomentuTexts.delete))
     in  term
@@ -233,16 +233,16 @@ addDelSearchTerm myId =
 addSearchTermBgColor ::
     ( MonadReader env m, State.HasCursor env, Has TermStyle env, Functor f
     ) => Id -> m (TextWidget f -> TextWidget f)
-addSearchTermBgColor myId =
+addSearchTermBgColor menuId =
     do
-        isActive <- State.isSubCursor ?? myId
+        isActive <- State.isSubCursor ?? menuId
         bgColor <-
             Lens.view
             (has . bgColors .
                 if isActive then TextEdit.focused else TextEdit.unfocused)
         Draw.backgroundColor bgAnimId bgColor & pure
     where
-        bgAnimId = Widget.toAnimId myId <> ["hover background"]
+        bgAnimId = Widget.toAnimId menuId <> ["hover background"]
 
 addSearchTermEmptyColors ::
     ( MonadReader env m, Has TermStyle env, Has TextEdit.Style env
@@ -259,16 +259,16 @@ searchTermEdit ::
     , HasTexts env
     ) =>
     Widget.Id -> (Text -> TermCtx Bool) -> Menu.PickFirstResult f -> m (Term f)
-searchTermEdit myId allowedSearchTerm mPickFirst =
+searchTermEdit menuId allowedSearchTerm mPickFirst =
     ( (.)
         <$> addPickFirstResultEvent mPickFirst
-        <*> addSearchTermBgColor myId
+        <*> addSearchTermBgColor menuId
         <&> (termWidget %~)
     )
     <*>
         ( Lens.view (has . emptyStrings)
-            >>= basicSearchTermEdit (searchTermEditId myId & Widget.toAnimId) myId allowedSearchTerm
-            & (addDelSearchTerm myId <*>)
+            >>= basicSearchTermEdit (searchTermEditId menuId & Widget.toAnimId) menuId allowedSearchTerm
+            & (addDelSearchTerm menuId <*>)
         )
     & addSearchTermEmptyColors
 
@@ -286,9 +286,9 @@ addPickFirstResultEvent mPickFirst =
 assignCursor ::
     (MonadReader env m, HasState env) =>
     Id -> [Id] -> m a -> m a
-assignCursor myId resultIds action =
+assignCursor menuId resultIds action =
     do
-        searchTerm <- readSearchTerm myId
+        searchTerm <- readSearchTerm menuId
         let destId
                 | Text.null searchTerm =
                     -- When entering a hole with an empty search string
@@ -296,29 +296,29 @@ assignCursor myId resultIds action =
                     -- cursor should be on the search-string and not on a result
                     -- so that operators pressed will set the search string
                     -- rather than apply on the first result.
-                    searchTermEditId myId
+                    searchTermEditId menuId
                 | otherwise =
                       resultIds ^? Lens.traverse
-                      & fromMaybe (Menu.noResultsId myId)
+                      & fromMaybe (Menu.noResultsId menuId)
 
         -- Results appear and disappear when the search-string changes,
         -- but the cursor prefix signifies whether we should be on a result.
         -- When that is the case but is not currently on any of the existing results
         -- the cursor will be sent to the default one.
-        shouldBeOnResult <- sub (resultsIdPrefix myId)
+        shouldBeOnResult <- sub (resultsIdPrefix menuId)
         isOnResult <- traverse sub resultIds <&> or
 
         action
             & if shouldBeOnResult && not isOnResult
             then Reader.local (State.cursor .~ destId)
-            else State.assignCursor myId destId
+            else State.assignCursor menuId destId
     where
         sub x = State.isSubCursor ?? x
 
 enterWithSearchTerm :: Text -> Id -> State.Update
-enterWithSearchTerm searchTerm myId =
-    State.updateCursor myId
-    <> State.updateWidgetState myId searchTerm
+enterWithSearchTerm searchTerm menuId =
+    State.updateCursor menuId
+    <> State.updateWidgetState menuId searchTerm
 
 make ::
     ( MonadReader env m, Applicative f, HasState env, Has Menu.Config env
@@ -329,27 +329,27 @@ make ::
     (ResultsContext -> m (Menu.OptionList (Menu.Option m f))) ->
     View -> Id ->
     m (Menu.Placement -> TextWidget f)
-make makeSearchTerm makeOptions ann myId =
-    readSearchTerm myId <&> (`ResultsContext` resultsIdPrefix myId)
+make makeSearchTerm makeOptions ann menuId =
+    readSearchTerm menuId <&> (`ResultsContext` resultsIdPrefix menuId)
     >>= makeOptions
     >>=
     \options ->
     do
-        (mPickFirst, makeMenu) <- Menu.makeHovered myId ann options
+        (mPickFirst, makeMenu) <- Menu.makeHovered menuId ann options
         makeSearchTerm mPickFirst
             <&> \term placement ->
                 term ^. termWidget
                 <&> makeMenu placement (Align.tValue %~ Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap))
-                <&> Widget.enterResultCursor .~ myId
-    & Reader.local (Element.animIdPrefix .~ toAnimId myId)
-    & assignCursor myId (options ^.. traverse . Menu.oId)
+                <&> Widget.enterResultCursor .~ menuId
+    & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
+    & assignCursor menuId (options ^.. traverse . Menu.oId)
 
 searchTermEditEventMap ::
     (Applicative f, HasTexts env) =>
     env -> Id -> (Text -> Bool) -> Text -> EventMap (f State.Update)
-searchTermEditEventMap env myId allowedTerms searchTerm =
+searchTermEditEventMap env menuId allowedTerms searchTerm =
     appendCharEventMap <> deleteCharEventMap
-    <&> State.updateWidgetState myId
+    <&> State.updateWidgetState menuId
     <&> pure
     where
         appendCharEventMap =
