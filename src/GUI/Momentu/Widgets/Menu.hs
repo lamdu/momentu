@@ -4,6 +4,7 @@ module GUI.Momentu.Widgets.Menu
     ( Style(..), submenuSymbolColorUnselected, submenuSymbolColorSelected
     , Keys(..), keysPickOption, keysPickOptionAndGotoNext
     , Config(..), configStyle, configKeys
+    , defaultStyle, defaultKeys, defaultConfig
     , configLens
     , Submenu(..), _SubmenuEmpty, _SubmenuItems
     , OptionList(..), olOptions, olIsTruncated
@@ -36,7 +37,7 @@ import qualified GUI.Momentu.Glue as Glue
 import           GUI.Momentu.Hover (Hover)
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
-import           GUI.Momentu.MetaKey (MetaKey)
+import           GUI.Momentu.MetaKey (MetaKey(..), noMods)
 import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.State as State
@@ -92,6 +93,21 @@ data Config = Config
 JsonTH.derivePrefixed "_" ''Config
 
 Lens.makeLenses ''Config
+
+defaultStyle :: Style
+defaultStyle = Style
+    { _submenuSymbolColorUnselected = Draw.Color 1 1 1 0.3
+    , _submenuSymbolColorSelected = Draw.Color 1 1 1 1
+    }
+
+defaultKeys :: Keys
+defaultKeys = Keys
+    { _keysPickOption = [MetaKey noMods MetaKey.Key'Enter]
+    , _keysPickOptionAndGotoNext = [MetaKey noMods MetaKey.Key'Tab]
+    }
+
+defaultConfig :: Config
+defaultConfig = Config defaultStyle defaultKeys
 
 configLens ::
     Functor f =>

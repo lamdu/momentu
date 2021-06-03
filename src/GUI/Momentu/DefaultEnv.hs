@@ -14,6 +14,8 @@ import qualified GUI.Momentu.Main as Main
 import           GUI.Momentu.State (HasCursor, GUIState)
 import qualified GUI.Momentu.Widgets.Choice as Choice
 import qualified GUI.Momentu.Widgets.EventMapHelp as EventMapHelp
+import qualified GUI.Momentu.Widgets.Menu as Menu
+import qualified GUI.Momentu.Widgets.Menu.Search as SearchMenu
 import qualified GUI.Momentu.Widgets.TextEdit as TextEdit
 import qualified GUI.Momentu.Widgets.TextView as TextView
 import qualified GUI.Momentu.Zoom as Zoom
@@ -28,6 +30,10 @@ data DefaultEnvG guiState = DefaultEnv
     , _textEditTexts :: TextEdit.Texts Text
     , _directionTexts :: Direction.Texts Text
     , _directionLayout :: Direction.Layout
+    , _menuTexts :: Menu.Texts Text
+    , _menuConfig :: Menu.Config
+    , _searchMenuTexts :: SearchMenu.Texts Text
+    , _searchMenuStyle :: SearchMenu.TermStyle
     , _zoomTexts :: Zoom.Texts Text
     , _eventMapTexts :: EventMap.Texts Text
     , _glueTexts :: Glue.Texts Text
@@ -54,6 +60,10 @@ defaultEnv font = DefaultEnv
     , _textEditTexts = TextEdit.englishTexts
     , _directionTexts = Direction.englishTexts
     , _directionLayout = Direction.LeftToRight
+    , _menuTexts = Menu.englishTexts
+    , _searchMenuTexts = SearchMenu.englishTexts
+    , _searchMenuStyle = SearchMenu.defaultTermStyle
+    , _menuConfig = Menu.defaultConfig
     , _zoomTexts = Zoom.englishTexts
     , _eventMapTexts = EventMap.englishTexts
     , _glueTexts = Glue.englishTexts
@@ -78,13 +88,18 @@ instance Has (EventMapHelp.Texts Text) (DefaultEnvG a) where has = helpTexts
 instance Has (Glue.Texts Text)         (DefaultEnvG a) where has = glueTexts
 instance Has (I18N.Texts Text)         (DefaultEnvG a) where has = commonTexts
 instance Has (Main.Texts Text)         (DefaultEnvG a) where has = mainTexts
+instance Has (Menu.Texts Text)         (DefaultEnvG a) where has = menuTexts
+instance Has (SearchMenu.Texts Text)   (DefaultEnvG a) where has = searchMenuTexts
 instance Has (TextEdit.Texts Text)     (DefaultEnvG a) where has = textEditTexts
 instance Has (Zoom.Texts Text)         (DefaultEnvG a) where has = zoomTexts
 instance Has Direction.Layout          (DefaultEnvG a) where has = directionLayout
 instance Has EventMapHelp.Config       (DefaultEnvG a) where has = helpConfig
 instance Has EventMapHelp.Style        (DefaultEnvG a) where has = helpStyle
 instance Has Hover.Style               (DefaultEnvG a) where has = hoverStyle
+instance Has Menu.Config               (DefaultEnvG a) where has = menuConfig
+instance Has SearchMenu.TermStyle      (DefaultEnvG a) where has = searchMenuStyle
 instance Has TextEdit.Style            (DefaultEnvG a) where has = textEditStyle
 instance Has TextView.Style            (DefaultEnvG a) where has = textViewStyle
+
 instance Has GUIState                  DefaultEnvWithCursor where has = guiState
 instance HasCursor                     DefaultEnvWithCursor
