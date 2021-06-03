@@ -20,6 +20,8 @@ module GUI.Momentu.Widgets.Menu.Search
     , TermCtx(..), tcTextEdit, tcAdHoc
     , AllowedSearchTerm
 
+    , Menu.Placement(..)
+    , Menu.OptionList(..)
     , make
 
     -- temporary exports that will be removed when transition of HoleEdit
