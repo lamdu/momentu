@@ -151,7 +151,7 @@ defaultOptions env =
                     \_zoom size widget ->
                     helpProp ^. Property.mkProperty <&>
                     \prop -> EventMapHelp.toggledHelpAdder env prop size widget
-                , _cInvalidCursorOverlayColor = pure (Draw.Color 1.0 0 0 0.1)
+                , _cInvalidCursorOverlayColor = pure (Draw.Color 1.0 0 0 0.3)
                 }
             , stateStorage = stateStorage_
             , debug = defaultDebugOptions
