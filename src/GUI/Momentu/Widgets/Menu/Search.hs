@@ -24,8 +24,6 @@ module GUI.Momentu.Widgets.Menu.Search
     , Menu.OptionList(..)
     , make
 
-    -- temporary exports that will be removed when transition of HoleEdit
-    -- to Menu.Search is complete
     , readSearchTerm
 
     , Texts(..)
@@ -179,32 +177,32 @@ basicSearchTermEdit ::
     , TextEdit.Deps env, HasState env
     ) =>
     AnimId -> Id -> AllowedSearchTerm -> TextEdit.EmptyStrings -> m (Term f)
-basicSearchTermEdit searchTermId holeId rawAllowedSearchTerm textEditEmpty =
+basicSearchTermEdit searchTermId menuId rawAllowedSearchTerm textEditEmpty =
     do
-        searchTerm <- readSearchTerm holeId
+        searchTerm <- readSearchTerm menuId
         let onEvents (newSearchTerm, eventRes)
                 | newSearchTerm == searchTerm = eventRes
                 | otherwise =
                     eventRes
-                    <> State.updateWidgetState holeId newSearchTerm
+                    <> State.updateWidgetState menuId newSearchTerm
                     -- When first letter is typed in search term, jump to the
                     -- results, which will go to first result:
                     & if Text.null searchTerm
                         then
                             State.uCursor .~
-                            Just (resultsIdPrefix holeId) ^. Lens._Unwrapped
+                            Just (resultsIdPrefix menuId) ^. Lens._Unwrapped
                         else id
         widget <-
-            TextEdit.makeWithAnimId ?? textEditEmpty ?? searchTerm ?? searchTermId ?? searchTermEditId holeId
+            TextEdit.makeWithAnimId ?? textEditEmpty ?? searchTerm ?? searchTermId ?? searchTermEditId menuId
             <&> Align.tValue . Widget.eventMapMaker . Lens.mapped %~
                 E.filter (_tcTextEdit . allowedSearchTerm . fst)
             <&> Align.tValue . Widget.updates %~ pure . onEvents
-            <&> Align.tValue %~ Widget.takesStroll holeId
+            <&> Align.tValue %~ Widget.takesStroll menuId
         env <- Lens.view id
         pure Term
             { _termWidget = widget
             , _termEditEventMap =
-                searchTermEditEventMap env holeId (_tcAdHoc . allowedSearchTerm) searchTerm
+                searchTermEditEventMap env menuId (_tcAdHoc . allowedSearchTerm) searchTerm
             }
     where
         allowedSearchTerm text
@@ -294,7 +292,7 @@ assignCursor menuId resultIds action =
         searchTerm <- readSearchTerm menuId
         let destId
                 | Text.null searchTerm =
-                    -- When entering a hole with an empty search string
+                    -- When entering a menu with an empty search string
                     -- (Like after typing "factorial x="),
                     -- cursor should be on the search-string and not on a result
                     -- so that operators pressed will set the search string
