@@ -8,10 +8,13 @@ module GUI.Momentu.Setup
 import qualified Control.Lens as Lens
 import           Data.MRUMemo (memoIO)
 import           GUI.Momentu.DefaultEnv (defaultEnv, DefaultEnvWithCursor, defaultEnvWithCursor)
+import qualified GUI.Momentu.EventMap as EventMap
 import           GUI.Momentu.Font (Font)
 import qualified GUI.Momentu.Font as Font
 import qualified GUI.Momentu.Main as Main
+import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.Widget (Widget(..))
+import qualified GUI.Momentu.Widget as Widget
 import           GUI.Momentu.Window (WindowMode(..))
 import qualified GUI.Momentu.Window as Window
 import qualified GUI.Momentu.Zoom as Zoom
@@ -55,3 +58,7 @@ defaultMakeWidget getFont makeWidget mainLoopEnv =
         sizeFactor <- Zoom.getZoomFactor (mainLoopEnv ^. Main.eZoom)
         font <- getFont sizeFactor
         makeWidget getFont (defaultEnvWithCursor (mainLoopEnv ^. Main.eState) font)
+            <&> Widget.weakerEvents (EventMap.keysEventMap quitKeys quitDoc (error "Quit"))
+    where
+        quitKeys = [MetaKey.cmd MetaKey.Key'Q]
+        quitDoc = EventMap.Doc ["Quit"]
