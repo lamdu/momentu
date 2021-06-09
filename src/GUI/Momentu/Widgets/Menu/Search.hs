@@ -180,7 +180,7 @@ basicSearchTermEdit ::
     , TextEdit.Deps env, HasState env
     ) =>
     AnimId -> Id -> AllowedSearchTerm -> TextEdit.EmptyStrings -> m (Term f)
-basicSearchTermEdit searchTermId holeId allowedSearchTerm textEditEmpty =
+basicSearchTermEdit searchTermId holeId rawAllowedSearchTerm textEditEmpty =
     do
         searchTerm <- readSearchTerm holeId
         let onEvents (newSearchTerm, eventRes)
@@ -207,6 +207,10 @@ basicSearchTermEdit searchTermId holeId allowedSearchTerm textEditEmpty =
             , _termEditEventMap =
                 searchTermEditEventMap env holeId (_tcAdHoc . allowedSearchTerm) searchTerm
             }
+    where
+        allowedSearchTerm text
+            | "\n" `Text.isInfixOf` text = pure False
+            | otherwise = rawAllowedSearchTerm text
 
 searchTermDoc :: HasTexts env => env -> Lens.ALens' env Text -> E.Doc
 searchTermDoc env subtitle =
