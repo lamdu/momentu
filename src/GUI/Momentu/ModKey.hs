@@ -32,7 +32,7 @@ data ModifierKeys = ModifierKeys
 Lens.makeLenses ''ModifierKeys
 
 fromGLFWModifiers :: GLFW.ModifierKeys -> ModifierKeys
-fromGLFWModifiers mods = 
+fromGLFWModifiers mods =
     ModifierKeys
     { _mControl = GLFW.modifierKeysControl mods
     , _mAlt = GLFW.modifierKeysAlt mods
