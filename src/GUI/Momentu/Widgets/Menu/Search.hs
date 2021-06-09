@@ -50,7 +50,6 @@ import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
-import qualified GUI.Momentu.I18N as Texts
 import           GUI.Momentu.MetaKey (MetaKey(..), toModKey, noMods)
 import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.ModKey (ModKey(..))
@@ -84,7 +83,7 @@ englishTexts = Texts
 
 type HasTexts env =
     ( Has (Menu.Texts Text) env, Has (Texts Text) env
-    , Has (Texts.Texts Text) env
+    , Has (MomentuTexts.Texts Text) env
     )
 
 -- | Context necessary for creation of menu items for a search.
