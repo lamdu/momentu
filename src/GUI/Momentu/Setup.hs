@@ -8,11 +8,9 @@ module GUI.Momentu.Setup
 import qualified Control.Lens as Lens
 import           Data.MRUMemo (memoIO)
 import           GUI.Momentu.DefaultEnv (defaultEnv, DefaultEnvWithCursor, defaultEnvWithCursor)
-import qualified GUI.Momentu.EventMap as EventMap
 import           GUI.Momentu.Font (Font)
 import qualified GUI.Momentu.Font as Font
 import qualified GUI.Momentu.Main as Main
-import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.Widget (Widget(..))
 import qualified GUI.Momentu.Widget as Widget
 import           GUI.Momentu.Window (WindowMode(..))
@@ -36,7 +34,7 @@ defaultSetupOptions = SetupOptions
     , _setupFontSize = 24
     }
 
-type MakeWidget = ((Float -> IO Font) -> DefaultEnvWithCursor -> IO (Widget IO))
+type MakeWidget = (Float -> IO Font) -> DefaultEnvWithCursor -> IO (Widget IO)
 
 defaultSetup :: String -> FilePath -> SetupOptions -> MakeWidget -> IO ()
 defaultSetup title fontPath options makeWidget =
@@ -45,9 +43,12 @@ defaultSetup title fontPath options makeWidget =
         cachedOpenFont <- memoIO (Font.openFont (options ^. setupLcdSubPixel) ?? fontPath)
         let cachedOpenFontBySizeFactor = cachedOpenFont . (* options ^. setupFontSize)
         mainLoop <- Main.mainLoopWidget
-        opts <- cachedOpenFontBySizeFactor 1 <&> defaultEnv >>= Main.defaultOptions
+        env <- cachedOpenFontBySizeFactor 1 <&> defaultEnv
+        opts <- Main.defaultOptions env
         Main.run mainLoop win Main.Handlers
-            { Main.makeWidget = defaultMakeWidget cachedOpenFontBySizeFactor makeWidget
+            { Main.makeWidget =
+                defaultMakeWidget cachedOpenFontBySizeFactor makeWidget
+                <&> Lens.mapped %~ Widget.weakerEvents (Main.quitEventMap env)
             , Main.options = opts
             }
         & withGLFW
@@ -58,7 +59,3 @@ defaultMakeWidget getFont makeWidget mainLoopEnv =
         sizeFactor <- Zoom.getZoomFactor (mainLoopEnv ^. Main.eZoom)
         font <- getFont sizeFactor
         makeWidget getFont (defaultEnvWithCursor (mainLoopEnv ^. Main.eState) font)
-            <&> Widget.weakerEvents (EventMap.keysEventMap quitKeys quitDoc (error "Quit"))
-    where
-        quitKeys = [MetaKey.cmd MetaKey.Key'Q]
-        quitDoc = EventMap.Doc ["Quit"]
