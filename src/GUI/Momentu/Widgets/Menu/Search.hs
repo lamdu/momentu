@@ -29,6 +29,7 @@ module GUI.Momentu.Widgets.Menu.Search
     , Texts(..)
         , textPickNotApplicable, textSearchTerm
         , textAppendChar, textDeleteBackwards
+        , textOpenResults, textCloseResults
     , englishTexts
 
     , HasTexts
@@ -48,7 +49,7 @@ import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
-import           GUI.Momentu.MetaKey (toModKey)
+import           GUI.Momentu.MetaKey (MetaKey(..), toModKey)
 import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.ModKey (ModKey(..))
 import           GUI.Momentu.State (HasState)
@@ -62,11 +63,20 @@ import qualified GUI.Momentu.Widgets.TextView as TextView
 
 import           GUI.Momentu.Prelude
 
+data WidgetState = WidgetState
+    { _wSearchTermText :: !Text
+    , __wIsOpen :: !Bool
+    } deriving (Generic, Show)
+Lens.makeLenses ''WidgetState
+instance Binary WidgetState
+
 data Texts a = Texts
     { _textPickNotApplicable :: a
     , _textSearchTerm :: a
     , _textAppendChar :: a
     , _textDeleteBackwards :: a
+    , _textOpenResults :: a
+    , _textCloseResults :: a
     } deriving Eq
 Lens.makeLenses ''Texts
 JsonTH.derivePrefixed "_text" ''Texts
@@ -77,6 +87,8 @@ englishTexts = Texts
     , _textSearchTerm = "Search Term"
     , _textAppendChar = "Append character"
     , _textDeleteBackwards = "Delete backwards"
+    , _textOpenResults = "Open results"
+    , _textCloseResults = "Close results"
     }
 
 type HasTexts env =
@@ -161,8 +173,14 @@ resultsIdPrefix = (`joinId` ["Results"])
 searchTermEditId :: Id -> Id
 searchTermEditId = (`joinId` ["SearchTerm"])
 
+readState :: (MonadReader env m, HasState env) => Id -> m WidgetState
+readState menuId = State.readWidgetState menuId <&> fromMaybe (WidgetState "" False)
+
+updateWidgetState :: Id -> WidgetState -> State.Update
+updateWidgetState = State.updateWidgetState
+
 readSearchTerm :: (MonadReader env m, HasState env) => Id -> m Text
-readSearchTerm x = State.readWidgetState x <&> fromMaybe ""
+readSearchTerm = readState <&> Lens.mapped %~ (^. wSearchTermText)
 
 defaultEmptyStrings :: TextEdit.EmptyStrings
 defaultEmptyStrings = TextEdit.Modes "  " "  "
@@ -184,7 +202,7 @@ basicSearchTermEdit searchTermId menuId rawAllowedSearchTerm textEditEmpty =
                 | newSearchTerm == searchTerm = eventRes
                 | otherwise =
                     eventRes
-                    <> State.updateWidgetState menuId newSearchTerm
+                    <> updateWidgetState menuId (WidgetState newSearchTerm True)
                     -- When first letter is typed in search term, jump to the
                     -- results, which will go to first result:
                     & if Text.null searchTerm
@@ -230,6 +248,9 @@ addDelSearchTerm menuId =
     in  term
         & termWidget . Align.tValue %~ Widget.weakerEventsWithoutPreevents delSearchTerm
         & termEditEventMap <>~ delSearchTerm
+
+viewDoc :: HasTexts env => env -> Lens.ALens' env Text -> E.Doc
+viewDoc env subtitle = E.toDoc env [has . MomentuTexts.view, subtitle]
 
 addSearchTermBgColor ::
     ( MonadReader env m, State.HasCursor env, Has TermStyle env, Functor f
@@ -319,40 +340,63 @@ assignCursor menuId resultIds action =
 enterWithSearchTerm :: Text -> Id -> State.Update
 enterWithSearchTerm searchTerm menuId =
     State.updateCursor menuId
-    <> State.updateWidgetState menuId searchTerm
+    <> updateWidgetState menuId (WidgetState searchTerm True)
 
 make ::
     ( MonadReader env m, Applicative f, HasState env, Has Menu.Config env
     , Has TextView.Style env, Has Hover.Style env, Element.HasAnimIdPrefix env
-    , Has (Menu.Texts Text) env, Glue.HasTexts env
+    , HasTexts env, Glue.HasTexts env
     ) =>
     (Menu.PickFirstResult f -> m (Term f)) ->
     (ResultsContext -> m (Menu.OptionList (Menu.Option m f))) ->
     View -> Id ->
     m (Menu.Placement -> TextWidget f)
 make makeSearchTerm makeOptions ann menuId =
-    readSearchTerm menuId <&> (`ResultsContext` resultsIdPrefix menuId)
-    >>= makeOptions
-    >>=
-    \options ->
     do
+        WidgetState searchTerm isOpen <- readState menuId
+
+        env <- Lens.view id
+        let setIsOpen x = updateWidgetState menuId . WidgetState searchTerm $ x
+        let closeEventMap goto =
+                setIsOpen False <> goto
+                & pure & E.keyPress closeKey (viewDoc env (has . textCloseResults))
+        let openEventMap =
+                setIsOpen True & pure & E.keyPress openKey (viewDoc env (has . textOpenResults))
+
         isSelected <- State.isSubCursor ?? menuId
-        (mPickFirst, toMenu) <-
+        (mPickFirst, toMenu, assignTheCursor) <-
             if isSelected
-            then
-                Menu.makeHovered menuId ann options
-                <&> _2 %~ \makeMenu term placement ->
-                makeMenu placement
-                (Align.tValue %~ Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap))
-                <&> assertFocused
+            then if isOpen
+                then do
+                    options <-
+                        ResultsContext searchTerm (resultsIdPrefix menuId) & makeOptions
+                    let assignTheCursor = assignCursor menuId (options ^.. traverse . Menu.oId)
+                    (mPickFirst, makeMenu) <- Menu.makeHovered menuId ann options & assignTheCursor
+                    let makeTheMenu term placement =
+                            Widget.weakerEvents (closeEventMap mempty)
+                            <&> makeMenu placement
+                            ( Align.tValue %~
+                                Widget.weakerEvents (closeEventMap gotoSearchTerm) .
+                                Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap)
+                            ) <&> assertFocused
+                    pure (mPickFirst, makeTheMenu, assignTheCursor)
+                else
+                    pure
+                    ( Menu.NoPickFirstResult
+                    , (const . const . Widget.strongerEvents) openEventMap
+                    , assignCursor menuId []
+                    )
             else
-                pure (Menu.NoPickFirstResult, const (const id))
+                pure (Menu.NoPickFirstResult, const (const id), assignCursor menuId [])
         makeSearchTerm mPickFirst
-            <&> \term placement -> term ^. termWidget <&> toMenu term placement
-        <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
-        & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
-        & assignCursor menuId (options ^.. traverse . Menu.oId)
+            <&> (\term placement -> term ^. termWidget & Align.tValue %~ toMenu term placement)
+            <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
+            & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
+            & assignTheCursor
     where
+        gotoSearchTerm = searchTermEditId menuId & State.updateCursor
+        closeKey = MetaKey MetaKey.noMods MetaKey.Key'Escape & toModKey
+        openKey = MetaKey MetaKey.noMods MetaKey.Key'Enter & toModKey
         assertFocused w
             | Widget.isFocused w = w
             | otherwise =
@@ -364,7 +408,8 @@ searchTermEditEventMap ::
     env -> Id -> (Text -> Bool) -> Text -> EventMap (f State.Update)
 searchTermEditEventMap env menuId allowedTerms searchTerm =
     appendCharEventMap <> deleteCharEventMap
-    <&> State.updateWidgetState menuId
+    <&> (`WidgetState` True)
+    <&> updateWidgetState menuId
     <&> pure
     where
         appendCharEventMap =
