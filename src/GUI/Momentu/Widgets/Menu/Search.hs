@@ -341,15 +341,22 @@ make makeSearchTerm makeOptions ann menuId =
             then
                 Menu.makeHovered menuId ann options
                 <&> _2 %~ \makeMenu term placement ->
-                    makeMenu placement
-                    (Align.tValue %~ Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap))
+                makeMenu placement
+                (Align.tValue %~ Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap))
+                <&> assertFocused
             else
                 pure (Menu.NoPickFirstResult, const (const id))
         makeSearchTerm mPickFirst
             <&> \term placement -> term ^. termWidget <&> toMenu term placement
-    <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
-    & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
-    & assignCursor menuId (options ^.. traverse . Menu.oId)
+        <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
+        & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
+        & assignCursor menuId (options ^.. traverse . Menu.oId)
+    where
+        assertFocused w
+            | Widget.isFocused w = w
+            | otherwise =
+                "Cursor is under Menu prefix " <> show menuId <> " but not on search term or any result"
+                & error
 
 searchTermEditEventMap ::
     (Applicative f, HasTexts env) =>
