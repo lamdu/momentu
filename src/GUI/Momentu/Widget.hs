@@ -139,8 +139,6 @@ addPreEventToEventMap append preEvent e =
         actionText = E.emHandlerDocHandlers . E.dhDoc . E.docStrs . Lens.reversed . Lens.element 0
         concatDescs x y = filter (not . Text.null) [x, y] & Text.intercalate ", "
 
--- | New pre-event is not added to the pre-events if pre-event is
--- BlockEvents (but still added to the event map)
 addPreEvent ::
     Applicative f =>
     PreEvent (f State.Update) -> Widget f -> Widget f
@@ -149,7 +147,7 @@ addPreEvent preEvent =
     where
         onFocused f =
             f
-            & fPreEvents . _PreEvents %~ (preEvent :)
+            & fPreEvents %~ (preEvent :)
             & fEventMap %~ onMkEventMap
         onMkEventMap mk ctx =
             ctx
@@ -165,17 +163,15 @@ addEventsWithContext append mkEvents =
     widget . wFocused %~ onFocused
     where
         onFocused f =
-            case f ^. fPreEvents of
-            BlockEvents -> f
-            PreEvents es ->
-                f & fEventMap . Lens.imapped %@~ add
-                where
-                    add ctx =
-                        ctx
-                        & ePrevTextRemainder <>~ es ^. traverse . pTextRemainder
-                        & mkEvents
-                        & (foldr (addPreEventToEventMap (liftA2 mappend)) ?? es)
-                        & append
+            f & fEventMap . Lens.imapped %@~ add
+            where
+                add ctx =
+                    ctx
+                    & ePrevTextRemainder <>~ es ^. traverse . pTextRemainder
+                    & mkEvents
+                    & (foldr (addPreEventToEventMap (liftA2 mappend)) ?? es)
+                    & append
+                es = f ^. fPreEvents
 
 addEvents ::
     (Applicative f, HasWidget w) =>
