@@ -1,3 +1,4 @@
+{-# OPTIONS -Wno-partial-type-signatures #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Main where
