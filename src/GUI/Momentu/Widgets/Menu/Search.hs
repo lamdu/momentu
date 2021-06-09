@@ -335,12 +335,19 @@ make makeSearchTerm makeOptions ann menuId =
     >>=
     \options ->
     do
-        (mPickFirst, makeMenu) <- Menu.makeHovered menuId ann options
+        isSelected <- State.isSubCursor ?? menuId
+        (mPickFirst, toMenu) <-
+            if isSelected
+            then
+                Menu.makeHovered menuId ann options
+                <&> _2 %~ \makeMenu term placement ->
+                    makeMenu placement
+                    (Align.tValue %~ Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap))
+            else
+                pure (Menu.NoPickFirstResult, const (const id))
         makeSearchTerm mPickFirst
-            <&> \term placement ->
-                term ^. termWidget
-                <&> makeMenu placement (Align.tValue %~ Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap))
-                <&> Widget.enterResultCursor .~ menuId
+            <&> \term placement -> term ^. termWidget <&> toMenu term placement
+    <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
     & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
     & assignCursor menuId (options ^.. traverse . Menu.oId)
 
