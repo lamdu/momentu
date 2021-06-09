@@ -42,7 +42,7 @@ defaultSetup title fontPath options makeWidget =
         cachedOpenFont <- memoIO (Font.openFont (options ^. setupLcdSubPixel) ?? fontPath)
         let cachedOpenFontBySizeFactor = cachedOpenFont . (* options ^. setupFontSize)
         mainLoop <- Main.mainLoopWidget
-        opts <- cachedOpenFont 1 <&> defaultEnv >>= Main.defaultOptions
+        opts <- cachedOpenFontBySizeFactor 1 <&> defaultEnv >>= Main.defaultOptions
         Main.run mainLoop win Main.Handlers
             { Main.makeWidget = defaultMakeWidget cachedOpenFontBySizeFactor makeWidget
             , Main.options = opts
