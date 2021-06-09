@@ -373,10 +373,10 @@ make makeSearchTerm makeOptions ann menuId =
                     let assignTheCursor = assignCursor menuId (options ^.. traverse . Menu.oId)
                     (mPickFirst, makeMenu) <- Menu.makeHovered menuId ann options & assignTheCursor
                     let makeTheMenu term placement =
-                            Widget.weakerEvents (closeEventMap mempty)
+                            Widget.weakerEventsWithoutPreevents (closeEventMap mempty)
                             <&> makeMenu placement
                             ( Align.tValue %~
-                                Widget.weakerEvents (closeEventMap gotoSearchTerm) .
+                                Widget.weakerEventsWithoutPreevents (closeEventMap gotoSearchTerm) .
                                 Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap)
                             ) <&> assertFocused
                     pure (mPickFirst, makeTheMenu, assignTheCursor)
