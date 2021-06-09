@@ -351,12 +351,14 @@ keyEventMap eventType doc handler =
     keyEventMapH callStack eventType doc (Doesn'tWantClipboard handler)
 
 keysEventMap :: (HasCallStack, Monoid a, Functor f) => [MetaKey] -> Doc -> f () -> EventMap (f a)
-keysEventMap keys doc act = withFrozenCallStack $ keyPresses (keys <&> toModKey) doc (mempty <$ act)
+keysEventMap keys doc act =
+    withFrozenCallStack $ keyPresses (keys <&> toModKey) doc (mempty <$ act)
 
 -- | Convenience method to just set the cursor
 keysEventMapMovesCursor ::
     (HasCallStack, Functor f) => [MetaKey] -> Doc -> f Id -> EventMap (f State.Update)
-keysEventMapMovesCursor keys doc act = withFrozenCallStack $ keyPresses (keys <&> toModKey) doc (act <&> State.updateCursor)
+keysEventMapMovesCursor keys doc act =
+    withFrozenCallStack $ keyPresses (keys <&> toModKey) doc (act <&> State.updateCursor)
 
 keyPress :: HasCallStack => ModKey -> Doc -> a -> EventMap a
 keyPress key = withFrozenCallStack keyEventMap (KeyEvent ModKey.KeyState'Pressed key)
