@@ -48,7 +48,7 @@ import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
-import           GUI.Momentu.MetaKey (MetaKey(..), toModKey, noMods)
+import           GUI.Momentu.MetaKey (toModKey)
 import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.ModKey (ModKey(..))
 import           GUI.Momentu.State (HasState)
@@ -225,7 +225,7 @@ addDelSearchTerm menuId =
             | Text.null searchTerm = mempty
             | otherwise =
                 enterWithSearchTerm "" menuId & pure
-                & E.keyPress (toModKey (MetaKey noMods MetaKey.Key'Escape))
+                & E.keyPress (toModKey (MetaKey.cmd MetaKey.Key'Backspace))
                 (searchTermDoc env (has . MomentuTexts.delete))
     in  term
         & termWidget . Align.tValue %~ Widget.weakerEventsWithoutPreevents delSearchTerm
