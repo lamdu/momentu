@@ -94,6 +94,7 @@ data DebugOptions = DebugOptions
     , reportPerfCounters :: PerfCounters -> IO ()
     , jumpToSourceKeys :: IO [MetaKey]
     , jumpToSource :: SrcLoc -> IO ()
+    , postProcessEvent :: Main.Events.Event -> IO ()
     }
 
 iorefStateStorage :: Widget.Id -> IO (MkProperty' IO GUIState)
@@ -120,6 +121,7 @@ defaultDebugOptions =
     , reportPerfCounters = const (pure ())
     , jumpToSourceKeys = pure []
     , jumpToSource = \_ -> pure ()
+    , postProcessEvent = \_ -> pure ()
     }
 
 defaultOptions ::
@@ -202,6 +204,7 @@ handleEvent ::
     Maybe (Rect, State.VirtualCursor -> EventMap a) -> Main.Events.Event ->
     IO (Maybe a)
 handleEvent debug lookupModeRef getClipboard virtCursorRef mEnter mFocus event =
+    postProcessEvent debug event >>
     case event of
     Main.Events.EventKey key -> E.EventKey key & doLookup
     Main.Events.EventChar c -> E.EventChar c & doLookup
