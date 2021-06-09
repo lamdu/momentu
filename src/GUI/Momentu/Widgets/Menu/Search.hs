@@ -252,30 +252,18 @@ searchTermEdit myId allowedSearchTerm mPickFirst =
     >>= basicSearchTermEdit (searchTermEditId myId & Widget.toAnimId) myId allowedSearchTerm
     & (addDelSearchTerm myId <*>)
     & addSearchTermStyle myId
-    & (addPickFirstResultEvent myId mPickFirst <*>)
+    & (addPickFirstResultEvent mPickFirst <*>)
 
 -- Add events on search term to pick the first result.
 addPickFirstResultEvent ::
-    ( MonadReader env m, Has Menu.Config env, HasTexts env, HasState env
-    , Applicative f
-    ) =>
-    Id -> Menu.PickFirstResult f->
+    (MonadReader env m, Has Menu.Config env, HasTexts env, Applicative f) =>
+    Menu.PickFirstResult f ->
     m (Term f -> Term f)
-addPickFirstResultEvent myId mPickFirst =
-    do
-        pickEventMap <-
-            case mPickFirst of
-            Menu.NoPickFirstResult -> emptyPickEventMap
-            Menu.PickFirstResult pickFirst -> Menu.makePickEventMap ?? pickFirst
-        searchTerm <- readSearchTerm myId
-        pure $ termWidget . Align.tValue %~
-            if Text.null searchTerm
-            then Widget.weakerEvents pickEventMap
-            else addPre . Widget.weakerEvents pickEventMap
-    where
-        addPre =
-            Widget.wState . Widget._StateFocused . Lens.mapped .
-            Widget.fPreEvents %~ (Widget.BlockEvents <>)
+addPickFirstResultEvent mPickFirst =
+    case mPickFirst of
+    Menu.NoPickFirstResult -> emptyPickEventMap
+    Menu.PickFirstResult pickFirst -> Menu.makePickEventMap ?? pickFirst
+    <&> (termWidget . Align.tValue %~) . Widget.weakerEvents
 
 assignCursor ::
     (MonadReader env m, HasState env) =>
