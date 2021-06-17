@@ -31,7 +31,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _directionTexts :: Direction.Texts Text
     , _directionLayout :: Direction.Layout
     , _menuTexts :: Menu.Texts Text
-    , _menuConfig :: Menu.Config
+    , _searchMenuConfig :: SearchMenu.Config
     , _searchMenuTexts :: SearchMenu.Texts Text
     , _searchMenuStyle :: SearchMenu.TermStyle
     , _zoomTexts :: Zoom.Texts Text
@@ -63,7 +63,7 @@ defaultEnv font = DefaultEnv
     , _menuTexts = Menu.englishTexts
     , _searchMenuTexts = SearchMenu.englishTexts
     , _searchMenuStyle = SearchMenu.defaultTermStyle
-    , _menuConfig = Menu.defaultConfig
+    , _searchMenuConfig = SearchMenu.defaultConfig
     , _zoomTexts = Zoom.englishTexts
     , _eventMapTexts = EventMap.englishTexts
     , _glueTexts = Glue.englishTexts
@@ -96,7 +96,8 @@ instance Has Direction.Layout          (DefaultEnvG a) where has = directionLayo
 instance Has EventMapHelp.Config       (DefaultEnvG a) where has = helpConfig
 instance Has EventMapHelp.Style        (DefaultEnvG a) where has = helpStyle
 instance Has Hover.Style               (DefaultEnvG a) where has = hoverStyle
-instance Has Menu.Config               (DefaultEnvG a) where has = menuConfig
+instance Has Menu.Config               (DefaultEnvG a) where has = searchMenuConfig . SearchMenu.configMenu
+instance Has SearchMenu.Config         (DefaultEnvG a) where has = searchMenuConfig
 instance Has SearchMenu.TermStyle      (DefaultEnvG a) where has = searchMenuStyle
 instance Has TextEdit.Style            (DefaultEnvG a) where has = textEditStyle
 instance Has TextView.Style            (DefaultEnvG a) where has = textViewStyle

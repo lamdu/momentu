@@ -12,6 +12,10 @@ module GUI.Momentu.Widgets.Menu.Search
     , addDelSearchTerm
     , searchTermEdit
 
+    , Config(..), configMenu
+    , HasConfig
+    , defaultConfig
+
     , TermStyle(..), bgColors, emptyStrings, emptyStringsColors
         , defaultTermStyle
     , enterWithSearchTerm
@@ -81,6 +85,23 @@ data Texts a = Texts
 Lens.makeLenses ''Texts
 JsonTH.derivePrefixed "_text" ''Texts
 
+data Config = Config
+    { _configMenu :: Menu.Config
+    , _configOpenKeys :: [MetaKey]
+    , _configCloseKeys :: [MetaKey]
+    }
+Lens.makeLenses ''Config
+JsonTH.derivePrefixed "_" ''Config
+
+defaultConfig :: Config
+defaultConfig = Config
+    { _configMenu = Menu.defaultConfig
+    , _configOpenKeys = [MetaKey MetaKey.noMods MetaKey.Key'Enter]
+    , _configCloseKeys = [MetaKey MetaKey.noMods MetaKey.Key'Escape]
+    }
+
+type HasConfig env = (Has Config env, Has Menu.Config env)
+
 englishTexts :: Texts Text
 englishTexts = Texts
     { _textPickNotApplicable = "Pick (N/A)"
@@ -148,7 +169,7 @@ Lens.makeLenses ''TermCtx
 type AllowedSearchTerm = Text -> TermCtx Bool
 
 emptyPickEventMap ::
-    ( MonadReader env m, Has Menu.Config env, Has (Texts Text) env
+    ( MonadReader env m, HasConfig env, Has (Texts Text) env
     , Applicative f
     ) =>
     m (EventMap (f State.Update))
@@ -277,7 +298,7 @@ addSearchTermEmptyColors act =
 
 searchTermEdit ::
     ( MonadReader env m, Applicative f, Has TermStyle env
-    , TextEdit.Deps env, Has Menu.Config env, State.HasState env
+    , TextEdit.Deps env, HasConfig env, State.HasState env
     , HasTexts env
     ) =>
     Widget.Id -> (Text -> TermCtx Bool) -> Menu.PickFirstResult f -> m (Term f)
@@ -296,7 +317,7 @@ searchTermEdit menuId allowedSearchTerm mPickFirst =
 
 -- Add events on search term to pick the first result.
 addPickFirstResultEvent ::
-    (MonadReader env m, Has Menu.Config env, HasTexts env, Applicative f) =>
+    (MonadReader env m, HasConfig env, HasTexts env, Applicative f) =>
     Menu.PickFirstResult f ->
     m (TextWidget f -> TextWidget f)
 addPickFirstResultEvent mPickFirst =
@@ -343,7 +364,7 @@ enterWithSearchTerm searchTerm menuId =
     <> updateWidgetState menuId (WidgetState searchTerm True)
 
 make ::
-    ( MonadReader env m, Applicative f, HasState env, Has Menu.Config env
+    ( MonadReader env m, Applicative f, HasState env, HasConfig env
     , Has TextView.Style env, Has Hover.Style env, Element.HasAnimIdPrefix env
     , HasTexts env, Glue.HasTexts env
     ) =>
@@ -359,9 +380,10 @@ make makeSearchTerm makeOptions ann menuId =
         let setIsOpen x = updateWidgetState menuId . WidgetState searchTerm $ x
         let closeEventMap goto =
                 setIsOpen False <> goto
-                & pure & E.keyPress closeKey (viewDoc env (has . textCloseResults))
+                & pure & E.keyPresses (closeKeys env) (viewDoc env (has . textCloseResults))
         let openEventMap =
-                setIsOpen True & pure & E.keyPress openKey (viewDoc env (has . textOpenResults))
+                setIsOpen True & pure
+                & E.keyPresses (openKeys env) (viewDoc env (has . textOpenResults))
 
         isSelected <- State.isSubCursor ?? menuId
         (mPickFirst, toMenu, assignTheCursor) <-
@@ -394,9 +416,9 @@ make makeSearchTerm makeOptions ann menuId =
             & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
             & assignTheCursor
     where
+        openKeys env = env ^. has . configOpenKeys <&> toModKey
+        closeKeys env = env ^. has . configCloseKeys <&> toModKey
         gotoSearchTerm = searchTermEditId menuId & State.updateCursor
-        closeKey = MetaKey MetaKey.noMods MetaKey.Key'Escape & toModKey
-        openKey = MetaKey MetaKey.noMods MetaKey.Key'Enter & toModKey
         assertFocused w
             | Widget.isFocused w = w
             | otherwise =

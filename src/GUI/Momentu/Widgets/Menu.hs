@@ -72,9 +72,8 @@ data Style = Style
     { _submenuSymbolColorUnselected :: Draw.Color
     , _submenuSymbolColorSelected :: Draw.Color
     } deriving (Eq, Show)
-JsonTH.derivePrefixed "_" ''Style
-
 Lens.makeLenses ''Style
+JsonTH.derivePrefixed "_" ''Style
 
 data Keys = Keys
     { _keysPickOption :: [MetaKey]
@@ -82,17 +81,15 @@ data Keys = Keys
     , _keysPickOptionAndGotoNext :: [MetaKey]
         -- ^ Pick option and goto the next "entry point" (see below)
     } deriving (Eq, Show)
-JsonTH.derivePrefixed "_" ''Keys
-
 Lens.makeLenses ''Keys
+JsonTH.derivePrefixed "_" ''Keys
 
 data Config = Config
     { _configStyle :: Style
     , _configKeys :: Keys
     } deriving (Eq, Show)
-JsonTH.derivePrefixed "_" ''Config
-
 Lens.makeLenses ''Config
+JsonTH.derivePrefixed "_" ''Config
 
 defaultStyle :: Style
 defaultStyle = Style
