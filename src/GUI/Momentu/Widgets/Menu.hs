@@ -2,10 +2,8 @@
 
 module GUI.Momentu.Widgets.Menu
     ( Style(..), submenuSymbolColorUnselected, submenuSymbolColorSelected
-    , Keys(..), keysPickOption, keysPickOptionAndGotoNext
-    , Config(..), configStyle, configKeys
-    , defaultStyle, defaultKeys, defaultConfig
-    , configLens
+    , Config(..), configKeysPickOption, configKeysPickOptionAndGotoNext
+    , defaultStyle, defaultConfig
     , Submenu(..), _SubmenuEmpty, _SubmenuItems
     , OptionList(..), olOptions, olIsTruncated
     , PickResult(..), pickDest, pickMNextEntry
@@ -75,21 +73,14 @@ data Style = Style
 Lens.makeLenses ''Style
 JsonTH.derivePrefixed "_" ''Style
 
-data Keys = Keys
-    { _keysPickOption :: [MetaKey]
+data Config = Config
+    { _configKeysPickOption :: [MetaKey]
         -- ^ Pick option and stay on its dest
-    , _keysPickOptionAndGotoNext :: [MetaKey]
+    , _configKeysPickOptionAndGotoNext :: [MetaKey]
         -- ^ Pick option and goto the next "entry point" (see below)
     } deriving (Eq, Show)
-Lens.makeLenses ''Keys
-JsonTH.derivePrefixed "_" ''Keys
-
-data Config = Config
-    { _configStyle :: Style
-    , _configKeys :: Keys
-    } deriving (Eq, Show)
 Lens.makeLenses ''Config
-JsonTH.derivePrefixed "_" ''Config
+JsonTH.derivePrefixed "_config" ''Config
 
 defaultStyle :: Style
 defaultStyle = Style
@@ -97,26 +88,11 @@ defaultStyle = Style
     , _submenuSymbolColorSelected = Draw.Color 1 1 1 1
     }
 
-defaultKeys :: Keys
-defaultKeys = Keys
-    { _keysPickOption = [MetaKey noMods MetaKey.Key'Enter]
-    , _keysPickOptionAndGotoNext = [MetaKey noMods MetaKey.Key'Tab]
-    }
-
 defaultConfig :: Config
-defaultConfig = Config defaultStyle defaultKeys
-
-configLens ::
-    Functor f =>
-    Lens.ALens' env Keys -> Lens.ALens' env Style -> Lens.LensLike' f env Config
-configLens keys style f env =
-    f Config
-    { _configKeys = env ^# keys
-    , _configStyle = env ^# style
+defaultConfig = Config
+    { _configKeysPickOption = [MetaKey noMods MetaKey.Key'Enter]
+    , _configKeysPickOptionAndGotoNext = [MetaKey noMods MetaKey.Key'Tab]
     }
-    <&>
-    \(Config newStyle newKeys) -> env & keys #~ newKeys & style #~ newStyle
-
 
 -- | Menu supports picking results and setting cursor directly to it
 -- (return), or picking it and strolling (space).
@@ -230,13 +206,13 @@ blockEvents env =
             E.keyPresses [ModKey mempty key] (doc keyName) (pure mempty)
 
 makeSubmenuSymbol ::
-    ( MonadReader env m, Has Config env, Element.HasAnimIdPrefix env
+    ( MonadReader env m, Has Style env, Element.HasAnimIdPrefix env
     , Has TextView.Style env, HasTexts env
     ) =>
     Bool -> m (WithTextPos View)
 makeSubmenuSymbol isSelected =
     do
-        color <- Lens.view (has . configStyle . submenuSymbolColor)
+        color <- Lens.view (has . submenuSymbolColor)
         TextView.make
             <*> Lens.view (has . submenuSymbol)
             <*> (Element.subAnimId ?? ["submenu sym"])
@@ -255,7 +231,7 @@ Lens.makeLenses ''OptionList
 layoutOption ::
     ( MonadReader env m, Applicative f, Has (Texts Text) env
     , Element.HasAnimIdPrefix env, Has TextView.Style env
-    , State.HasCursor env, Has Hover.Style env, Has Config env
+    , State.HasCursor env, Has Hover.Style env, Has Config env, Has Style env
     , Glue.HasTexts env
     ) =>
     Widget.R ->
@@ -303,8 +279,8 @@ makePickEventMap =
     Lens.view id
     <&>
     \env pick ->
-    let keys = env ^. has . configKeys
-    in  E.keyPresses (keys ^. keysPickOptionAndGotoNext <&> MetaKey.toModKey)
+    let config = env ^. has
+    in  E.keyPresses (config ^. configKeysPickOptionAndGotoNext <&> MetaKey.toModKey)
         (E.Doc [pick ^. Widget.pDesc <> env ^. has . commaNextEntry])
         (pick ^. Widget.pAction <&>
             \result ->
@@ -315,7 +291,7 @@ makePickEventMap =
                 & State.uPreferStroll .~ True ^. Lens._Unwrapped
             )
         <>
-        E.keysEventMapMovesCursor (keys ^. keysPickOption)
+        E.keysEventMapMovesCursor (config ^. configKeysPickOption)
         (E.Doc [pick ^. Widget.pDesc])
         (pick ^. Widget.pAction <&> (^. pickDest))
 
@@ -343,7 +319,7 @@ noResultsId = (`Widget.joinId` ["no results"])
 
 make ::
     ( MonadReader env m, Applicative f, Has TextView.Style env
-    , Has Hover.Style env, Element.HasAnimIdPrefix env, Has Config env
+    , Has Hover.Style env, Element.HasAnimIdPrefix env, Has Style env, Has Config env
     , State.HasCursor env, Has (Texts Text) env, Glue.HasTexts env
     ) =>
     Widget.Id -> Widget.R -> OptionList (Option m f) ->
@@ -452,7 +428,7 @@ makeHovered ::
     ( Applicative f, State.HasCursor env, Has Config env
     , Has TextView.Style env, Element.HasAnimIdPrefix env
     , Has Hover.Style env, Has (Texts Text) env, MonadReader env m
-    , Glue.HasTexts env
+    , Glue.HasTexts env, Has Style env
     ) =>
     Widget.Id -> View ->
     OptionList (Option m f) ->

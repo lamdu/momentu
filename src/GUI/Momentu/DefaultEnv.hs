@@ -31,6 +31,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _directionTexts :: Direction.Texts Text
     , _directionLayout :: Direction.Layout
     , _menuTexts :: Menu.Texts Text
+    , _menuStyle :: Menu.Style
     , _searchMenuConfig :: SearchMenu.Config
     , _searchMenuTexts :: SearchMenu.Texts Text
     , _searchMenuStyle :: SearchMenu.TermStyle
@@ -61,6 +62,7 @@ defaultEnv font = DefaultEnv
     , _directionTexts = Direction.englishTexts
     , _directionLayout = Direction.LeftToRight
     , _menuTexts = Menu.englishTexts
+    , _menuStyle = Menu.defaultStyle
     , _searchMenuTexts = SearchMenu.englishTexts
     , _searchMenuStyle = SearchMenu.defaultTermStyle
     , _searchMenuConfig = SearchMenu.defaultConfig
@@ -89,6 +91,7 @@ instance Has (Glue.Texts Text)         (DefaultEnvG a) where has = glueTexts
 instance Has (I18N.Texts Text)         (DefaultEnvG a) where has = commonTexts
 instance Has (Main.Texts Text)         (DefaultEnvG a) where has = mainTexts
 instance Has (Menu.Texts Text)         (DefaultEnvG a) where has = menuTexts
+instance Has Menu.Style                (DefaultEnvG a) where has = menuStyle
 instance Has (SearchMenu.Texts Text)   (DefaultEnvG a) where has = searchMenuTexts
 instance Has (TextEdit.Texts Text)     (DefaultEnvG a) where has = textEditTexts
 instance Has (Zoom.Texts Text)         (DefaultEnvG a) where has = zoomTexts

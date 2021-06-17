@@ -89,9 +89,9 @@ data Config = Config
     { _configMenu :: Menu.Config
     , _configOpenKeys :: [MetaKey]
     , _configCloseKeys :: [MetaKey]
-    }
+    } deriving (Eq, Show)
 Lens.makeLenses ''Config
-JsonTH.derivePrefixed "_" ''Config
+JsonTH.derivePrefixed "_config" ''Config
 
 defaultConfig :: Config
 defaultConfig = Config
@@ -152,6 +152,8 @@ defaultTermStyle = TermStyle
 
 Lens.makeLenses ''TermStyle
 
+type HasStyle env = (Has TermStyle env, Has Menu.Style env, Has TextView.Style env, Has Hover.Style env)
+
 data Term f = Term
     { _termWidget :: TextWidget f
     , _termEditEventMap :: EventMap (f State.Update)
@@ -180,10 +182,10 @@ emptyPickEventMap =
     (E.toDoc env [has . textPickNotApplicable]) (pure ())
     where
         allPickKeys env =
-            keys ^. Menu.keysPickOption <>
-            keys ^. Menu.keysPickOptionAndGotoNext
+            config ^. Menu.configKeysPickOption <>
+            config ^. Menu.configKeysPickOptionAndGotoNext
             where
-                keys = env ^. has . Menu.configKeys
+                config = env ^. has
 
 -- | All search menu results must start with a common prefix.
 -- This is used to tell when cursor was on a result that got filtered out
@@ -365,7 +367,7 @@ enterWithSearchTerm searchTerm menuId =
 
 make ::
     ( MonadReader env m, Applicative f, HasState env, HasConfig env
-    , Has TextView.Style env, Has Hover.Style env, Element.HasAnimIdPrefix env
+    , HasStyle env, Element.HasAnimIdPrefix env
     , HasTexts env, Glue.HasTexts env
     ) =>
     (Menu.PickFirstResult f -> m (Term f)) ->
