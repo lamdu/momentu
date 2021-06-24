@@ -1,0 +1,1877 @@
+Document
+  { _dBgColor = Color 0.17 0.18 0.18 1.0
+  , _dStyles =
+      Style
+        { _sDescription = "default" , _sColor = Color 1.0 1.0 1.0 1.0 } :|
+        [ Style
+            { _sDescription = "global" , _sColor = Color 1.0 0.5 1.0 1.0 }
+        , Style { _sDescription = "var" , _sColor = Color 0.0 1.0 1.0 1.0 }
+        , Style { _sDescription = "num" , _sColor = Color 0.5 1.0 0.5 1.0 }
+        , Style
+            { _sDescription = "keyword" , _sColor = Color 0.85 0.85 0.85 1.0 }
+        , Style
+            { _sDescription = "namespace" , _sColor = Color 0.5 0.5 1.0 1.0 }
+        ]
+  , _dLines =
+      [ ( "Kotlin"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "("
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = ".."
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "{" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "it" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = "}" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Groovy"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "("
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = "..<"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "filter"
+                      , _iContent = "findAll"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "{" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "it" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = "}" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Nim"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range" , _iContent = "toSeq" , _iStyle = 1 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "("
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = ".."
+                      , _iStyle = 4
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "filter"
+                      , _iContent = "filterIt"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "it" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "%" , _iContent = "mod" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+                  )
+                ]
+            }
+        )
+      , ( "Scala"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "("
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = "to"
+                      , _iStyle = 4
+                      }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "_" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+                  )
+                ]
+            }
+        )
+      , ( "Rust"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "("
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = ".."
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "|" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "|" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ":sum" , _iContent = "::" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "<" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "i64" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = ">" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "D"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range" , _iContent = "iota" , _iStyle = 1 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "("
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep" , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "!" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "=>" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+                  )
+                ]
+            }
+        )
+      , ( "C#"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "ns"
+                  , _iContent = "Enumerable"
+                  , _iStyle = 5
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".range" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range" , _iContent = "Range" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "("
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep" , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "filter"
+                      , _iContent = "Where"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "=>" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "Sum" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Elixir"
+        , Items
+            { _iHead =
+                Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = ".."
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "p0" , _iContent = "|>" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "ns" , _iContent = "Enum" , _iStyle = 5 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "fn" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "_9" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_11" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "->" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "%" , _iContent = "rem" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_14" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_18" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "p1" , _iContent = "|>" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "ns1" , _iContent = "Enum" , _iStyle = 5 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "F#"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "["
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = ".."
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = "]"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "p0" , _iContent = "|>" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "ns" , _iContent = "Seq" , _iStyle = 5 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "fun" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "->" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "==" , _iContent = "=" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "p1" , _iContent = "|>" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "ns1" , _iContent = "Seq" , _iStyle = 5 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum" , _iContent = "reduce" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "+" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Swift"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "("
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = "..."
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "{" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "in" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = "}" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum" , _iContent = "reduce" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "init" , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "+" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Ruby"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "("
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = ".."
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "filter"
+                      , _iContent = "select"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "{" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "|" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "|" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = "}" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum" , _iContent = "reduce" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "+" , _iContent = ":+" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Smalltalk"
+        , Items
+            { _iHead =
+                Item { _iIdentifier = Just "_0" , _iContent = "(" , _iStyle = 0 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "("
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = "to"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".range" , _iContent = ":" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "filter"
+                      , _iContent = "select"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = ":" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "[" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = ":" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "|" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "%" , _iContent = "\\\\" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "==" , _iContent = "=" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = "]" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".fold" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "sum" , _iContent = "fold" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ":sum" , _iContent = ":" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "[" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_23" , _iContent = ":" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "xp" , _iContent = "x" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "psep" , _iContent = ":" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "yp" , _iContent = "y" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "parr" , _iContent = "|" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "xv" , _iContent = "x" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "+" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "yv" , _iContent = "y" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = "]" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Javascript"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "range-open"
+                  , _iContent = "["
+                  , _iStyle = 0
+                  }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range" , _iContent = "..." , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = "Array"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "_3" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "_5" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "_6" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "keys" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "()" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = "]"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".filter" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "=>" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ".sum" , _iContent = "." , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum" , _iContent = "reduce" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_21" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "xp" , _iContent = "x" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "psep" , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "yp" , _iContent = "y" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "parr" , _iContent = "=>" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "xv" , _iContent = "x" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "+" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "yv" , _iContent = "y" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Clojure"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "(fold" , _iContent = "(" , _iStyle = 0 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum" , _iContent = "reduce" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "+" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "fn" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "(n" , _iContent = "[" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-sep" , _iContent = "]" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "(=" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "(mod" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "%" , _iContent = "mod" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just ")3" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just ")c" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "("
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "range" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ")filter" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Scheme"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "(fold" , _iContent = "(" , _iStyle = 0 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum"
+                      , _iContent = "fold-left"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "+" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "init0" , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "lambda" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "(n" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-sep" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Just "(=" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "==" , _iContent = "=" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "(mod" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "%" , _iContent = "remainder" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just ")3" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just ")c" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "("
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range" , _iContent = "iota" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just ")filter" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Haskell"
+        , Items
+            { _iHead =
+                Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+            , _iTail =
+                [ ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "\\" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "->" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "%" , _iContent = "mod" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "["
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep"
+                      , _iContent = ".."
+                      , _iStyle = 4
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = "]"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Julia"
+        , Items
+            { _iHead =
+                Item { _iIdentifier = Nothing , _iContent = "sum" , _iStyle = 1 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Nothing , _iContent = "filter" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam" , _iContent = "!" , _iStyle = 4 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "->" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "["
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep" , _iContent = ":" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = "]"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = ")" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Python"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "sum" , _iContent = "sum" , _iStyle = 1 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "(" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "for" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "_5" , _iContent = "in" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "range" , _iContent = "range" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "("
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "1" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep" , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = ")"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "filter" , _iContent = "if" , _iStyle = 4 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "%" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = ")" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      , ( "Mathematica"
+        , Items
+            { _iHead =
+                Item
+                  { _iIdentifier = Just "sum" , _iContent = "Total" , _iStyle = 1 }
+            , _iTail =
+                [ ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-open" , _iContent = "[" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "filter"
+                      , _iContent = "Select"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Just "(n" , _iContent = "[" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range" , _iContent = "Range" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-open"
+                      , _iContent = "["
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "100" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-close"
+                      , _iContent = "]"
+                      , _iStyle = 0
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "range-sep" , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "lam"
+                      , _iContent = "Function"
+                      , _iStyle = 1
+                      }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-open" , _iContent = "[" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "param" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "arrow" , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item
+                      { _iIdentifier = Just "%" , _iContent = "Mod" , _iStyle = 1 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_14" , _iContent = "[" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "var" , _iContent = "n" , _iStyle = 2 }
+                  )
+                , ( NoSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "," , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "3" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_18" , _iContent = "]" , _iStyle = 0 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "==" , _iStyle = 1 }
+                  )
+                , ( WithSpace
+                  , Item { _iIdentifier = Nothing , _iContent = "0" , _iStyle = 3 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "lam-close" , _iContent = "]" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "_22" , _iContent = "]" , _iStyle = 0 }
+                  )
+                , ( NoSpace
+                  , Item
+                      { _iIdentifier = Just "sum-close" , _iContent = "]" , _iStyle = 0 }
+                  )
+                ]
+            }
+        )
+      ]
+  }

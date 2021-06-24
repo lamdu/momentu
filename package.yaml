@@ -109,6 +109,21 @@ executables:
     - momentu
     ghc-options:
     - -threaded
+  text-anim:
+    main: text-anim.hs
+    source-dirs: examples
+    dependencies:
+    - adjunctions
+    - base-compat
+    - directory
+    - lens
+    - momentu
+    - mtl
+    - pretty-show
+    - text
+    ghc-options:
+    - -threaded
+    - -Wno-partial-type-signatures
   textedit:
     main: textedit.hs
     source-dirs: examples
