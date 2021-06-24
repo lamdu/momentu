@@ -100,16 +100,16 @@ glueH f direction orientation v0 v1 =
         v1s = v1 ^. Element.size
 
 box ::
-    (Element a, GluesTo env a a a, MonadReader env m) =>
-    m (Orientation -> [a] -> a)
+    (Element a, GluesTo env a a a, MonadReader env m, Foldable t) =>
+    m (Orientation -> t a -> a)
 box = mkGlue <&> \g orientation -> foldr (g orientation) Element.empty
 
 hbox ::
-    (Element a, GluesTo env a a a, MonadReader env m) =>
-    m ([a] -> a)
+    (Element a, GluesTo env a a a, MonadReader env m, Foldable t) =>
+    m (t a -> a)
 hbox = box ?? Horizontal
 
 vbox ::
-    (Element a, GluesTo env a a a, MonadReader env m) =>
-    m ([a] -> a)
+    (Element a, GluesTo env a a a, MonadReader env m, Foldable t) =>
+    m (t a -> a)
 vbox = box ?? Vertical
