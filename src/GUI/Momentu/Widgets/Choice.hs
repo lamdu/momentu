@@ -11,6 +11,7 @@ module GUI.Momentu.Widgets.Choice
 
 import qualified Control.Lens as Lens
 import qualified Data.Aeson.TH.Extended as JsonTH
+import           Data.Foldable (Foldable(..))
 import           Data.Property (Property(..))
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (TextWidget)
@@ -71,12 +72,12 @@ data IsSelected = Selected | NotSelected
     deriving Eq
 
 make ::
-    ( Eq childId, MonadReader env m, Applicative f
+    ( Eq childId, MonadReader env m, Applicative f, Functor t, Foldable t
     , State.HasCursor env, Has Hover.Style env, Element.HasAnimIdPrefix env
     , Glue.HasTexts env
     ) =>
     m
-    (Property f childId -> [(childId, TextWidget f)] ->
+    (Property f childId -> t (childId, TextWidget f) ->
      Config -> Widget.Id -> TextWidget f)
 make =
     (,,,,)
@@ -95,8 +96,8 @@ make =
             [hover (anc open)]
             `Hover.hoverInPlaceOf` anc (widget False ^. Align.tValue)
         widget allowExpand =
-            children <&> annotate
-            <&> prependEntryAction
+            children <&> annotate <&> prependEntryAction
+            & toList
             & filterVisible allowExpand
             <&> snd
             & box orientation
@@ -113,7 +114,7 @@ make =
                     %~ (action *>)
             )
         anyChildFocused =
-            Lens.orOf (Lens.traversed . _2 . Align.tValue . Lens.to Widget.isFocused) children
+            Lens.orOf (Lens.folded . _2 . Align.tValue . Lens.to Widget.isFocused) children
         annotate (item, w) =
             ( if item == curChild then Selected else NotSelected
             , choose item
