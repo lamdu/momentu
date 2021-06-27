@@ -89,6 +89,7 @@ library
       GUI.Momentu.Widgets.Grid
       GUI.Momentu.Widgets.GridView
       GUI.Momentu.Widgets.Label
+      GUI.Momentu.Widgets.ListBox
       GUI.Momentu.Widgets.Menu
       GUI.Momentu.Widgets.Menu.Search
       GUI.Momentu.Widgets.Spacer

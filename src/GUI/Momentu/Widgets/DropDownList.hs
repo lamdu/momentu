@@ -11,7 +11,6 @@ module GUI.Momentu.Widgets.DropDownList
 
 import qualified Control.Lens as Lens
 import qualified Data.Aeson.TH.Extended as JsonTH
-import           Data.Foldable (Foldable(..))
 import           Data.Property (Property(..))
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (TextWidget)
@@ -27,6 +26,7 @@ import qualified GUI.Momentu.MetaKey as MetaKey
 import qualified GUI.Momentu.State as State
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.FocusDelegator as FocusDelegator
+import qualified GUI.Momentu.Widgets.ListBox as ListBox
 
 import           GUI.Momentu.Prelude
 
@@ -54,8 +54,8 @@ defaultFdConfig =
     }
 
 data Config = Config
-    { cwcFDConfig :: FocusDelegator.Config
-    , cwcOrientation :: Orientation
+    { ddFDConfig :: FocusDelegator.Config
+    , ddListBox :: ListBox.Config
     }
 
 defaultConfig ::
@@ -64,62 +64,35 @@ defaultConfig ::
 defaultConfig =
     defaultFdConfig <&> \defFd helpCategory ->
     Config
-    { cwcFDConfig = defFd helpCategory
-    , cwcOrientation = Vertical
+    { ddFDConfig = defFd helpCategory
+    , ddListBox = ListBox.defaultConfig
     }
-
-data IsSelected = Selected | NotSelected
-    deriving Eq
 
 make ::
     ( Eq childId, MonadReader env m, Applicative f, Functor t, Foldable t
     , State.HasCursor env, Has Hover.Style env, Element.HasAnimIdPrefix env
     , Glue.HasTexts env
     ) =>
-    m
-    (Property f childId -> t (childId, TextWidget f) ->
-     Config -> Widget.Id -> TextWidget f)
+    m (Property f childId -> t (childId, TextWidget f) -> Config -> Widget.Id -> TextWidget f)
 make =
     (,,,,)
     <$> Element.padToSize
-    <*> Glue.box
+    <*> ListBox.make
     <*> Hover.hover
     <*> Hover.anchor
     <*> FocusDelegator.make
-    <&> \(padToSize, box, hover, anc, fd)
+    <&> \(padToSize, listbox, hover, anc, fd)
          (Property curChild choose) children config myId ->
-    let orientation = cwcOrientation config
-        perp :: Lens' (Vector2 a) a
-        perp = axis (perpendicular orientation)
+    let perp :: Lens' (Vector2 a) a
+        perp = axis (perpendicular (ListBox.lbOrientation (ddListBox config)))
         maxDim = children <&> (^. _2 . Element.size . perp) & maximum
-        hoverAsClosed open =
-            [hover (anc open)]
-            `Hover.hoverInPlaceOf` anc (widget False ^. Align.tValue)
-        widget allowExpand =
-            children <&> annotate <&> prependEntryAction
-            & toList
-            & filterVisible allowExpand
-            <&> snd
-            & box orientation
-            <&> fd (cwcFDConfig config) FocusDelegator.FocusEntryParent myId
-        filterVisible allowExpand
-            | allowExpand && anyChildFocused = id
-            | otherwise = filter ((== Selected) . fst)
-        prependEntryAction (isSelected, action, w) =
-            ( isSelected
-            , w
-                & Align.tValue . Widget.wState . Widget._StateUnfocused .
-                Widget.uMEnter . Lens._Just . Lens.mapped .
-                Widget.enterResultEvent
-                    %~ (action *>)
-            )
-        anyChildFocused =
-            Lens.orOf (Lens.folded . _2 . Align.tValue . Lens.to Widget.isFocused) children
-        annotate (item, w) =
-            ( if item == curChild then Selected else NotSelected
-            , choose item
-            , w
-            )
-    in  widget True
-        <&> (if anyChildFocused then hoverAsClosed else id)
-        & padToSize (0 & perp .~ maxDim) 0
+        hoverAsClosed open = [hover (anc open)] `Hover.hoverInPlaceOf` anc (closed ^. Align.tValue)
+        closed = children ^?! Lens.folded . Lens.filteredBy (_1 . Lens.only curChild) . _2
+        anyChildFocused = Lens.has (Lens.folded . _2 . Align.tValue . Lens.filtered Widget.isFocused) children
+        widget
+            | anyChildFocused = listbox choose children (ddListBox config) & Align.tValue %~ hoverAsClosed
+            | otherwise = closed
+    in
+    widget
+    & Align.tValue %~ fd (ddFDConfig config) FocusDelegator.FocusEntryParent myId
+    & padToSize (0 & perp .~ maxDim) 0
