@@ -3,8 +3,6 @@ cabal-version: 1.12
 -- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: ccb1829ad2a293df33f0e06657120b8aa6d29fc01832e148ea8608a64ab0b48f
 
 name:           momentu
 version:        0.1.0.0
@@ -83,9 +81,9 @@ library
       GUI.Momentu.Widget.Id
       GUI.Momentu.Widget.Instances
       GUI.Momentu.Widget.Types
-      GUI.Momentu.Widgets.Choice
       GUI.Momentu.Widgets.Clickable
       GUI.Momentu.Widgets.Cursor
+      GUI.Momentu.Widgets.DropDownList
       GUI.Momentu.Widgets.EventMapHelp
       GUI.Momentu.Widgets.FocusDelegator
       GUI.Momentu.Widgets.Grid
@@ -196,7 +194,16 @@ executable searchmenu
       Paths_momentu
   hs-source-dirs:
       examples
-  default-extensions: OverloadedStrings PartialTypeSignatures LambdaCase DeriveTraversable DeriveGeneric DeriveAnyClass DerivingStrategies FlexibleContexts TypeOperators
+  default-extensions:
+      OverloadedStrings
+      PartialTypeSignatures
+      LambdaCase
+      DeriveTraversable
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingStrategies
+      FlexibleContexts
+      TypeOperators
   ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
   build-depends:
       base >=4.12
@@ -245,7 +252,7 @@ executable textedit
       DerivingStrategies
       FlexibleContexts
       TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
   build-depends:
       base >=4.12
     , base-compat

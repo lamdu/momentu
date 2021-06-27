@@ -12,7 +12,7 @@ import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as I18N
 import qualified GUI.Momentu.Main as Main
 import           GUI.Momentu.State (HasCursor, GUIState)
-import qualified GUI.Momentu.Widgets.Choice as Choice
+import qualified GUI.Momentu.Widgets.DropDownList as DropDownList
 import qualified GUI.Momentu.Widgets.EventMapHelp as EventMapHelp
 import qualified GUI.Momentu.Widgets.Menu as Menu
 import qualified GUI.Momentu.Widgets.Menu.Search as SearchMenu
@@ -26,7 +26,7 @@ import           GUI.Momentu.Prelude
 data DefaultEnvG guiState = DefaultEnv
     { _commonTexts :: I18N.Texts Text
     , _mainTexts :: Main.Texts Text
-    , _choiceTexts :: Choice.Texts Text
+    , _dropDownTexts :: DropDownList.Texts Text
     , _textEditTexts :: TextEdit.Texts Text
     , _directionTexts :: Direction.Texts Text
     , _directionLayout :: Direction.Layout
@@ -57,7 +57,7 @@ defaultEnv :: Font -> DefaultEnv
 defaultEnv font = DefaultEnv
     { _commonTexts = I18N.englishTexts
     , _mainTexts = Main.englishTexts
-    , _choiceTexts = Choice.englishTexts
+    , _dropDownTexts = DropDownList.englishTexts
     , _textEditTexts = TextEdit.englishTexts
     , _directionTexts = Direction.englishTexts
     , _directionLayout = Direction.LeftToRight
@@ -83,7 +83,7 @@ defaultEnvWithCursor :: GUIState -> Font -> DefaultEnvWithCursor
 defaultEnvWithCursor state font = defaultEnv font & guiState .~ state
 
 instance Element.HasAnimIdPrefix       (DefaultEnvG a) where animIdPrefix = animIdPrefix
-instance Has (Choice.Texts Text)       (DefaultEnvG a) where has = choiceTexts
+instance Has (DropDownList.Texts Text) (DefaultEnvG a) where has = dropDownTexts
 instance Has (Direction.Texts Text)    (DefaultEnvG a) where has = directionTexts
 instance Has (EventMap.Texts Text)     (DefaultEnvG a) where has = eventMapTexts
 instance Has (EventMapHelp.Texts Text) (DefaultEnvG a) where has = helpTexts

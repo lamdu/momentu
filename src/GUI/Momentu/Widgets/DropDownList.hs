@@ -1,6 +1,6 @@
 -- | A vertical-expand (combo-like) choice widget
 {-# LANGUAGE TemplateHaskell, DerivingVia #-}
-module GUI.Momentu.Widgets.Choice
+module GUI.Momentu.Widgets.DropDownList
     ( make
     , defaultFdConfig
     , Config(..), defaultConfig

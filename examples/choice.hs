@@ -10,7 +10,7 @@ import           Data.Text (Text)
 import           GUI.Momentu ((/-/))
 import qualified GUI.Momentu as M
 import           GUI.Momentu.DataFiles (getDefaultFontPath)
-import qualified GUI.Momentu.Widgets.Choice as Choice
+import qualified GUI.Momentu.Widgets.DropDownList as DropDownList
 import qualified GUI.Momentu.Widgets.Label as Label
 
 import           Prelude.Compat
@@ -39,8 +39,8 @@ makeWidget choiceRef _getFont env =
     do
         prop <- Property.fromIORef choiceRef ^. Property.mkProperty
         let choiceWidget =
-                Choice.make env prop (map makeChoice colors)
-                (Choice.defaultConfig env "Color") (M.WidgetId [])
+                DropDownList.make env prop (map makeDropDownList colors)
+                (DropDownList.defaultConfig env "Color") (M.WidgetId [])
                 ^. M.tValue
         let Just color = lookup (Property.value prop) colors
         let box =
@@ -51,4 +51,4 @@ makeWidget choiceRef _getFont env =
             & M.weakerEvents (M.quitEventMap env)
             & pure
     where
-        makeChoice (name, _color) = (name, Label.makeFocusable name env)
+        makeDropDownList (name, _color) = (name, Label.makeFocusable name env)
