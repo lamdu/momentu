@@ -7,7 +7,8 @@ module GUI.Momentu.Main
     , HasMainLoopEnv
     , DebugOptions(..), defaultDebugOptions
     , PerfCounters(..)
-    , Options(..), defaultOptions
+    , Options(..), oConfig, oStateStorage, oDebug, oGetTexts
+    , defaultOptions
     , quitEventMap
     , MainLoop(..), Handlers(..), mainLoopWidget
     , Texts(..), textQuit, textJumpToSource, textDebug
@@ -102,11 +103,13 @@ iorefStateStorage initialCursor =
     newIORef (GUIState initialCursor mempty) <&> Property.fromIORef
 
 data Options = Options
-    { config :: Config
-    , stateStorage :: MkProperty' IO GUIState
-    , debug :: DebugOptions
-    , getTexts :: IO AllTexts
+    { _oConfig :: Config
+    , _oStateStorage :: MkProperty' IO GUIState
+    , _oDebug :: DebugOptions
+    , _oGetTexts :: IO AllTexts
     }
+
+Lens.makeLenses ''Options
 
 data Handlers = Handlers
     { makeWidget :: Env -> IO (Widget IO)
@@ -135,9 +138,9 @@ defaultOptions env =
         helpProp <- newIORef EventMapHelp.HelpNotShown <&> Property.fromIORef
         -- Note that not every app is necessarily interactive and even uses a cursor,
         -- so an empty value might be fitting.
-        stateStorage_ <- iorefStateStorage (Widget.Id [])
+        stateStorage <- iorefStateStorage (Widget.Id [])
         pure Options
-            { config = Config
+            { _oConfig = Config
                 { _cAnim =
                     pure MainAnim.Config
                     { MainAnim.acTimePeriod = 0.11
@@ -155,9 +158,9 @@ defaultOptions env =
                     \prop -> EventMapHelp.toggledHelpAdder env prop size widget
                 , _cInvalidCursorOverlayColor = pure (Draw.Color 1.0 0 0 0.3)
                 }
-            , stateStorage = stateStorage_
-            , debug = defaultDebugOptions
-            , getTexts = makeAllTexts env & pure
+            , _oStateStorage = stateStorage
+            , _oDebug = defaultDebugOptions
+            , _oGetTexts = makeAllTexts env & pure
             }
 
 quitEventMap ::
@@ -275,19 +278,19 @@ wrapMakeWidget ::
     Widget.Size -> IO (Widget IO)
 wrapMakeWidget zoom options lookupModeRef mkWidgetUnmemod size =
     do
-        s <- Property.getP stateStorage
+        s <- Property.getP (options ^. oStateStorage)
         let env = Env
                 { _eZoom = zoom
                 , _eWindowSize = size
                 , _eState = s
                 }
-        txt <- getTexts options
+        txt <- options ^. oGetTexts
         zoomEventMap <-
-            config ^. MainConfig.cZoom
+            options ^. oConfig . MainConfig.cZoom
             <&> Zoom.eventMap (env ^. eZoom) txt
         jumpToSourceEventMap <-
             writeIORef lookupModeRef JumpToSource
-            & mkJumpToSourceEventMap (txt ^. has) debug
+            & mkJumpToSourceEventMap (txt ^. has) (options ^. oDebug)
         let moreEvents = zoomEventMap <> jumpToSourceEventMap
         w <- mkWidgetUnmemod env
         ( if Widget.isFocused w
@@ -301,7 +304,7 @@ wrapMakeWidget zoom options lookupModeRef mkWidgetUnmemod size =
                         >>= assertFocused
             )
             <&> Widget.eventMapMaker . Lens.mapped %~ (moreEvents <>)
-            >>= (config ^. MainConfig.cPostProcess) zoom (env ^. eWindowSize)
+            >>= (options ^. oConfig . MainConfig.cPostProcess) zoom (env ^. eWindowSize)
     where
         assertFocused w
             | Widget.isFocused w = pure w
@@ -310,12 +313,10 @@ wrapMakeWidget zoom options lookupModeRef mkWidgetUnmemod size =
         bgColorAnimId = ["invalid-cursor-background"]
         showInvalidCursor :: IO (Widget IO -> Widget IO)
         showInvalidCursor =
-            _cInvalidCursorOverlayColor <&>
+            options ^. oConfig . MainConfig.cInvalidCursorOverlayColor <&>
             \color ->
             Element.setLayeredImage . Element.layers <. Lens.reversed . Lens.ix 0 %@~
             (<>) . (`Anim.scale` Anim.coloredRectangle bgColorAnimId color)
-        Config{_cInvalidCursorOverlayColor} = config
-        Options{stateStorage, debug, config} = options
 
 runInner ::
     IORef (IO ()) -> (GLFW.Window -> MainAnim.Handlers -> IO b) ->
@@ -324,7 +325,6 @@ runInner refreshAction run win handlers =
     do
         let getClipboard = GLFW.getClipboardString win <&> fmap Text.pack
         let opts = options handlers
-        let Options{debug, config} = opts
         zoom <- Zoom.make win
         lookupModeRef <- newIORef ApplyEvent
         virtCursorRef <- newIORef Nothing
@@ -337,7 +337,7 @@ runInner refreshAction run win handlers =
         let renderWidget size =
                 do
                     virtCursor <- readIORef virtCursorRef
-                    vcursorimg <- virtualCursorImage virtCursor debug
+                    vcursorimg <- virtualCursorImage virtCursor (opts ^. oDebug)
                     Cursor.render
                         <$> (readIORef mkWidgetRef >>= (size &))
                         <&> _1 . Lens.mapped %~ (vcursorimg <>)
@@ -345,23 +345,22 @@ runInner refreshAction run win handlers =
         writeIORef refreshAction newWidget
         run win $
             MainAnim.Handlers
-            { MainAnim.reportPerfCounters = reportPerfCounters debug
-            , MainAnim.getConfig = config ^. MainConfig.cAnim
-            , MainAnim.getFPSFont = fpsFont debug zoom
+            { MainAnim.reportPerfCounters = reportPerfCounters (opts ^. oDebug)
+            , MainAnim.getConfig = opts ^. oConfig . MainConfig.cAnim
+            , MainAnim.getFPSFont = fpsFont (opts ^. oDebug) zoom
             , MainAnim.eventHandler = \event ->
                 do
                     size <- GLFW.Utils.framebufferSize win
                     (_, mEnter, mFocus) <- renderWidget size
                     mWidgetRes <-
-                        handleEvent debug lookupModeRef getClipboard
+                        handleEvent (opts ^. oDebug) lookupModeRef getClipboard
                         virtCursorRef mEnter mFocus event
                     mRes <- sequenceA mWidgetRes
                     case mRes of
                         Nothing -> pure ()
                         Just res ->
                             do
-                                Property.modP (stateStorage opts)
-                                    (State.update res)
+                                Property.modP (opts ^. oStateStorage) (State.update res)
                                 writeIORef virtCursorRef (res ^. State.uVirtualCursor . Lens._Wrapped)
                                 res ^.. State.uSetSystemClipboard . Lens._Just &
                                     traverse_ (GLFW.setClipboardString win . Text.unpack)
@@ -371,7 +370,7 @@ runInner refreshAction run win handlers =
                 do
                     size <- GLFW.Utils.framebufferSize win
                     (renderWidget size <&> (^. _1))
-                        <*> (config ^. MainConfig.cCursor) zoom
+                        <*> (opts ^. oConfig . MainConfig.cCursor) zoom
             }
 
 mainLoopWidget :: IO (MainLoop Handlers)
