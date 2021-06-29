@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module GUI.Momentu.Animation.Engine
-    ( Config(..)
+    ( Config(..), acTimePeriod, acRemainingRatioInPeriod
     , currentFrame
     , State
     , initialState
@@ -24,9 +24,10 @@ import qualified Graphics.DrawingCombinators as Draw
 import           GUI.Momentu.Prelude
 
 data Config = Config
-    { acTimePeriod :: NominalDiffTime
-    , acRemainingRatioInPeriod :: R
+    { _acTimePeriod :: NominalDiffTime
+    , _acRemainingRatioInPeriod :: R
     }
+Lens.makeLenses ''Config
 
 data Interpolation
     = Deleting Image

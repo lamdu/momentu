@@ -143,8 +143,8 @@ defaultOptions env =
             { _oConfig = Config
                 { _cAnim =
                     pure MainAnim.Config
-                    { MainAnim.acTimePeriod = 0.11
-                    , MainAnim.acRemainingRatioInPeriod = 0.2
+                    { MainAnim._acTimePeriod = 0.11
+                    , MainAnim._acRemainingRatioInPeriod = 0.2
                     }
                 , _cCursor =
                     \_zoom -> pure Cursor.Config
