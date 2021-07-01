@@ -3,101 +3,70 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module GUI.Momentu.MetaKey
-    ( ModifierKeys(..), cmdOn, altOn, shiftOn, metaOn
-    , noMods, cmd, shift, numModsOn
-    , MetaKey(..), modifiers, key
-    , ModKey.Key(..), ModKey.KeyState(..)
+    ( OSString, cmdLens, cmd
     , parse, format
-    , toModKey, toModKeyModifiers
     ) where
 
 import qualified Control.Lens as Lens
-import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
-import           GUI.Momentu.ModKey (ModKey(..))
+import           GUI.Momentu.ModKey (ModKey(..), ModifierKeys(..))
 import qualified GUI.Momentu.ModKey as ModKey
-import qualified System.Info as SysInfo
 import           Text.Read (readMaybe)
 
 import           GUI.Momentu.Prelude
 
-data ModifierKeys = ModifierKeys
-    { _cmdOn :: Bool -- Ctrl on most platforms. Cmd on macOS
-    , _altOn :: Bool
-    , _shiftOn :: Bool
-    , _metaOn :: Bool -- Win-key on most platforms. Ctrl on macOS
-    } deriving (Show, Eq, Ord)
-Lens.makeLenses ''ModifierKeys
+-- | The OS string as defined by the result of System.Info.os
+type OSString = String
 
-data MetaKey = MetaKey
-    { _modifiers :: ModifierKeys
-    , _key :: ModKey.Key
-    }
-    deriving (Show, Eq, Ord)
-Lens.makeLenses ''MetaKey
+cmdLens :: OSString -> Lens.ALens' ModifierKeys Bool
+cmdLens os
+    | os == "darwin" = ModKey.mSuper
+    | otherwise      = ModKey.mControl
 
-noMods :: ModifierKeys
-noMods = ModifierKeys False False False False
+cmd :: OSString -> ModKey.Key -> ModKey
+cmd os = ModKey (mempty & cmdLens os #~ True)
 
-numModsOn :: ModifierKeys -> Int
-numModsOn mods =
-    f cmdOn + f altOn + f shiftOn + f metaOn
-    where
-        f m
-            | mods ^. m = 1
-            | otherwise = 0
-
-cmd :: ModKey.Key -> MetaKey
-cmd = MetaKey (noMods & cmdOn .~ True)
-
-shift :: ModKey.Key -> MetaKey
-shift = MetaKey (noMods & shiftOn .~ True)
-
-parse :: Text -> Maybe MetaKey
-parse s =
+parse :: OSString -> Text -> Either String ModKey
+parse os s =
     case readMaybe ("Key'" ++ Text.unpack (last parts)) of
-    Just k | numModsOn mods == length modsTexts ->
-        Just MetaKey
+    Just k | numModsOn == length modsTexts ->
+        Right ModKey
         { _key = k
         , _modifiers = mods
         }
-    _ -> Nothing
+    _ ->
+        unwords ["Parsed", show mods, "mods from", show modsTexts]
+        & Left
     where
         parts = Text.splitOn "+" s
         modsTexts = init parts
+        cmdMods
+            | "Cmd" `elem` modsTexts = mempty & cmdLens os #~ True
+            | otherwise = mempty
         mods =
-            ModifierKeys
-            { _cmdOn = "Cmd" `elem` modsTexts
-            , _altOn = "Alt" `elem` modsTexts
-            , _shiftOn = "Shift" `elem` modsTexts
-            , _metaOn = "Meta" `elem` modsTexts
+            cmdMods
+            <> mempty
+            { _mAlt = "Alt" `elem` modsTexts
+            , _mShift = "Shift" `elem` modsTexts
+            , _mSuper = "Super" `elem` modsTexts
+            , _mControl = "Ctrl" `elem` modsTexts
             }
+        numModsOn =
+            f ModKey.mControl + f ModKey.mAlt + f ModKey.mShift + f ModKey.mSuper
+            where
+                f m
+                    | mods ^. m = 1
+                    | otherwise = 0
 
-format :: MetaKey -> Text
-format (MetaKey mods k) =
-    ["Cmd+" | mods ^. cmdOn] ++
-    ["Alt+" | mods ^. altOn] ++
-    ["Shift+" | mods ^. shiftOn] ++
-    ["Meta+" | mods ^. metaOn] ++
+format :: OSString -> ModKey -> Text
+format os (ModKey mods k) =
+    ["Cmd+" | os == "darwin" && mods ^. ModKey.mSuper] ++
+    ["Super+" | os /= "darwin" && mods ^. ModKey.mSuper] ++
+
+    ["Cmd+" | os /= "darwin" && mods ^. ModKey.mControl] ++
+    ["Control+" | os == "darwin" && mods ^. ModKey.mControl] ++
+
+    ["Alt+" | mods ^. ModKey.mAlt] ++
+    ["Shift+" | mods ^. ModKey.mShift] ++
     [show k & drop 4 & Text.pack]
     & mconcat
-
-instance Aeson.FromJSON MetaKey where
-    parseJSON (Aeson.String s) =
-        parse s & maybe (fail ("invalid key " ++ Text.unpack s)) pure
-    parseJSON _ = fail "expected string"
-
-instance Aeson.ToJSON MetaKey where
-    toJSON m = format m & Aeson.String
-
-toModKeyModifiers :: ModifierKeys -> ModKey.ModifierKeys
-toModKeyModifiers (ModifierKeys cmd_ alt_ shift_ meta_) =
-    ModKey.ModifierKeys
-    { ModKey._mAlt = alt_
-    , ModKey._mShift = shift_
-    , ModKey._mControl = if SysInfo.os == "darwin" then meta_ else cmd_
-    , ModKey._mSuper = if SysInfo.os == "darwin" then cmd_ else meta_
-    }
-
-toModKey :: MetaKey -> ModKey
-toModKey (MetaKey mods k) = ModKey (toModKeyModifiers mods) k

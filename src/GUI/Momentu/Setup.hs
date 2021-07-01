@@ -2,7 +2,7 @@
 module GUI.Momentu.Setup
     ( SetupOptions(..), setupWindowMode, setupLcdSubPixel, setupFontSize
         , defaultSetupOptions
-    , defaultSetup, defaultMakeWidget, MakeWidget
+    , OSString, defaultSetup, defaultMakeWidget, MakeWidget
     ) where
 
 import qualified Control.Lens as Lens
@@ -11,12 +11,14 @@ import           GUI.Momentu.DefaultEnv (defaultEnv, DefaultEnvWithCursor, defau
 import           GUI.Momentu.Font (Font)
 import qualified GUI.Momentu.Font as Font
 import qualified GUI.Momentu.Main as Main
+import           GUI.Momentu.MetaKey (OSString)
 import           GUI.Momentu.Widget (Widget(..))
 import qualified GUI.Momentu.Widget as Widget
 import           GUI.Momentu.Window (WindowMode(..))
 import qualified GUI.Momentu.Window as Window
 import qualified GUI.Momentu.Zoom as Zoom
 import           Graphics.UI.GLFW.Utils (withGLFW)
+import qualified System.Info as SysInfo
 
 import           GUI.Momentu.Prelude
 
@@ -43,19 +45,20 @@ defaultSetup title fontPath options makeWidget =
         cachedOpenFont <- memoIO (Font.openFont (options ^. setupLcdSubPixel) ?? fontPath)
         let cachedOpenFontBySizeFactor = cachedOpenFont . (* options ^. setupFontSize)
         mainLoop <- Main.mainLoopWidget
-        env <- cachedOpenFontBySizeFactor 1 <&> defaultEnv
-        opts <- Main.defaultOptions env
+        let os = SysInfo.os
+        env <- cachedOpenFontBySizeFactor 1 <&> defaultEnv os
+        opts <- Main.defaultOptions os env
         Main.run mainLoop win Main.Handlers
             { Main.makeWidget =
-                defaultMakeWidget cachedOpenFontBySizeFactor makeWidget
+                defaultMakeWidget os cachedOpenFontBySizeFactor makeWidget
                 <&> Lens.mapped %~ Widget.weakerEvents (Main.quitEventMap env)
             , Main.options = opts
             }
         & withGLFW
 
-defaultMakeWidget :: (Float -> IO Font) -> MakeWidget -> Main.Env -> IO (Widget IO)
-defaultMakeWidget getFont makeWidget mainLoopEnv =
+defaultMakeWidget :: OSString -> (Float -> IO Font) -> MakeWidget -> Main.Env -> IO (Widget IO)
+defaultMakeWidget os getFont makeWidget mainLoopEnv =
     do
         sizeFactor <- Zoom.getZoomFactor (mainLoopEnv ^. Main.eZoom)
         font <- getFont sizeFactor
-        makeWidget getFont (defaultEnvWithCursor (mainLoopEnv ^. Main.eState) font)
+        makeWidget getFont (defaultEnvWithCursor os (mainLoopEnv ^. Main.eState) font)

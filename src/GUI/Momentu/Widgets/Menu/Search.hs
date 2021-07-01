@@ -14,7 +14,7 @@ module GUI.Momentu.Widgets.Menu.Search
 
     , Config(..), configMenu
     , HasConfig
-    , defaultConfig
+    , OSString, defaultConfig
 
     , TermStyle(..), bgColors, emptyStrings, emptyStringsColors
         , defaultTermStyle
@@ -53,9 +53,9 @@ import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
-import           GUI.Momentu.MetaKey (MetaKey(..), toModKey)
-import qualified GUI.Momentu.MetaKey as MetaKey
-import           GUI.Momentu.ModKey (ModKey(..))
+import           GUI.Momentu.MetaKey (OSString, cmd)
+import           GUI.Momentu.ModKey (ModKey(..), noMods)
+import qualified GUI.Momentu.ModKey as ModKey
 import           GUI.Momentu.State (HasState)
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View)
@@ -85,24 +85,24 @@ data Texts a = Texts
 Lens.makeLenses ''Texts
 JsonTH.derivePrefixed "_text" ''Texts
 
-data Config = Config
-    { _configMenu :: Menu.Config
-    , _configOpenKeys :: [MetaKey]
-    , _configCloseKeys :: [MetaKey]
-    , _configDelSearchTermKeys :: [MetaKey]
-    } deriving (Eq, Show)
+data Config key = Config
+    { _configMenu :: Menu.Config key
+    , _configOpenKeys :: [key]
+    , _configCloseKeys :: [key]
+    , _configDelSearchTermKeys :: [key]
+    } deriving (Eq, Show, Functor, Foldable, Traversable)
 Lens.makeLenses ''Config
 JsonTH.derivePrefixed "_config" ''Config
 
-defaultConfig :: Config
-defaultConfig = Config
+defaultConfig :: OSString -> Config ModKey
+defaultConfig os = Config
     { _configMenu = Menu.defaultConfig
-    , _configOpenKeys = [MetaKey MetaKey.noMods MetaKey.Key'Enter]
-    , _configCloseKeys = [MetaKey MetaKey.noMods MetaKey.Key'Escape]
-    , _configDelSearchTermKeys = [MetaKey.cmd MetaKey.Key'Backspace]
+    , _configOpenKeys = [noMods ModKey.Key'Enter]
+    , _configCloseKeys = [noMods ModKey.Key'Escape]
+    , _configDelSearchTermKeys = [cmd os ModKey.Key'Backspace]
     }
 
-type HasConfig env = (Has Config env, Has Menu.Config env)
+type HasConfig env = (Has (Config ModKey) env, Has (Menu.Config ModKey) env)
 
 englishTexts :: Texts Text
 englishTexts = Texts
@@ -257,7 +257,7 @@ searchTermDoc env subtitle =
     E.toDoc env [has . MomentuTexts.edit, has . textSearchTerm, subtitle]
 
 addDelSearchTerm ::
-    ( MonadReader env m, State.HasState env, HasTexts env, Has Config env, Applicative f
+    ( MonadReader env m, State.HasState env, HasTexts env, Has (Config ModKey) env, Applicative f
     ) =>
     Id -> m (Term f -> Term f)
 addDelSearchTerm menuId =
@@ -269,7 +269,7 @@ addDelSearchTerm menuId =
             | Text.null searchTerm = mempty
             | otherwise =
                 enterWithSearchTerm "" menuId & pure
-                & E.keyPresses ((env ^. has . configDelSearchTermKeys) <&> toModKey)
+                & E.keyPresses (env ^. has . configDelSearchTermKeys)
                 (searchTermDoc env (has . MomentuTexts.delete))
     in  term
         & termWidget . Align.tValue %~ Widget.weakerEventsWithoutPreevents delSearchTerm
@@ -424,8 +424,8 @@ make makeSearchTerm makeOptions ann menuId =
             & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
             & assignTheCursor
     where
-        openKeys env = env ^. has . configOpenKeys <&> toModKey
-        closeKeys env = env ^. has . configCloseKeys <&> toModKey
+        openKeys env = env ^. has . configOpenKeys
+        closeKeys env = env ^. has . configCloseKeys
         gotoSearchTerm = searchTermEditId menuId & State.updateCursor
         assertFocused w
             | Widget.isFocused w = w
@@ -454,5 +454,5 @@ searchTermEditEventMap env menuId allowedTerms searchTerm =
             | Text.null searchTerm = mempty
             | otherwise =
                 Text.init searchTerm
-                & E.keyPress (ModKey mempty MetaKey.Key'Backspace)
+                & E.keyPress (noMods ModKey.Key'Backspace)
                     (searchTermDoc env (has . textDeleteBackwards))

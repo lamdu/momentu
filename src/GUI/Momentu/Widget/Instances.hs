@@ -28,9 +28,8 @@ import qualified GUI.Momentu.FocusDirection as FDir
 import           GUI.Momentu.Glue (Glue(..))
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.I18N as MomentuTexts
-import           GUI.Momentu.MetaKey (MetaKey(..))
-import qualified GUI.Momentu.MetaKey as MetaKey
-import           GUI.Momentu.ModKey (ModKey(..))
+import           GUI.Momentu.ModKey (ModKey(..), noMods)
+import qualified GUI.Momentu.ModKey as ModKey
 import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
@@ -161,7 +160,7 @@ combineStates env orientation order strollOrder (StateFocused f) (StateUnfocused
             & enter
             & (^. enterResultEvent)
             & EventMap.keyPresses
-                (stdDirKeys ^# dirKey dir orientation order <&> ModKey mempty)
+                (stdDirKeys ^# dirKey dir orientation order <&> noMods)
             (EventMap.Doc
                 [ env ^. has . MomentuTexts.navigation
                 , env ^. has . MomentuTexts.move
@@ -183,11 +182,11 @@ combineStates env orientation order strollOrder (StateFocused f) (StateUnfocused
             (Dir.RightToLeft, Horizontal, Backward) -> FromLeft
             (Dir.RightToLeft, Horizontal, Forward ) -> FromRight
 
-strollAheadKeys :: [MetaKey]
-strollAheadKeys = [MetaKey MetaKey.noMods MetaKey.Key'Tab]
+strollAheadKeys :: [ModKey]
+strollAheadKeys = [noMods ModKey.Key'Tab]
 
-strollBackKeys :: [MetaKey]
-strollBackKeys = [MetaKey.shift MetaKey.Key'Tab]
+strollBackKeys :: [ModKey]
+strollBackKeys = [ModKey.shift ModKey.Key'Tab]
 
 combineMEnters ::
     Has Dir.Layout env =>

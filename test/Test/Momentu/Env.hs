@@ -9,9 +9,9 @@ import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
-import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.ModKey (ModKey)
 import qualified GUI.Momentu.Widgets.Grid as Grid
+import qualified System.Info as SysInfo
 
 import           GUI.Momentu.Prelude
 
@@ -47,7 +47,7 @@ env =
         , Grid._leftMost = "left-most"
         , Grid._rightMost = "right-most"
         }
-    , _eGridKeys = Grid.stdKeys <&> MetaKey.toModKey
+    , _eGridKeys = Grid.stdKeys SysInfo.os
     , _eMomentuTexts =
         MomentuTexts.Texts
         { MomentuTexts._edit = "Edit"

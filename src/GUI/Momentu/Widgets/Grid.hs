@@ -26,9 +26,10 @@ import qualified GUI.Momentu.EventMap as EventMap
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.I18N as MomentuTexts
-import           GUI.Momentu.MetaKey (MetaKey(..), noMods)
+import           GUI.Momentu.MetaKey (OSString)
 import qualified GUI.Momentu.MetaKey as MetaKey
-import           GUI.Momentu.ModKey (ModKey)
+import           GUI.Momentu.ModKey (ModKey(..), noMods)
+import qualified GUI.Momentu.ModKey as ModKey
 import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
@@ -156,18 +157,16 @@ data Keys key = Keys
 Lens.makeLenses ''Keys
 JsonTH.derivePrefixed "_keys" ''Keys
 
-stdKeys :: Keys MetaKey
-stdKeys = Keys
-    { _keysDir = stdDirKeys <&> k
-    , _keysMoreLeft = [k MetaKey.Key'Home]
-    , _keysMoreRight = [k MetaKey.Key'End]
-    , _keysLeftMost = [MetaKey.cmd MetaKey.Key'Home]
-    , _keysRightMost = [MetaKey.cmd MetaKey.Key'End]
-    , _keysTop = [k MetaKey.Key'PageUp]
-    , _keysBottom = [k MetaKey.Key'PageDown]
+stdKeys :: OSString -> Keys ModKey
+stdKeys os = Keys
+    { _keysDir = stdDirKeys <&> noMods
+    , _keysMoreLeft = [noMods ModKey.Key'Home]
+    , _keysMoreRight = [noMods ModKey.Key'End]
+    , _keysLeftMost = [MetaKey.cmd os ModKey.Key'Home]
+    , _keysRightMost = [MetaKey.cmd os ModKey.Key'End]
+    , _keysTop = [noMods ModKey.Key'PageUp]
+    , _keysBottom = [noMods ModKey.Key'PageDown]
     }
-    where
-        k = MetaKey noMods
 
 type Deps env = (HasTexts env, Has (Keys ModKey) env)
 

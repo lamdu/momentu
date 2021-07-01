@@ -12,8 +12,7 @@ import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.Main.Events (KeyEvent(..))
-import           GUI.Momentu.MetaKey (MetaKey(..))
-import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (ModKey(..))
 import           GUI.Momentu.Rect (Rect(Rect))
 import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.Responsive as Responsive
@@ -84,12 +83,12 @@ viewsFromConf viewConfs =
         minRowTailLen = minimum (viewConfs ^.. traverse <&> NonEmpty.tail <&> length)
         onTail f (x :| xs) = x :| f xs
 
-simpleKeyEvent :: MetaKey -> E.Event
-simpleKeyEvent (MetaKey mods key) =
+simpleKeyEvent :: ModKey -> E.Event
+simpleKeyEvent (ModKey mods key) =
     E.EventKey KeyEvent
     { keKey = key
     , keScanCode = 0 -- dummy
-    , keModKeys = MetaKey.toModKeyModifiers mods
+    , keModKeys = mods
     , keState = GLFW.KeyState'Pressed
     }
 

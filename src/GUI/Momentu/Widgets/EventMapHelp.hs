@@ -40,8 +40,7 @@ import           GUI.Momentu.Font (Font)
 import qualified GUI.Momentu.Font as Font
 import           GUI.Momentu.Glue ((/|/), (/-/))
 import qualified GUI.Momentu.Glue as Glue
-import           GUI.Momentu.MetaKey (MetaKey(..), toModKey, noMods)
-import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (ModKey(..), noMods)
 import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..), vAnimLayers)
@@ -71,7 +70,7 @@ Lens.makeLenses ''Style
 instance Has TextView.Style Style where has = styleText
 
 newtype Config = Config
-    { _configOverlayDocKeys :: [MetaKey]
+    { _configOverlayDocKeys :: [ModKey]
     }
 Lens.makeLenses ''Config
 
@@ -118,7 +117,7 @@ defaultStyle font =
 defaultConfig :: Config
 defaultConfig =
     Config
-    { _configOverlayDocKeys = [MetaKey noMods MetaKey.Key'F1]
+    { _configOverlayDocKeys = [noMods ModKey.Key'F1]
     }
 
 data Tree n l = Leaf l | Branch n [Tree n l]
@@ -231,7 +230,7 @@ makeTooltip ::
     ) => m View
 makeTooltip =
     do
-        helpKeys <- Lens.view (has . configOverlayDocKeys) <&> Lens.mapped %~ toModKey
+        helpKeys <- Lens.view (has . configOverlayDocKeys)
         txt <- Lens.view (has . textShowHelp)
         Label.make txt
             /|/ makeShortcutKeyView

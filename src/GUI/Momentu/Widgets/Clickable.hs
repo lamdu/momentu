@@ -11,7 +11,7 @@ import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.FocusDirection as Dir
-import           GUI.Momentu.MetaKey (MetaKey, toModKey)
+import           GUI.Momentu.ModKey (ModKey)
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
 import qualified GUI.Momentu.Widget as Widget
@@ -22,7 +22,7 @@ import           GUI.Momentu.Prelude
 data Config f = Config
     { _action :: f Widget.Id
     , _doc :: E.Doc
-    , _keys :: [MetaKey]
+    , _keys :: [ModKey]
     }
 
 Lens.makeLenses ''Config
@@ -38,7 +38,7 @@ make =
         eventMap =
             config ^. action
             <&> State.updateCursor
-            & E.keyPresses (config ^. keys <&> toModKey) (config ^. doc)
+            & E.keyPresses (config ^. keys) (config ^. doc)
         toButton w =
             Widget.fromView w
             & mkFocusableWith myId enter

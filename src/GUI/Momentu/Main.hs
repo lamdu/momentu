@@ -15,7 +15,7 @@ module GUI.Momentu.Main
     , englishTexts
     , AllTexts(..), makeAllTexts
     , Keys(..), keysQuit
-    , stdKeys
+    , OSString, stdKeys
     ) where
 
 import qualified Control.Lens as Lens
@@ -41,9 +41,9 @@ import           GUI.Momentu.Main.Config (Config(..))
 import qualified GUI.Momentu.Main.Config as MainConfig
 import           GUI.Momentu.Main.Events (MouseButtonEvent(..))
 import qualified GUI.Momentu.Main.Events as Main.Events
-import           GUI.Momentu.MetaKey (MetaKey)
-import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.MetaKey (OSString, cmd)
 import           GUI.Momentu.ModKey (ModKey)
+import qualified GUI.Momentu.ModKey as ModKey
 import           GUI.Momentu.Rect (Rect)
 import qualified GUI.Momentu.Rect as Rect
 import           GUI.Momentu.State (GUIState(..))
@@ -77,10 +77,10 @@ newtype Keys key = Keys
 Lens.makeLenses ''Keys
 JsonTH.derivePrefixed "_keys" ''Keys
 
-stdKeys :: Keys MetaKey
-stdKeys =
+stdKeys :: OSString -> Keys ModKey
+stdKeys os =
     Keys
-    { _keysQuit = [MetaKey.cmd MetaKey.Key'Q]
+    { _keysQuit = [cmd os ModKey.Key'Q]
     }
 
 englishTexts :: Texts Text
@@ -110,7 +110,7 @@ data DebugOptions = DebugOptions
     { fpsFont :: Zoom -> IO (Maybe Font)
     , virtualCursorColor :: IO (Maybe Draw.Color)
     , reportPerfCounters :: PerfCounters -> IO ()
-    , jumpToSourceKeys :: IO [MetaKey]
+    , jumpToSourceKeys :: IO [ModKey]
     , jumpToSource :: SrcLoc -> IO ()
     , postProcessEvent :: Main.Events.Event -> IO ()
     }
@@ -149,8 +149,8 @@ defaultOptions ::
     , Element.HasAnimIdPrefix env, Has EventMapHelp.Config env
     , EventMapHelp.HasStyle env, EventMapHelp.HasTexts env
     ) =>
-    env -> IO Options
-defaultOptions env =
+    OSString -> env -> IO Options
+defaultOptions os env =
     do
         helpProp <- newIORef EventMapHelp.HelpNotShown <&> Property.fromIORef
         -- Note that not every app is necessarily interactive and even uses a cursor,
@@ -169,7 +169,7 @@ defaultOptions env =
                     { Cursor.cursorColor = Draw.Color 0.5 0.5 1 0.5
                     , Cursor.decay = Nothing
                     }
-                , _cZoom = pure Zoom.defaultConfig
+                , _cZoom = pure (Zoom.defaultConfig os)
                 , _cPostProcess =
                     \_zoom size widget ->
                     helpProp ^. Property.mkProperty <&>

@@ -40,7 +40,6 @@ import qualified Data.Set as Set
 import           Data.String (IsString(..))
 import           GHC.Stack (CallStack, callStack, withFrozenCallStack)
 import qualified GUI.Momentu.Main.Events as Events
-import           GUI.Momentu.MetaKey (MetaKey, toModKey)
 import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.State as State
@@ -351,21 +350,21 @@ keyEventMap :: HasCallStack => KeyEvent -> Doc -> a -> EventMap a
 keyEventMap eventType doc handler =
     keyEventMapH callStack eventType doc (Doesn'tWantClipboard handler)
 
-keysEventMap :: (HasCallStack, Monoid a, Functor f) => [MetaKey] -> Doc -> f () -> EventMap (f a)
+keysEventMap :: (HasCallStack, Monoid a, Functor f) => [ModKey] -> Doc -> f () -> EventMap (f a)
 keysEventMap keys doc act =
-    withFrozenCallStack $ keyPresses (keys <&> toModKey) doc (mempty <$ act)
+    withFrozenCallStack $ keyPresses keys doc (mempty <$ act)
 
 -- | Convenience method to just set the cursor
 keysEventMapMovesCursor ::
-    (HasCallStack, Functor f) => [MetaKey] -> Doc -> f Id -> EventMap (f State.Update)
+    (HasCallStack, Functor f) => [ModKey] -> Doc -> f Id -> EventMap (f State.Update)
 keysEventMapMovesCursor keys doc act =
-    withFrozenCallStack $ keyPresses (keys <&> toModKey) doc (act <&> State.updateCursor)
+    withFrozenCallStack $ keyPresses keys doc (act <&> State.updateCursor)
 
 keyPress :: HasCallStack => ModKey -> Doc -> a -> EventMap a
 keyPress key = withFrozenCallStack keyEventMap (KeyEvent ModKey.KeyState'Pressed key)
 
 keyPresses :: HasCallStack => [ModKey] -> Doc -> a -> EventMap a
-keyPresses = withFrozenCallStack $ mconcat . map keyPress
+keyPresses = withFrozenCallStack $ foldMap keyPress
 
 keyPressOrRepeat :: HasCallStack => ModKey -> Doc -> a -> EventMap a
 keyPressOrRepeat key doc res =

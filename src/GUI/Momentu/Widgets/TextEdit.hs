@@ -20,6 +20,7 @@ module GUI.Momentu.Widgets.TextEdit
         , keysCopy, keysPaste
     , stdKeys
     , Deps
+    , OSString
     ) where
 
 import qualified Control.Lens as Lens
@@ -44,10 +45,9 @@ import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
 import qualified GUI.Momentu.Font as Font
 import qualified GUI.Momentu.I18N as MomentuTexts
-import qualified GUI.Momentu.MetaKey as MetaKey
-import           GUI.Momentu.MetaKey (cmd)
-import           GUI.Momentu.ModKey (ModKey(..), noMods, ctrl, alt)
 import qualified GUI.Momentu.ModKey as ModKey
+import           GUI.Momentu.MetaKey (OSString, cmd)
+import           GUI.Momentu.ModKey (ModKey(..), noMods, ctrl, alt)
 import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
@@ -150,27 +150,27 @@ data Keys key = Keys
 Lens.makeLenses ''Keys
 JsonTH.derivePrefixed "_keys" ''Keys
 
-stdKeys :: Keys ModKey
-stdKeys = Keys
+stdKeys :: OSString -> Keys ModKey
+stdKeys os = Keys
     { _keysDir                     = StdKeys.stdDirKeys <&> noMods
     , _keysMoveLeftWord            = [ctrl ModKey.Key'Left]
     , _keysMoveRightWord           = [ctrl ModKey.Key'Right]
 
-    , _keysHome                    = [noMods MetaKey.Key'Home, ctrl MetaKey.Key'A]
-    , _keysEnd                     = [noMods MetaKey.Key'End, ctrl MetaKey.Key'E]
+    , _keysHome                    = [noMods ModKey.Key'Home, ctrl ModKey.Key'A]
+    , _keysEnd                     = [noMods ModKey.Key'End, ctrl ModKey.Key'E]
 
-    , _keysTransposeLetters        = [ctrl MetaKey.Key'T]
+    , _keysTransposeLetters        = [ctrl ModKey.Key'T]
 
     , _keysDeleteCharBackward      = [noMods ModKey.Key'Backspace]
     , _keysDeleteCharForward       = [noMods ModKey.Key'Delete]
     , _keysDeleteWordBackward      = [ctrl ModKey.Key'W]
-    , _keysDeleteWordForward       = [alt MetaKey.Key'D]
-    , _keysDeleteToEndOfLine       = [ctrl MetaKey.Key'K]
-    , _keysDeleteToBeginningOfLine = [ctrl MetaKey.Key'U]
+    , _keysDeleteWordForward       = [alt ModKey.Key'D]
+    , _keysDeleteToEndOfLine       = [ctrl ModKey.Key'K]
+    , _keysDeleteToBeginningOfLine = [ctrl ModKey.Key'U]
 
     -- clipboard
-    , _keysCopy                    = [cmd ModKey.Key'C] <&> MetaKey.toModKey
-    , _keysPaste                   = [cmd ModKey.Key'V] <&> MetaKey.toModKey
+    , _keysCopy                    = [cmd os ModKey.Key'C]
+    , _keysPaste                   = [cmd os ModKey.Key'V]
     }
 
 type HasStyle env = (Has Style env, TextView.HasStyle env)
@@ -463,8 +463,8 @@ eventMap env cursor str myId _eventContext =
 
         ]
     where
-        insertNewlineKeys = mayShift MetaKey.Key'Enter
-        insertSpaceKeys = mayShift MetaKey.Key'Space
+        insertNewlineKeys = mayShift ModKey.Key'Enter
+        insertSpaceKeys = mayShift ModKey.Key'Space
         mayShift k = [noMods k, ModKey.shift k]
 
         keys = env ^. has

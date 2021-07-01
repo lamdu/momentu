@@ -11,7 +11,7 @@ import           GUI.Momentu.Align (TextWidget)
 import qualified GUI.Momentu.Align as Align
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
-import           GUI.Momentu.ModKey (ModKey(..))
+import           GUI.Momentu.ModKey (ModKey(..), noMods)
 import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.TextEdit as TextEdit
@@ -48,7 +48,7 @@ makeLineEdit =
     <&> \mk empty textRef myId ->
     mk empty textRef myId
     & Align.tValue . Widget.eventMapMaker . Lens.mapped %~
-    deleteKeyEventHandler (ModKey mempty ModKey.Key'Enter)
+    deleteKeyEventHandler (noMods ModKey.Key'Enter)
 
 makeWordEdit ::
     (MonadReader env m, Applicative f, TextEdit.Deps env) =>
@@ -58,4 +58,4 @@ makeWordEdit =
     makeLineEdit
     <&> \mk empty textRef myId -> mk empty textRef myId
     & Align.tValue . Widget.eventMapMaker . Lens.mapped %~
-    deleteKeyEventHandler (ModKey mempty ModKey.Key'Space)
+    deleteKeyEventHandler (noMods ModKey.Key'Space)

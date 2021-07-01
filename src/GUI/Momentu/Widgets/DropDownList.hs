@@ -21,8 +21,8 @@ import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
-import           GUI.Momentu.MetaKey (MetaKey(..), noMods)
-import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (noMods)
+import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.State as State
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.FocusDelegator as FocusDelegator
@@ -47,9 +47,9 @@ defaultFdConfig ::
 defaultFdConfig =
     Lens.view id <&> \txt helpCategory ->
     FocusDelegator.Config
-    { FocusDelegator.focusChildKeys = [MetaKey noMods MetaKey.Key'Enter]
+    { FocusDelegator.focusChildKeys = [noMods ModKey.Key'Enter]
     , FocusDelegator.focusChildDoc = E.Doc [helpCategory, txt ^. has . MomentuTexts.choose]
-    , FocusDelegator.focusParentKeys = [MetaKey.Key'Enter, MetaKey.Key'Escape] <&> MetaKey noMods
+    , FocusDelegator.focusParentKeys = [ModKey.Key'Enter, ModKey.Key'Escape] <&> noMods
     , FocusDelegator.focusParentDoc = E.Doc [helpCategory, txt ^. has . chooseSelected]
     }
 

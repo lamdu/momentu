@@ -4,9 +4,8 @@
 module GUI.Momentu
     (
     -- | Shortcut Keys
-      MetaKey.ModifierKeys(..), MetaKey.noMods, MetaKey.cmd, MetaKey.shift
-    , MetaKey(..)
-    , MetaKey.Key(..)
+      ModKey.ModifierKeys(..), ModKey(..), ModKey.Key(..)
+    , ModKey.noMods, ModKey.shift, ModKey.ctrl, ModKey.alt, MetaKey.cmd
 
     -- | Events
     , EventMap.Doc(..)
@@ -85,8 +84,9 @@ import qualified GUI.Momentu.EventMap as EventMap
 import qualified GUI.Momentu.Font as Font
 import           GUI.Momentu.Glue ((/-/), (/|/), Glued)
 import qualified GUI.Momentu.Main as MainLoop
-import           GUI.Momentu.MetaKey (MetaKey(..))
 import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (ModKey(..))
+import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.Setup as Setup
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View)

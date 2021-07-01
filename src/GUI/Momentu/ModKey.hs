@@ -73,9 +73,11 @@ shift = ModKey shiftMods
 super :: GLFW.Key -> ModKey
 super = ModKey superMods
 
-data ModKey = ModKey ModifierKeys GLFW.Key
+data ModKey = ModKey
+    { _modifiers :: !ModifierKeys
+    , _key :: GLFW.Key
+    }
     deriving stock (Generic, Show, Eq, Ord)
-    deriving anyclass (ToJSON, FromJSON)
 
 prettyKey :: GLFW.Key -> Text
 prettyKey k

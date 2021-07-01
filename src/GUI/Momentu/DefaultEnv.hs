@@ -12,7 +12,7 @@ import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as I18N
 import qualified GUI.Momentu.Main as Main
-import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.MetaKey (OSString)
 import           GUI.Momentu.ModKey (ModKey)
 import           GUI.Momentu.State (HasCursor, GUIState)
 import qualified GUI.Momentu.Widgets.DropDownList as DropDownList
@@ -37,7 +37,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _directionLayout :: Direction.Layout
     , _menuTexts :: Menu.Texts Text
     , _menuStyle :: Menu.Style
-    , _searchMenuConfig :: SearchMenu.Config
+    , _searchMenuConfig :: SearchMenu.Config ModKey
     , _searchMenuTexts :: SearchMenu.Texts Text
     , _searchMenuStyle :: SearchMenu.TermStyle
     , _gridKeys :: Grid.Keys ModKey
@@ -62,8 +62,8 @@ Lens.makeLenses ''DefaultEnvG
 type DefaultEnv = DefaultEnvG ()
 type DefaultEnvWithCursor = DefaultEnvG GUIState
 
-defaultEnv :: Font -> DefaultEnv
-defaultEnv font = DefaultEnv
+defaultEnv :: OSString -> Font -> DefaultEnv
+defaultEnv os font = DefaultEnv
     { _commonTexts = I18N.englishTexts
     , _mainTexts = Main.englishTexts
     , _dropDownTexts = DropDownList.englishTexts
@@ -74,9 +74,9 @@ defaultEnv font = DefaultEnv
     , _menuStyle = Menu.defaultStyle
     , _searchMenuTexts = SearchMenu.englishTexts
     , _searchMenuStyle = SearchMenu.defaultTermStyle
-    , _searchMenuConfig = SearchMenu.defaultConfig
-    , _gridKeys = Grid.stdKeys <&> MetaKey.toModKey
-    , _mainKeys = Main.stdKeys <&> MetaKey.toModKey
+    , _searchMenuConfig = SearchMenu.defaultConfig os
+    , _gridKeys = Grid.stdKeys os
+    , _mainKeys = Main.stdKeys os
     , _zoomTexts = Zoom.englishTexts
     , _eventMapTexts = EventMap.englishTexts
     , _glueTexts = Glue.englishTexts
@@ -84,7 +84,7 @@ defaultEnv font = DefaultEnv
     , _animIdPrefix = []
     , _helpConfig = EventMapHelp.defaultConfig
     , _helpStyle = EventMapHelp.defaultStyle font
-    , _textEditKeys = TextEdit.stdKeys
+    , _textEditKeys = TextEdit.stdKeys os
     , _textEditStyle = TextView.whiteText font & TextEdit.defaultStyle
     , _textViewStyle = TextView.whiteText font
     , _hoverStyle = Hover.defaultStyle
@@ -92,35 +92,35 @@ defaultEnv font = DefaultEnv
     , _guiState = ()
     }
 
-defaultEnvWithCursor :: GUIState -> Font -> DefaultEnvWithCursor
-defaultEnvWithCursor state font = defaultEnv font & guiState .~ state
+defaultEnvWithCursor :: OSString -> GUIState -> Font -> DefaultEnvWithCursor
+defaultEnvWithCursor os state font = defaultEnv os font & guiState .~ state
 
-instance Element.HasAnimIdPrefix       (DefaultEnvG a) where animIdPrefix = animIdPrefix
-instance Has (DropDownList.Texts Text) (DefaultEnvG a) where has = dropDownTexts
-instance Has (Direction.Texts Text)    (DefaultEnvG a) where has = directionTexts
-instance Has (EventMap.Texts Text)     (DefaultEnvG a) where has = eventMapTexts
-instance Has (EventMapHelp.Texts Text) (DefaultEnvG a) where has = helpTexts
-instance Has (Glue.Texts Text)         (DefaultEnvG a) where has = glueTexts
-instance Has (I18N.Texts Text)         (DefaultEnvG a) where has = commonTexts
-instance Has (Main.Texts Text)         (DefaultEnvG a) where has = mainTexts
-instance Has (Menu.Texts Text)         (DefaultEnvG a) where has = menuTexts
-instance Has Menu.Style                (DefaultEnvG a) where has = menuStyle
-instance Has (SearchMenu.Texts Text)   (DefaultEnvG a) where has = searchMenuTexts
-instance Has (TextEdit.Texts Text)     (DefaultEnvG a) where has = textEditTexts
-instance Has (Zoom.Texts Text)         (DefaultEnvG a) where has = zoomTexts
-instance Has Direction.Layout          (DefaultEnvG a) where has = directionLayout
-instance Has EventMapHelp.Config       (DefaultEnvG a) where has = helpConfig
-instance Has EventMapHelp.Style        (DefaultEnvG a) where has = helpStyle
-instance Has Hover.Style               (DefaultEnvG a) where has = hoverStyle
-instance Has Menu.Config               (DefaultEnvG a) where has = searchMenuConfig . SearchMenu.configMenu
-instance Has (Grid.Keys ModKey)        (DefaultEnvG a) where has = gridKeys
-instance Has (Main.Keys ModKey)        (DefaultEnvG a) where has = mainKeys
-instance Has SearchMenu.Config         (DefaultEnvG a) where has = searchMenuConfig
-instance Has SearchMenu.TermStyle      (DefaultEnvG a) where has = searchMenuStyle
-instance Has (TextEdit.Keys ModKey)    (DefaultEnvG a) where has = textEditKeys
-instance Has TextEdit.Style            (DefaultEnvG a) where has = textEditStyle
-instance Has TextView.Style            (DefaultEnvG a) where has = textViewStyle
-instance Spacer.HasStdSpacing          (DefaultEnvG a) where stdSpacing = eStdSpacing
+instance Element.HasAnimIdPrefix        (DefaultEnvG a) where animIdPrefix = animIdPrefix
+instance Has (Direction.Texts Text)     (DefaultEnvG a) where has = directionTexts
+instance Has (DropDownList.Texts Text)  (DefaultEnvG a) where has = dropDownTexts
+instance Has (EventMap.Texts Text)      (DefaultEnvG a) where has = eventMapTexts
+instance Has (EventMapHelp.Texts Text)  (DefaultEnvG a) where has = helpTexts
+instance Has (Glue.Texts Text)          (DefaultEnvG a) where has = glueTexts
+instance Has (Grid.Keys ModKey)         (DefaultEnvG a) where has = gridKeys
+instance Has (I18N.Texts Text)          (DefaultEnvG a) where has = commonTexts
+instance Has (Main.Keys ModKey)         (DefaultEnvG a) where has = mainKeys
+instance Has (Main.Texts Text)          (DefaultEnvG a) where has = mainTexts
+instance Has (Menu.Config ModKey)       (DefaultEnvG a) where has = searchMenuConfig . SearchMenu.configMenu
+instance Has (Menu.Texts Text)          (DefaultEnvG a) where has = menuTexts
+instance Has (SearchMenu.Config ModKey) (DefaultEnvG a) where has = searchMenuConfig
+instance Has (SearchMenu.Texts Text)    (DefaultEnvG a) where has = searchMenuTexts
+instance Has (TextEdit.Keys ModKey)     (DefaultEnvG a) where has = textEditKeys
+instance Has (TextEdit.Texts Text)      (DefaultEnvG a) where has = textEditTexts
+instance Has (Zoom.Texts Text)          (DefaultEnvG a) where has = zoomTexts
+instance Has Direction.Layout           (DefaultEnvG a) where has = directionLayout
+instance Has EventMapHelp.Config        (DefaultEnvG a) where has = helpConfig
+instance Has EventMapHelp.Style         (DefaultEnvG a) where has = helpStyle
+instance Has Hover.Style                (DefaultEnvG a) where has = hoverStyle
+instance Has Menu.Style                 (DefaultEnvG a) where has = menuStyle
+instance Has SearchMenu.TermStyle       (DefaultEnvG a) where has = searchMenuStyle
+instance Has TextEdit.Style             (DefaultEnvG a) where has = textEditStyle
+instance Has TextView.Style             (DefaultEnvG a) where has = textViewStyle
+instance Spacer.HasStdSpacing           (DefaultEnvG a) where stdSpacing = eStdSpacing
 
 instance Has GUIState                  DefaultEnvWithCursor where has = guiState
 instance HasCursor                     DefaultEnvWithCursor

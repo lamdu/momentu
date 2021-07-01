@@ -2,6 +2,7 @@
 module GUI.Momentu.Zoom
     ( Zoom, make, eventMap, getZoomFactor
     , Config(..), defaultConfig
+    , MetaKey.OSString
     , makeUnscaled
     , Texts(..), zoom, englishTexts
     ) where
@@ -12,8 +13,9 @@ import           Data.IORef
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.I18N as Texts
-import           GUI.Momentu.MetaKey (MetaKey)
 import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (ModKey)
+import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.State as State
 import qualified GUI.Momentu.Widget as Widget
 import qualified Graphics.UI.GLFW as GLFW
@@ -36,21 +38,21 @@ englishTexts = Texts
     , _shrink = "Shrink"
     }
 
-data Config = Config
-    { _shrinkKeys :: [MetaKey]
-    , _enlargeKeys :: [MetaKey]
+data Config key = Config
+    { _shrinkKeys :: [key]
+    , _enlargeKeys :: [key]
     , _enlargeFactor :: Double
     , _shrinkFactor :: Double
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Functor, Foldable, Traversable)
 JsonTH.derivePrefixed "_" ''Config
 
 Lens.makeLenses ''Config
 
-defaultConfig :: Config
-defaultConfig =
+defaultConfig :: MetaKey.OSString -> Config ModKey
+defaultConfig os =
     Config
-    { _shrinkKeys = [MetaKey.cmd MetaKey.Key'Minus]
-    , _enlargeKeys = [MetaKey.cmd MetaKey.Key'Equal]
+    { _shrinkKeys = [MetaKey.cmd os ModKey.Key'Minus]
+    , _enlargeKeys = [MetaKey.cmd os ModKey.Key'Equal]
     , _shrinkFactor = 1.1
     , _enlargeFactor = 1.1
     }
@@ -61,7 +63,7 @@ newtype Zoom = Zoom
 
 eventMap ::
     (Has (Texts Text) env, Has (Texts.Texts Text) env) =>
-    Zoom -> env -> Config -> EventMap (IO State.Update)
+    Zoom -> env -> Config ModKey -> EventMap (IO State.Update)
 eventMap (Zoom ref) env config =
     mconcat
     [ modifyIORef ref (* config ^. enlargeFactor)

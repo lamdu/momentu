@@ -10,7 +10,7 @@ import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection)
 import qualified GUI.Momentu.FocusDirection as Direction
-import           GUI.Momentu.MetaKey (MetaKey, toModKey)
+import           GUI.Momentu.ModKey (ModKey)
 import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.State as State
 import qualified GUI.Momentu.Widget as Widget
@@ -20,9 +20,9 @@ import           GUI.Momentu.Prelude
 data FocusEntryTarget = FocusEntryChild | FocusEntryParent
 
 data Config = Config
-    { focusChildKeys :: [MetaKey]
+    { focusChildKeys :: [ModKey]
     , focusChildDoc :: E.Doc
-    , focusParentKeys :: [MetaKey]
+    , focusParentKeys :: [ModKey]
     , focusParentDoc :: E.Doc
     }
 
@@ -35,8 +35,7 @@ focusChildEventMap config =
     where
         f childEnter =
             childEnter Direction.FromOutside ^. Widget.enterResultEvent
-            & E.keyPresses (focusChildKeys config <&> toModKey)
-                (focusChildDoc config)
+            & E.keyPresses (focusChildKeys config) (focusChildDoc config)
 
 modifyEntry ::
     Applicative f =>

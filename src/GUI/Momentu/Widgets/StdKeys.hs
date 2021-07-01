@@ -9,7 +9,7 @@ import qualified Control.Lens as Lens
 import qualified Data.Aeson.TH.Extended as JsonTH
 import           GUI.Momentu.Direction (Orientation(..), Order(..))
 import qualified GUI.Momentu.Direction as Dir
-import qualified GUI.Momentu.MetaKey as MetaKey
+import qualified GUI.Momentu.ModKey as ModKey
 
 import           GUI.Momentu.Prelude
 
@@ -30,10 +30,10 @@ dirKey Dir.LeftToRight Horizontal Forward = keysRight
 dirKey Dir.RightToLeft Horizontal Backward = keysRight
 dirKey Dir.RightToLeft Horizontal Forward = keysLeft
 
-stdDirKeys :: DirKeys MetaKey.Key
+stdDirKeys :: DirKeys ModKey.Key
 stdDirKeys = DirKeys
-    { _keysLeft  = [MetaKey.Key'Left]
-    , _keysRight = [MetaKey.Key'Right]
-    , _keysUp    = [MetaKey.Key'Up]
-    , _keysDown  = [MetaKey.Key'Down]
+    { _keysLeft  = [ModKey.Key'Left]
+    , _keysRight = [ModKey.Key'Right]
+    , _keysUp    = [ModKey.Key'Up]
+    , _keysDown  = [ModKey.Key'Down]
     }
