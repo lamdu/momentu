@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module GUI.Momentu.Animation.Engine
-    ( Config(..), acTimePeriod, acRemainingRatioInPeriod
+    ( Config(..), acTimePeriod, acRemainingRatioInPeriod, acSpiral
+    , SpiralAnimConf(..), sTan, sThreshold
     , currentFrame
     , State
     , initialState
@@ -15,6 +16,7 @@ import qualified Data.Map as Map
 import           Data.Maybe (mapMaybe)
 import qualified Data.Set as Set
 import           Data.Time.Clock (NominalDiffTime, UTCTime, getCurrentTime, addUTCTime, diffUTCTime)
+import           Data.Vector.Vector2 (Vector2(..))
 import qualified Data.Vector.Vector2 as Vector2
 import           GUI.Momentu.Animation (Image, iRect, iAnimId, iUnitImage, Frame(..), frameImages, images, R)
 import           GUI.Momentu.Rect (Rect(Rect))
@@ -23,9 +25,16 @@ import qualified Graphics.DrawingCombinators as Draw
 
 import           GUI.Momentu.Prelude
 
+data SpiralAnimConf = SpiralAnimConf
+    { _sTan :: R
+    , _sThreshold :: R
+    }
+Lens.makeLenses ''SpiralAnimConf
+
 data Config = Config
     { _acTimePeriod :: NominalDiffTime
     , _acRemainingRatioInPeriod :: R
+    , _acSpiral :: SpiralAnimConf
     }
 Lens.makeLenses ''Config
 
@@ -62,44 +71,56 @@ initialState =
 data AdvancedAnimation = AnimationComplete | NewState State
 Lens.makePrisms ''AdvancedAnimation
 
-advanceInterpolation :: R -> Interpolation -> Maybe Interpolation
-advanceInterpolation _ x@Final{} = Just x
-advanceInterpolation movement (Modifying curImage destRect)
+rot90 :: Num a => Vector2 a -> Vector2 a
+rot90 (Vector2 x y) = Vector2 y (negate x)
+
+advanceInterpolation :: SpiralAnimConf -> R -> Interpolation -> Maybe Interpolation
+advanceInterpolation _ _ x@Final{} = Just x
+advanceInterpolation spiral movement (Modifying curImage destRect)
     | rectDistance (curImage ^. iRect) destRect < equalityThreshold =
         curImage & iRect .~ destRect & Final & Just
     | otherwise =
         curImage
         & iRect .~
             Rect
-            (animSpeed * destTopLeft + (1 - animSpeed) * curTopLeft)
-            (animSpeed * destSize    + (1 - animSpeed) * curSize   )
+            (curTopLeft +
+                animSpeed *
+                ( posDiff + (rot90 (trim <$> posDiff <*> destSize)
+                    <&> (* spiral ^. sTan))))
+            (animSpeed * destSize + (1 - animSpeed) * curSize)
         & (`Modifying` destRect) & Just
     where
         equalityThreshold = 0.2
         animSpeed = pure movement
+        posDiff = destTopLeft - curTopLeft
+        trim x s
+            | abs x < t = 0
+            | otherwise = x - t * signum x
+            where
+                t = s * spiral ^. sThreshold
         Rect destTopLeft destSize = destRect
         Rect curTopLeft curSize = curImage ^. iRect
-advanceInterpolation movement (Deleting img)
+advanceInterpolation _ movement (Deleting img)
     | Vector2.sqrNorm (img ^. iRect . Rect.size) < 1 = Nothing
     | otherwise =
         img
         & iRect . Rect.centeredSize *~ pure (1 - movement)
         & Deleting & Just
 
-advanceInterpolations :: R -> [Interpolation] -> [Interpolation]
-advanceInterpolations = mapMaybe . advanceInterpolation
+advanceInterpolations :: SpiralAnimConf -> R -> [Interpolation] -> [Interpolation]
+advanceInterpolations spiral = mapMaybe . advanceInterpolation spiral
 
-nextInterpolations :: R -> Maybe Frame -> [Interpolation] -> Maybe [Interpolation]
-nextInterpolations movement Nothing interpolations
+nextInterpolations :: SpiralAnimConf -> R -> Maybe Frame -> [Interpolation] -> Maybe [Interpolation]
+nextInterpolations spiral movement Nothing interpolations
     | all (Lens.has _Final) interpolations = Nothing
-    | otherwise = advanceInterpolations movement interpolations & Just
-nextInterpolations movement (Just dest) interpolations =
-    setNewDest dest interpolations & advanceInterpolations movement & Just
+    | otherwise = advanceInterpolations spiral movement interpolations & Just
+nextInterpolations spiral movement (Just dest) interpolations =
+    setNewDest dest interpolations & advanceInterpolations spiral movement & Just
 
 advanceAnimation ::
-    Real a => a -> Maybe Frame -> UTCTime -> State -> AdvancedAnimation
-advanceAnimation elapsed mNewDestFrame curTime animState =
-    nextInterpolations progress mNewDestFrame (animState ^. asInterpolations)
+    Real a => SpiralAnimConf -> a -> Maybe Frame -> UTCTime -> State -> AdvancedAnimation
+advanceAnimation spiral elapsed mNewDestFrame curTime animState =
+    nextInterpolations spiral progress mNewDestFrame (animState ^. asInterpolations)
     <&> (\newInterpolations -> animState & asInterpolations .~ newInterpolations)
     <&> asCurTime .~ curTime
     & maybe AnimationComplete NewState
@@ -111,14 +132,14 @@ desiredFrameRate = 60
 
 clockedAdvanceAnimation ::
     Config -> Maybe (UTCTime, Frame) -> State -> IO AdvancedAnimation
-clockedAdvanceAnimation (Config timePeriod ratio) mNewFrame animState =
+clockedAdvanceAnimation (Config timePeriod ratio spiral) mNewFrame animState =
     getCurrentTime <&>
     \curTime ->
     case mNewFrame of
     Just (userEventTime, newDestFrame) ->
         animState
         & asCurSpeedHalfLife .~ timeRemaining / realToFrac (logBase 0.5 ratio)
-        & advanceAnimation elapsed (Just newDestFrame) curTime
+        & advanceAnimation spiral elapsed (Just newDestFrame) curTime
         where
             -- Retroactively pretend animation started a little bit
             -- sooner so there's already a change in the first frame
@@ -129,7 +150,7 @@ clockedAdvanceAnimation (Config timePeriod ratio) mNewFrame animState =
                 (addUTCTime timePeriod userEventTime)
                 curTime
     Nothing ->
-        advanceAnimation (curTime `diffUTCTime` (animState ^. asCurTime))
+        advanceAnimation spiral (curTime `diffUTCTime` (animState ^. asCurTime))
         Nothing curTime animState
 
 frameOfInterpolations :: [Interpolation] -> Frame

@@ -2,6 +2,7 @@ module GUI.Momentu.Main.Animation
     ( MainLoop(..)
     , mainLoop
     , Anim.Config(..)
+    , Anim.SpiralAnimConf(..)
     , Handlers(..)
     , PerfCounters(..)
     ) where

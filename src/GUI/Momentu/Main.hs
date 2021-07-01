@@ -145,6 +145,7 @@ defaultOptions env =
                     pure MainAnim.Config
                     { MainAnim._acTimePeriod = 0.11
                     , MainAnim._acRemainingRatioInPeriod = 0.2
+                    , MainAnim._acSpiral = MainAnim.SpiralAnimConf 0 0
                     }
                 , _cCursor =
                     \_zoom -> pure Cursor.Config
