@@ -36,7 +36,7 @@ module GUI.Momentu.Widgets.Menu.Search
         , textOpenResults, textCloseResults
     , englishTexts
 
-    , HasTexts
+    , Deps
     ) where
 
 import qualified Control.Lens as Lens
@@ -89,6 +89,7 @@ data Config = Config
     { _configMenu :: Menu.Config
     , _configOpenKeys :: [MetaKey]
     , _configCloseKeys :: [MetaKey]
+    , _configDelSearchTermKeys :: [MetaKey]
     } deriving (Eq, Show)
 Lens.makeLenses ''Config
 JsonTH.derivePrefixed "_config" ''Config
@@ -98,6 +99,7 @@ defaultConfig = Config
     { _configMenu = Menu.defaultConfig
     , _configOpenKeys = [MetaKey MetaKey.noMods MetaKey.Key'Enter]
     , _configCloseKeys = [MetaKey MetaKey.noMods MetaKey.Key'Escape]
+    , _configDelSearchTermKeys = [MetaKey.cmd MetaKey.Key'Backspace]
     }
 
 type HasConfig env = (Has Config env, Has Menu.Config env)
@@ -255,7 +257,8 @@ searchTermDoc env subtitle =
     E.toDoc env [has . MomentuTexts.edit, has . textSearchTerm, subtitle]
 
 addDelSearchTerm ::
-    (MonadReader env m, State.HasState env, HasTexts env, Applicative f) =>
+    ( MonadReader env m, State.HasState env, HasTexts env, Has Config env, Applicative f
+    ) =>
     Id -> m (Term f -> Term f)
 addDelSearchTerm menuId =
     Lens.view id
@@ -266,7 +269,7 @@ addDelSearchTerm menuId =
             | Text.null searchTerm = mempty
             | otherwise =
                 enterWithSearchTerm "" menuId & pure
-                & E.keyPress (toModKey (MetaKey.cmd MetaKey.Key'Backspace))
+                & E.keyPresses ((env ^. has . configDelSearchTermKeys) <&> toModKey)
                 (searchTermDoc env (has . MomentuTexts.delete))
     in  term
         & termWidget . Align.tValue %~ Widget.weakerEventsWithoutPreevents delSearchTerm
@@ -365,11 +368,14 @@ enterWithSearchTerm searchTerm menuId =
     State.updateCursor menuId
     <> updateWidgetState menuId (WidgetState searchTerm True)
 
-make ::
-    ( MonadReader env m, Applicative f, HasState env, HasConfig env
+type Deps env =
+    ( HasTexts env, HasState env, HasConfig env
     , HasStyle env, Element.HasAnimIdPrefix env
     , HasTexts env, Glue.HasTexts env
-    ) =>
+    )
+
+make ::
+    (MonadReader env m, Applicative f, Deps env) =>
     (Menu.PickFirstResult f -> m (Term f)) ->
     (ResultsContext -> m (Menu.OptionList (Menu.Option m f))) ->
     View -> Id ->
