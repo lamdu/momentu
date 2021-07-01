@@ -9,6 +9,8 @@ import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as MomentuTexts
+import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (ModKey)
 import qualified GUI.Momentu.Widgets.Grid as Grid
 
 import           GUI.Momentu.Prelude
@@ -18,6 +20,7 @@ data Env = Env
     , _eDirTexts :: Dir.Texts Text
     , _eGlueTexts :: Glue.Texts Text
     , _eGridTexts :: Grid.Texts Text
+    , _eGridKeys :: Grid.Keys ModKey
     , _eMomentuTexts :: MomentuTexts.Texts Text
     , _eAnimId :: Anim.AnimId
     , _eHoverStyle :: Hover.Style
@@ -44,6 +47,7 @@ env =
         , Grid._leftMost = "left-most"
         , Grid._rightMost = "right-most"
         }
+    , _eGridKeys = Grid.stdKeys <&> MetaKey.toModKey
     , _eMomentuTexts =
         MomentuTexts.Texts
         { MomentuTexts._edit = "Edit"
@@ -75,4 +79,5 @@ instance Has Dir.Layout Env where has = eDirLayout
 instance Has (Dir.Texts Text) Env where has = eDirTexts
 instance Has (Glue.Texts Text) Env where has = eGlueTexts
 instance Has (Grid.Texts Text) Env where has = eGridTexts
+instance Has (Grid.Keys ModKey) Env where has = eGridKeys
 instance Has (MomentuTexts.Texts Text) Env where has = eMomentuTexts

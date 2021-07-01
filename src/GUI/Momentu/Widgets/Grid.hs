@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell, ConstraintKinds #-}
 {-# LANGUAGE DisambiguateRecordFields, MultiParamTypeClasses #-}
 module GUI.Momentu.Widgets.Grid
-    ( make, makeWithKeys
+    ( make
     , Keys(..), stdKeys
     , Texts(..), moreLeft, moreRight, top, bottom, leftMost, rightMost
     , englishTexts
-    , HasTexts
+    , HasTexts, Deps
     ) where
 
 import qualified Control.Lens as Lens
@@ -145,48 +145,51 @@ mkNavDests dir (Cursor (Vector2 cursorX cursorY)) virtCursor rows =
             <&> setVirt axis
 
 data Keys key = Keys
-    { keysDir :: DirKeys key
-    , keysMoreLeft :: [key]
-    , keysMoreRight :: [key]
-    , keysLeftMost :: [key]
-    , keysRightMost :: [key]
-    , keysTop :: [key]
-    , keysBottom :: [key]
-    } deriving (Functor, Foldable, Traversable)
+    { _keysDir :: DirKeys key
+    , _keysMoreLeft :: [key]
+    , _keysMoreRight :: [key]
+    , _keysLeftMost :: [key]
+    , _keysRightMost :: [key]
+    , _keysTop :: [key]
+    , _keysBottom :: [key]
+    } deriving (Eq, Show, Functor, Foldable, Traversable)
+Lens.makeLenses ''Keys
+JsonTH.derivePrefixed "_keys" ''Keys
 
 stdKeys :: Keys MetaKey
 stdKeys = Keys
-    { keysDir = stdDirKeys <&> k
-    , keysMoreLeft = [k MetaKey.Key'Home]
-    , keysMoreRight = [k MetaKey.Key'End]
-    , keysLeftMost = [MetaKey.cmd MetaKey.Key'Home]
-    , keysRightMost = [MetaKey.cmd MetaKey.Key'End]
-    , keysTop = [k MetaKey.Key'PageUp]
-    , keysBottom = [k MetaKey.Key'PageDown]
+    { _keysDir = stdDirKeys <&> k
+    , _keysMoreLeft = [k MetaKey.Key'Home]
+    , _keysMoreRight = [k MetaKey.Key'End]
+    , _keysLeftMost = [MetaKey.cmd MetaKey.Key'Home]
+    , _keysRightMost = [MetaKey.cmd MetaKey.Key'End]
+    , _keysTop = [k MetaKey.Key'PageUp]
+    , _keysBottom = [k MetaKey.Key'PageDown]
     }
     where
         k = MetaKey noMods
 
-addNavEventmap ::
-    HasTexts env =>
-    env -> Keys ModKey -> NavDests a -> EventMap a -> EventMap a
-addNavEventmap env keys navDests eMap =
+type Deps env = (HasTexts env, Has (Keys ModKey) env)
+
+addNavEventmap :: Deps env => env -> NavDests a -> EventMap a -> EventMap a
+addNavEventmap env navDests eMap =
     strongMap <> eMap <> weakMap
     where
-        dir = keysDir keys
+        keys = env ^. has
+        dir = keys ^. keysDir
         weakMap =
-            [ movement Horizontal Backward (dir ^. StdKeys.keysLeft)      cursorLeft
-            , movement Horizontal Forward  (dir ^. StdKeys.keysRight)      cursorRight
-            , movement Vertical Backward   (dir ^. StdKeys.keysUp)      cursorUp
-            , movement Vertical Forward    (dir ^. StdKeys.keysDown)      cursorDown
-            , movementMore (has . moreLeft ) (keysMoreLeft keys)  cursorLeftMost
-            , movementMore (has . moreRight) (keysMoreRight keys) cursorRightMost
+            [ movement Horizontal Backward (dir ^. StdKeys.keysLeft)  cursorLeft
+            , movement Horizontal Forward  (dir ^. StdKeys.keysRight) cursorRight
+            , movement Vertical Backward   (dir ^. StdKeys.keysUp)    cursorUp
+            , movement Vertical Forward    (dir ^. StdKeys.keysDown)  cursorDown
+            , movementMore (has . moreLeft ) (keys ^. keysMoreLeft)  cursorLeftMost
+            , movementMore (has . moreRight) (keys ^. keysMoreRight) cursorRightMost
             ] ^. Lens.traverse . Lens._Just
         strongMap =
-            [ movementMore (has . top      ) (keysTop keys)       cursorTop
-            , movementMore (has . bottom   ) (keysBottom keys)    cursorBottom
-            , movementMore (has . leftMost ) (keysLeftMost keys)  cursorLeftMost
-            , movementMore (has . rightMost) (keysRightMost keys) cursorRightMost
+            [ movementMore (has . top      ) (keys ^. keysTop)       cursorTop
+            , movementMore (has . bottom   ) (keys ^. keysBottom)    cursorBottom
+            , movementMore (has . leftMost ) (keys ^. keysLeftMost)  cursorLeftMost
+            , movementMore (has . rightMost) (keys ^. keysRightMost) cursorRightMost
             ] ^. Lens.traverse . Lens._Just
         movement o d = movementMore (has . Dir.textLens o d)
         movementMore lens events f =
@@ -201,30 +204,16 @@ addNavEventmap env keys navDests eMap =
                     ])
 
 make ::
-    ( Traversable vert, Traversable horiz, MonadReader env m
-    , HasTexts env, Applicative f
-    ) =>
-    m
-    (vert (horiz (Aligned (Widget f))) ->
-     (vert (horiz (Aligned ())), Widget f))
-make = makeWithKeys ?? (stdKeys <&> MetaKey.toModKey)
-
-makeWithKeys ::
-    ( Traversable vert, Traversable horiz, MonadReader env m
-    , HasTexts env, Applicative f
-    ) =>
-    m
-    (Keys ModKey ->
-     vert (horiz (Aligned (Widget f))) ->
-     (vert (horiz (Aligned ())), Widget f))
-makeWithKeys =
+    (Traversable vert, Traversable horiz, MonadReader env m, Deps env, Applicative f) =>
+    m (vert (horiz (Aligned (Widget f))) -> (vert (horiz (Aligned ())), Widget f))
+make =
     Lens.view id <&>
-    \env keys children ->
+    \env children ->
     let (size, content) = GridView.makePlacements children
     in  ( content & each2d %~ void
         , toList content <&> toList
           & each2d %~ (\(Aligned _ (rect, widget)) -> (rect, widget))
-          & toWidgetWithKeys env keys size
+          & toWidget env size
         )
 
 each2d :: (Traversable vert, Traversable horiz) => Lens.IndexedTraversal Cursor (vert (horiz a)) (vert (horiz b)) a b
@@ -234,12 +223,12 @@ each2d =
 
 -- TODO: We assume that the given Cursor selects a focused
 -- widget. Prove it by passing the Focused data of that widget
-toWidgetWithKeys ::
-    (HasTexts env, Applicative f) =>
-    env -> Keys ModKey -> Widget.Size ->
+toWidget ::
+    (Has (Keys ModKey) env, HasTexts env, Applicative f) =>
+    env -> Widget.Size ->
     [[(Rect, Widget f)]] ->
     Widget f
-toWidgetWithKeys env keys size sChildren =
+toWidget env size sChildren =
     Widget
     { _wSize = size
     , _wState =
@@ -257,7 +246,7 @@ toWidgetWithKeys env keys size sChildren =
                 addNavDests eventContext =
                     mkNavDests dir cursor
                     (eventContext ^. Widget.eVirtualCursor) unfocusedMEnters
-                    & addNavEventmap env keys
+                    & addNavEventmap env
                 (before, after) = break ((>= cursor) . fst) (sortOn fst (unfocused ^@.. each2d))
                 -- TODO: DRY with Widget's Glue instance
                 addEventStroll events =

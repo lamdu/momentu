@@ -12,9 +12,12 @@ import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as I18N
 import qualified GUI.Momentu.Main as Main
+import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (ModKey)
 import           GUI.Momentu.State (HasCursor, GUIState)
 import qualified GUI.Momentu.Widgets.DropDownList as DropDownList
 import qualified GUI.Momentu.Widgets.EventMapHelp as EventMapHelp
+import qualified GUI.Momentu.Widgets.Grid as Grid
 import qualified GUI.Momentu.Widgets.Menu as Menu
 import qualified GUI.Momentu.Widgets.Menu.Search as SearchMenu
 import qualified GUI.Momentu.Widgets.Spacer as Spacer
@@ -37,6 +40,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _searchMenuConfig :: SearchMenu.Config
     , _searchMenuTexts :: SearchMenu.Texts Text
     , _searchMenuStyle :: SearchMenu.TermStyle
+    , _gridKeys :: Grid.Keys ModKey
     , _zoomTexts :: Zoom.Texts Text
     , _eventMapTexts :: EventMap.Texts Text
     , _glueTexts :: Glue.Texts Text
@@ -69,6 +73,7 @@ defaultEnv font = DefaultEnv
     , _searchMenuTexts = SearchMenu.englishTexts
     , _searchMenuStyle = SearchMenu.defaultTermStyle
     , _searchMenuConfig = SearchMenu.defaultConfig
+    , _gridKeys = Grid.stdKeys <&> MetaKey.toModKey
     , _zoomTexts = Zoom.englishTexts
     , _eventMapTexts = EventMap.englishTexts
     , _glueTexts = Glue.englishTexts
@@ -104,6 +109,7 @@ instance Has EventMapHelp.Config       (DefaultEnvG a) where has = helpConfig
 instance Has EventMapHelp.Style        (DefaultEnvG a) where has = helpStyle
 instance Has Hover.Style               (DefaultEnvG a) where has = hoverStyle
 instance Has Menu.Config               (DefaultEnvG a) where has = searchMenuConfig . SearchMenu.configMenu
+instance Has (Grid.Keys ModKey)        (DefaultEnvG a) where has = gridKeys
 instance Has SearchMenu.Config         (DefaultEnvG a) where has = searchMenuConfig
 instance Has SearchMenu.TermStyle      (DefaultEnvG a) where has = searchMenuStyle
 instance Has TextEdit.Style            (DefaultEnvG a) where has = textEditStyle
