@@ -41,6 +41,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _searchMenuTexts :: SearchMenu.Texts Text
     , _searchMenuStyle :: SearchMenu.TermStyle
     , _gridKeys :: Grid.Keys ModKey
+    , _mainKeys :: Main.Keys ModKey
     , _zoomTexts :: Zoom.Texts Text
     , _eventMapTexts :: EventMap.Texts Text
     , _glueTexts :: Glue.Texts Text
@@ -75,6 +76,7 @@ defaultEnv font = DefaultEnv
     , _searchMenuStyle = SearchMenu.defaultTermStyle
     , _searchMenuConfig = SearchMenu.defaultConfig
     , _gridKeys = Grid.stdKeys <&> MetaKey.toModKey
+    , _mainKeys = Main.stdKeys <&> MetaKey.toModKey
     , _zoomTexts = Zoom.englishTexts
     , _eventMapTexts = EventMap.englishTexts
     , _glueTexts = Glue.englishTexts
@@ -112,6 +114,7 @@ instance Has EventMapHelp.Style        (DefaultEnvG a) where has = helpStyle
 instance Has Hover.Style               (DefaultEnvG a) where has = hoverStyle
 instance Has Menu.Config               (DefaultEnvG a) where has = searchMenuConfig . SearchMenu.configMenu
 instance Has (Grid.Keys ModKey)        (DefaultEnvG a) where has = gridKeys
+instance Has (Main.Keys ModKey)        (DefaultEnvG a) where has = mainKeys
 instance Has SearchMenu.Config         (DefaultEnvG a) where has = searchMenuConfig
 instance Has SearchMenu.TermStyle      (DefaultEnvG a) where has = searchMenuStyle
 instance Has (TextEdit.Keys ModKey)    (DefaultEnvG a) where has = textEditKeys

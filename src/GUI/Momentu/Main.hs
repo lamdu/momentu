@@ -14,6 +14,8 @@ module GUI.Momentu.Main
     , Texts(..), textQuit, textJumpToSource, textDebug
     , englishTexts
     , AllTexts(..), makeAllTexts
+    , Keys(..), keysQuit
+    , stdKeys
     ) where
 
 import qualified Control.Lens as Lens
@@ -41,6 +43,7 @@ import           GUI.Momentu.Main.Events (MouseButtonEvent(..))
 import qualified GUI.Momentu.Main.Events as Main.Events
 import           GUI.Momentu.MetaKey (MetaKey)
 import qualified GUI.Momentu.MetaKey as MetaKey
+import           GUI.Momentu.ModKey (ModKey)
 import           GUI.Momentu.Rect (Rect)
 import qualified GUI.Momentu.Rect as Rect
 import           GUI.Momentu.State (GUIState(..))
@@ -65,6 +68,20 @@ data Texts a = Texts
 
 Lens.makeLenses ''Texts
 JsonTH.derivePrefixed "_text" ''Texts
+
+newtype Keys key = Keys
+    { _keysQuit :: [key]
+    }
+    deriving (Eq, Show, Functor, Foldable, Traversable)
+
+Lens.makeLenses ''Keys
+JsonTH.derivePrefixed "_keys" ''Keys
+
+stdKeys :: Keys MetaKey
+stdKeys =
+    Keys
+    { _keysQuit = [MetaKey.cmd MetaKey.Key'Q]
+    }
 
 englishTexts :: Texts Text
 englishTexts = Texts
@@ -165,10 +182,11 @@ defaultOptions env =
             }
 
 quitEventMap ::
-    (MonadReader env m, Has (Texts Text) env, Functor f, Monoid a) => m (EventMap (f a))
+    (MonadReader env m, Has (Texts Text) env, Has (Keys ModKey) env) => m (EventMap (f a))
 quitEventMap =
-    Lens.view (has . textQuit) <&> \txt ->
-    E.keysEventMap [MetaKey.cmd MetaKey.Key'Q] (E.Doc [txt]) (error "Quit")
+    Lens.view id <&> \env ->
+    let doc = E.Doc [env ^. has . textQuit]
+    in  E.keyPresses (env ^. has . keysQuit) doc (error "Quit")
 
 mkJumpToSourceEventMap ::
     Functor f => Texts Text -> DebugOptions -> f () -> IO (EventMap (f State.Update))
