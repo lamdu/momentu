@@ -145,7 +145,7 @@ data Keys key = Keys
     -- clipboard
     , _keysCopy :: [key]
     , _keysPaste :: [key]
-    } deriving (Eq, Show, Functor, Foldable, Traversable)
+    } deriving (Eq, Show, Functor, Foldable, Traversable, Generic)
 Lens.makeLenses ''Keys
 JsonTH.derivePrefixed "_keys" ''Keys
 

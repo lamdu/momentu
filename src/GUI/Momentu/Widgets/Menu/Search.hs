@@ -90,7 +90,7 @@ data Config key = Config
     , _configOpenKeys :: [key]
     , _configCloseKeys :: [key]
     , _configDelSearchTermKeys :: [key]
-    } deriving (Eq, Show, Functor, Foldable, Traversable)
+    } deriving (Eq, Show, Functor, Foldable, Traversable, Generic)
 Lens.makeLenses ''Config
 JsonTH.derivePrefixed "_config" ''Config
 

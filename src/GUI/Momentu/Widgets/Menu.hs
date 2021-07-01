@@ -77,7 +77,7 @@ data Config key = Config
         -- ^ Pick option and stay on its dest
     , _configKeysPickOptionAndGotoNext :: [key]
         -- ^ Pick option and goto the next "entry point" (see below)
-    } deriving (Eq, Show, Functor, Foldable, Traversable)
+    } deriving (Eq, Show, Functor, Foldable, Traversable, Generic)
 Lens.makeLenses ''Config
 JsonTH.derivePrefixed "_config" ''Config
 

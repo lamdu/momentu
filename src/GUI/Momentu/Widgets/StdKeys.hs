@@ -18,7 +18,7 @@ data DirKeys key = DirKeys
     , _keysRight :: [key]
     , _keysUp :: [key]
     , _keysDown :: [key]
-    } deriving (Eq, Show, Functor, Foldable, Traversable)
+    } deriving (Eq, Show, Functor, Foldable, Traversable, Generic)
 Lens.makeLenses ''DirKeys
 JsonTH.derivePrefixed "_keys" ''DirKeys
 

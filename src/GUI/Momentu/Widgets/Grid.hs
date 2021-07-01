@@ -152,7 +152,7 @@ data Keys key = Keys
     , _keysRightMost :: [key]
     , _keysTop :: [key]
     , _keysBottom :: [key]
-    } deriving (Eq, Show, Functor, Foldable, Traversable)
+    } deriving (Eq, Show, Functor, Foldable, Traversable, Generic)
 Lens.makeLenses ''Keys
 JsonTH.derivePrefixed "_keys" ''Keys
 

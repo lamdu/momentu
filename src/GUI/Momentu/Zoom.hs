@@ -43,7 +43,7 @@ data Config key = Config
     , _enlargeKeys :: [key]
     , _enlargeFactor :: Double
     , _shrinkFactor :: Double
-    } deriving (Eq, Show, Functor, Foldable, Traversable)
+    } deriving (Eq, Show, Functor, Foldable, Traversable, Generic)
 JsonTH.derivePrefixed "_" ''Config
 
 Lens.makeLenses ''Config
