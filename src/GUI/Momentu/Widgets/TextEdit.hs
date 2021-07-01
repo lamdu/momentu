@@ -14,7 +14,7 @@ module GUI.Momentu.Widgets.TextEdit
         , textBeginningOfText, textEndOfText, textSwapLetters, textCharacter
         , textClipboard, textPaste, textCopy, textWord
     , englishTexts
-    , Deps, HasTexts, HasStyle
+    , Deps
     ) where
 
 import qualified Control.Lens as Lens
