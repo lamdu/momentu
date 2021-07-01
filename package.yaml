@@ -84,8 +84,8 @@ tests:
     - -O0
 
 executables:
-  choice:
-    main: choice.hs
+  dropDownList:
+    main: dropdownlist.hs
     source-dirs: examples
     dependencies:
     - base-compat

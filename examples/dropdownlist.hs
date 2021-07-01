@@ -19,8 +19,8 @@ main :: IO ()
 main =
     do
         fontPath <- getDefaultFontPath
-        choiceRef <- IORef.newIORef "blue"
-        M.defaultSetup "Choice" fontPath M.defaultSetupOptions (makeWidget choiceRef)
+        dropDownListRef <- IORef.newIORef "blue"
+        M.defaultSetup "DropDownList" fontPath M.defaultSetupOptions (makeWidget dropDownListRef)
 
 colors :: [(Text, M.Color)]
 colors =
@@ -35,10 +35,10 @@ colors =
     ]
 
 makeWidget :: IORef Text -> (Float -> IO M.Font) -> M.DefaultEnvWithCursor -> IO (M.Widget IO)
-makeWidget choiceRef _getFont env =
+makeWidget dropDownListRef _getFont env =
     do
-        prop <- Property.fromIORef choiceRef ^. Property.mkProperty
-        let choiceWidget =
+        prop <- Property.fromIORef dropDownListRef ^. Property.mkProperty
+        let dropDownListWidget =
                 DropDownList.make env prop (map makeDropDownList colors)
                 (DropDownList.defaultConfig env "Color") (M.WidgetId [])
                 ^. M.tValue
@@ -47,7 +47,7 @@ makeWidget choiceRef _getFont env =
                 M.unitSquare env
                 & M.tint color
                 & M.scale 100
-        (pure box /-/ pure choiceWidget) env
+        (pure box /-/ pure dropDownListWidget) env
             & M.weakerEvents (M.quitEventMap env)
             & pure
     where
