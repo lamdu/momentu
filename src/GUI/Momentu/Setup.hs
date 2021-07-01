@@ -2,7 +2,7 @@
 module GUI.Momentu.Setup
     ( SetupOptions(..), setupWindowMode, setupLcdSubPixel, setupFontSize
         , defaultSetupOptions
-    , defaultSetup
+    , defaultSetup, defaultMakeWidget, MakeWidget
     ) where
 
 import qualified Control.Lens as Lens

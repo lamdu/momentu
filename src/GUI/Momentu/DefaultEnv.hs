@@ -2,6 +2,7 @@
 module GUI.Momentu.DefaultEnv where
 
 import qualified Control.Lens as Lens
+import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Animation.Id (AnimId)
 import qualified GUI.Momentu.Direction as Direction
 import qualified GUI.Momentu.Element as Element
@@ -16,6 +17,7 @@ import qualified GUI.Momentu.Widgets.DropDownList as DropDownList
 import qualified GUI.Momentu.Widgets.EventMapHelp as EventMapHelp
 import qualified GUI.Momentu.Widgets.Menu as Menu
 import qualified GUI.Momentu.Widgets.Menu.Search as SearchMenu
+import qualified GUI.Momentu.Widgets.Spacer as Spacer
 import qualified GUI.Momentu.Widgets.TextEdit as TextEdit
 import qualified GUI.Momentu.Widgets.TextView as TextView
 import qualified GUI.Momentu.Zoom as Zoom
@@ -45,6 +47,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _textEditStyle :: TextEdit.Style
     , _textViewStyle :: TextView.Style
     , _hoverStyle :: Hover.Style
+    , _eStdSpacing :: Vector2 Double
     , _guiState :: guiState
     }
 
@@ -76,6 +79,7 @@ defaultEnv font = DefaultEnv
     , _textEditStyle = TextView.whiteText font & TextEdit.defaultStyle
     , _textViewStyle = TextView.whiteText font
     , _hoverStyle = Hover.defaultStyle
+    , _eStdSpacing = Vector2 1.0 0.3
     , _guiState = ()
     }
 
@@ -104,6 +108,7 @@ instance Has SearchMenu.Config         (DefaultEnvG a) where has = searchMenuCon
 instance Has SearchMenu.TermStyle      (DefaultEnvG a) where has = searchMenuStyle
 instance Has TextEdit.Style            (DefaultEnvG a) where has = textEditStyle
 instance Has TextView.Style            (DefaultEnvG a) where has = textViewStyle
+instance Spacer.HasStdSpacing          (DefaultEnvG a) where stdSpacing = eStdSpacing
 
 instance Has GUIState                  DefaultEnvWithCursor where has = guiState
 instance HasCursor                     DefaultEnvWithCursor
