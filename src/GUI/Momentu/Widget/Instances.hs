@@ -161,7 +161,7 @@ combineStates env orientation order strollOrder (StateFocused f) (StateUnfocused
             & enter
             & (^. enterResultEvent)
             & EventMap.keyPresses
-                (dirKey dir orientation order stdDirKeys <&> ModKey mempty)
+                (stdDirKeys ^# dirKey dir orientation order <&> ModKey mempty)
             (EventMap.Doc
                 [ env ^. has . MomentuTexts.navigation
                 , env ^. has . MomentuTexts.move

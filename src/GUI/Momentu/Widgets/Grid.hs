@@ -37,6 +37,7 @@ import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widget.Instances as WidgetGlue
 import qualified GUI.Momentu.Widgets.GridView as GridView
 import           GUI.Momentu.Widgets.StdKeys (DirKeys(..), stdDirKeys)
+import qualified GUI.Momentu.Widgets.StdKeys as StdKeys
 
 import           GUI.Momentu.Prelude
 
@@ -174,10 +175,10 @@ addNavEventmap env keys navDests eMap =
     where
         dir = keysDir keys
         weakMap =
-            [ movement Horizontal Backward (keysLeft  dir)      cursorLeft
-            , movement Horizontal Forward  (keysRight dir)      cursorRight
-            , movement Vertical Backward   (keysUp    dir)      cursorUp
-            , movement Vertical Forward    (keysDown  dir)      cursorDown
+            [ movement Horizontal Backward (dir ^. StdKeys.keysLeft)      cursorLeft
+            , movement Horizontal Forward  (dir ^. StdKeys.keysRight)      cursorRight
+            , movement Vertical Backward   (dir ^. StdKeys.keysUp)      cursorUp
+            , movement Vertical Forward    (dir ^. StdKeys.keysDown)      cursorDown
             , movementMore (has . moreLeft ) (keysMoreLeft keys)  cursorLeftMost
             , movementMore (has . moreRight) (keysMoreRight keys) cursorRightMost
             ] ^. Lens.traverse . Lens._Just
