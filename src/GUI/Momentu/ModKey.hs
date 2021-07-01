@@ -5,7 +5,7 @@ module GUI.Momentu.ModKey
     , fromGLFWModifiers
     , ModKey(..), ctrlMods, altMods, shiftMods, superMods
     , GLFW.KeyState(..), GLFW.Key(..), GLFWUtils.charOfKey
-    , ctrl, alt, shift, super
+    , noMods, ctrl, alt, shift, super
     , prettyKey
     , pretty
     ) where
@@ -57,6 +57,9 @@ shiftMods = mempty { _mShift = True }
 
 superMods :: ModifierKeys
 superMods = mempty { _mSuper = True }
+
+noMods :: GLFW.Key -> ModKey
+noMods = ModKey mempty
 
 ctrl :: GLFW.Key -> ModKey
 ctrl = ModKey ctrlMods

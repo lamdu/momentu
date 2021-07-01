@@ -12,7 +12,8 @@ module GUI.Momentu.EventMap
     , emDocHandlers, emHandlerDocHandlers
     , charEventMap, allChars
     , charGroup
-    , keyEventMap, keyPress, keyPresses, keyPressOrRepeat
+    , keyEventMap, keyPress, keyPresses
+    , keyPressOrRepeat, keyPressesOrRepeat
     , keysEventMap
     , keysEventMapMovesCursor
     , pasteOnKey
@@ -371,6 +372,9 @@ keyPressOrRepeat key doc res =
     withFrozenCallStack $
     keyEventMap (KeyEvent ModKey.KeyState'Pressed key) doc res <>
     keyEventMap (KeyEvent ModKey.KeyState'Repeating key) doc res
+
+keyPressesOrRepeat :: HasCallStack => [ModKey] -> Doc -> a -> EventMap a
+keyPressesOrRepeat keys = keys & foldMap keyPressOrRepeat
 
 dropEventMap :: HasCallStack => InputDoc -> Doc -> ([FilePath] -> Maybe a) -> EventMap a
 dropEventMap iDoc oDoc handler =

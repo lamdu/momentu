@@ -48,6 +48,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _animIdPrefix :: AnimId
     , _helpConfig :: EventMapHelp.Config
     , _helpStyle :: EventMapHelp.Style
+    , _textEditKeys :: TextEdit.Keys ModKey
     , _textEditStyle :: TextEdit.Style
     , _textViewStyle :: TextView.Style
     , _hoverStyle :: Hover.Style
@@ -81,6 +82,7 @@ defaultEnv font = DefaultEnv
     , _animIdPrefix = []
     , _helpConfig = EventMapHelp.defaultConfig
     , _helpStyle = EventMapHelp.defaultStyle font
+    , _textEditKeys = TextEdit.stdKeys
     , _textEditStyle = TextView.whiteText font & TextEdit.defaultStyle
     , _textViewStyle = TextView.whiteText font
     , _hoverStyle = Hover.defaultStyle
@@ -112,6 +114,7 @@ instance Has Menu.Config               (DefaultEnvG a) where has = searchMenuCon
 instance Has (Grid.Keys ModKey)        (DefaultEnvG a) where has = gridKeys
 instance Has SearchMenu.Config         (DefaultEnvG a) where has = searchMenuConfig
 instance Has SearchMenu.TermStyle      (DefaultEnvG a) where has = searchMenuStyle
+instance Has (TextEdit.Keys ModKey)    (DefaultEnvG a) where has = textEditKeys
 instance Has TextEdit.Style            (DefaultEnvG a) where has = textEditStyle
 instance Has TextView.Style            (DefaultEnvG a) where has = textViewStyle
 instance Spacer.HasStdSpacing          (DefaultEnvG a) where stdSpacing = eStdSpacing

@@ -14,6 +14,11 @@ module GUI.Momentu.Widgets.TextEdit
         , textBeginningOfText, textEndOfText, textSwapLetters, textCharacter
         , textClipboard, textPaste, textCopy, textWord
     , englishTexts
+    , Keys(..)
+        , keysDir, keysMoveLeftWord, keysMoveRightWord
+        , keysDeleteCharBackward, keysDeleteCharForward, keysDeleteWordBackward
+        , keysCopy, keysPaste
+    , stdKeys
     , Deps
     ) where
 
@@ -32,15 +37,16 @@ import           GUI.Momentu.Align (TextWidget, WithTextPos)
 import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
-import qualified GUI.Momentu.Element as Element
 import           GUI.Momentu.Element (Element)
+import qualified GUI.Momentu.Element as Element
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
 import qualified GUI.Momentu.Font as Font
 import qualified GUI.Momentu.I18N as MomentuTexts
 import qualified GUI.Momentu.MetaKey as MetaKey
-import           GUI.Momentu.ModKey (ModKey(..))
+import           GUI.Momentu.MetaKey (cmd)
+import           GUI.Momentu.ModKey (ModKey(..), noMods, ctrl, alt)
 import qualified GUI.Momentu.ModKey as ModKey
 import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.Rect as Rect
@@ -48,6 +54,8 @@ import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View)
 import qualified GUI.Momentu.View as View
 import qualified GUI.Momentu.Widget as Widget
+import           GUI.Momentu.Widgets.StdKeys (DirKeys)
+import qualified GUI.Momentu.Widgets.StdKeys as StdKeys
 import qualified GUI.Momentu.Widgets.TextView as TextView
 import qualified Graphics.DrawingCombinators as Draw
 
@@ -118,9 +126,56 @@ data Style = Style
     }
 Lens.makeLenses ''Style
 
+data Keys key = Keys
+    { _keysDir :: DirKeys key
+    , _keysMoveLeftWord :: [key]
+    , _keysMoveRightWord :: [key]
+
+    , _keysHome :: [key]
+    , _keysEnd :: [key]
+
+    , _keysTransposeLetters :: [key]
+
+    , _keysDeleteCharBackward :: [key]
+    , _keysDeleteCharForward :: [key]
+    , _keysDeleteWordBackward :: [key]
+    , _keysDeleteWordForward :: [key]
+    , _keysDeleteToEndOfLine :: [key]
+    , _keysDeleteToBeginningOfLine :: [key]
+
+    -- clipboard
+    , _keysCopy :: [key]
+    , _keysPaste :: [key]
+    } deriving (Eq, Show, Functor, Foldable, Traversable)
+Lens.makeLenses ''Keys
+JsonTH.derivePrefixed "_keys" ''Keys
+
+stdKeys :: Keys ModKey
+stdKeys = Keys
+    { _keysDir                     = StdKeys.stdDirKeys <&> noMods
+    , _keysMoveLeftWord            = [ctrl ModKey.Key'Left]
+    , _keysMoveRightWord           = [ctrl ModKey.Key'Right]
+
+    , _keysHome                    = [noMods MetaKey.Key'Home, ctrl MetaKey.Key'A]
+    , _keysEnd                     = [noMods MetaKey.Key'End, ctrl MetaKey.Key'E]
+
+    , _keysTransposeLetters        = [ctrl MetaKey.Key'T]
+
+    , _keysDeleteCharBackward      = [noMods ModKey.Key'Backspace]
+    , _keysDeleteCharForward       = [noMods ModKey.Key'Delete]
+    , _keysDeleteWordBackward      = [ctrl ModKey.Key'W]
+    , _keysDeleteWordForward       = [alt MetaKey.Key'D]
+    , _keysDeleteToEndOfLine       = [ctrl MetaKey.Key'K]
+    , _keysDeleteToBeginningOfLine = [ctrl MetaKey.Key'U]
+
+    -- clipboard
+    , _keysCopy                    = [cmd ModKey.Key'C] <&> MetaKey.toModKey
+    , _keysPaste                   = [cmd ModKey.Key'V] <&> MetaKey.toModKey
+    }
+
 type HasStyle env = (Has Style env, TextView.HasStyle env)
 
-type Deps env = (State.HasCursor env, HasStyle env, HasTexts env)
+type Deps env = (State.HasCursor env, HasStyle env, HasTexts env, Has (Keys ModKey) env)
 
 instance Has TextView.Style Style where has = sTextViewStyle
 
@@ -315,7 +370,7 @@ mkCursorRect env cursor str =
 
 -- TODO: Implement intra-TextEdit virtual cursor
 eventMap ::
-    HasTexts env =>
+    (HasTexts env, Has (Keys ModKey) env) =>
     env -> Cursor -> Text -> Widget.Id -> Widget.EventContext ->
     EventMap (Text, State.Update)
 eventMap env cursor str myId _eventContext =
@@ -326,37 +381,37 @@ eventMap env cursor str myId _eventContext =
         [ logicalAdvanceWord moveWord | cursor < textLength ],
 
         [ moveRelative (- cursorX - 1 - Text.length (Text.drop cursorX prevLine))
-            & E.keyPressOrRepeat (noMods MetaKey.Key'Up)
+            & E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysUp)
             (moveDoc [has . Dir.up])
         | cursorY > 0 ],
 
         [ moveRelative
             (Text.length curLineAfter + 1 + min cursorX (Text.length nextLine))
-            & E.keyPressOrRepeat (noMods MetaKey.Key'Down)
+            & E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysDown)
             (moveDoc [has . Dir.down])
         | cursorY < lineCount - 1 ],
 
         [ moveRelative (-cursorX)
-            & keys (moveDoc [has . textBeginningOfLine]) homeKeys
+            & keyPresses (moveDoc [has . textBeginningOfLine]) (keys ^. keysHome)
         | cursorX > 0 ],
 
         [ moveRelative (Text.length curLineAfter)
-            & keys (moveDoc [has . textEndOfLine]) endKeys
+            & keyPresses (moveDoc [has . textEndOfLine]) (keys ^. keysEnd)
         | not . Text.null $ curLineAfter ],
 
-        [ moveAbsolute 0 & keys (moveDoc [has . textBeginningOfText]) homeKeys
+        [ moveAbsolute 0 & keyPresses (moveDoc [has . textBeginningOfText]) (keys ^. keysHome)
         | cursorX == 0 && cursor > 0 ],
 
         [ moveAbsolute textLength
-            & keys (moveDoc [has . textEndOfText]) endKeys
+            & keyPresses (moveDoc [has . textEndOfText]) (keys ^. keysEnd)
         | Text.null curLineAfter && cursor < textLength ],
 
         [ backDelete 1
-            & keys (deleteDoc [has . MomentuTexts.backward]) [noMods MetaKey.Key'Backspace]
+            & keyPresses (deleteDoc [has . MomentuTexts.backward]) (keys ^. keysDeleteCharBackward)
         | cursor > 0 ],
 
-        [ keys (deleteDoc [has . textWord, has . MomentuTexts.backward]) [ctrl MetaKey.Key'W]
-            backDeleteWord
+        [ keyPresses (deleteDoc [has . textWord, has . MomentuTexts.backward])
+            (keys ^. keysDeleteWordBackward) backDeleteWord
         | cursor > 0 ],
 
         let swapPoint = min (textLength - 2) (cursor - 1)
@@ -367,29 +422,29 @@ eventMap env cursor str myId _eventContext =
 
         in
 
-        [ keys (editDoc [has . textSwapLetters]) [ctrl MetaKey.Key'T]
+        [ keyPresses (editDoc [has . textSwapLetters]) (keys ^. keysTransposeLetters)
             swapLetters
         | cursor > 0 && textLength >= 2 ],
 
         [ delete 1
-            & keys (deleteDoc [has . MomentuTexts.forward]) [noMods MetaKey.Key'Delete]
+            & keyPresses (deleteDoc [has . MomentuTexts.forward]) (keys ^. keysDeleteCharForward)
         | cursor < textLength ],
 
-        [ keys (deleteDoc [has . textWord, has . MomentuTexts.forward]) [alt MetaKey.Key'D]
+        [ keyPresses (deleteDoc [has . textWord, has . MomentuTexts.forward]) (keys ^. keysDeleteWordForward)
             deleteWord
         | cursor < textLength ],
 
         [ delete (Text.length curLineAfter)
-            & keys (deleteDoc [has . textTill, has . textEndOfLine])
-            [ctrl MetaKey.Key'K]
+            & keyPresses (deleteDoc [has . textTill, has . textEndOfLine])
+            (keys ^. keysDeleteToEndOfLine)
         | not . Text.null $ curLineAfter ],
 
-        [ delete 1 & keys (deleteDoc [has . textNewline]) [ctrl MetaKey.Key'K]
+        [ delete 1 & keyPresses (deleteDoc [has . textNewline]) (keys ^. keysDeleteToEndOfLine)
         | Text.null curLineAfter && cursor < textLength ],
 
         [ backDelete (Text.length curLineBefore)
-            & keys (deleteDoc [has . textTill, has . textBeginningOfLine])
-            [ctrl MetaKey.Key'U]
+            & keyPresses (deleteDoc [has . textTill, has . textBeginningOfLine])
+            (keys ^. keysDeleteToBeginningOfLine)
         | not . Text.null $ curLineBefore ],
 
         [ E.filterChars (`notElem` (" \n" :: String)) .
@@ -397,27 +452,29 @@ eventMap env cursor str myId _eventContext =
             insert . Text.singleton
         ],
 
-        [ keys (insertDoc [has . textNewline])
-            [noMods MetaKey.Key'Enter, ModKey.shift MetaKey.Key'Enter] (insert "\n") ],
+        [ keyPresses (insertDoc [has . textNewline]) insertNewlineKeys (insert "\n") ],
+        [ keyPresses (insertDoc [has . textSpace]) insertSpaceKeys (insert " ") ],
 
-        [ keys (insertDoc [has . textSpace])
-            [noMods MetaKey.Key'Space, ModKey.shift MetaKey.Key'Space] (insert " ") ],
-
-        [ E.pasteOnKey (cmd MetaKey.Key'V)
+        [ foldMap E.pasteOnKey (keys ^. keysPaste)
             (toDoc [has . textClipboard, has . textPaste]) insert ],
 
-        [ keys (toDoc [has . textClipboard, has . textCopy])
-            [cmd MetaKey.Key'C] (str, mempty & State.uSetSystemClipboard ?~ str ) ]
+        [ keyPresses (toDoc [has . textClipboard, has . textCopy])
+            (keys ^. keysCopy) (str, mempty & State.uSetSystemClipboard ?~ str ) ]
 
         ]
     where
-        leftWord = keys (moveWordDoc [has . Dir.left]) [ctrl MetaKey.Key'Left]
-        rightWord = keys (moveWordDoc [has . Dir.right]) [ctrl MetaKey.Key'Right]
+        insertNewlineKeys = mayShift MetaKey.Key'Enter
+        insertSpaceKeys = mayShift MetaKey.Key'Space
+        mayShift k = [noMods k, ModKey.shift k]
+
+        keys = env ^. has
+        leftWord = keyPresses (moveWordDoc [has . Dir.left]) (keys ^. keysMoveLeftWord)
+        rightWord = keyPresses (moveWordDoc [has . Dir.right]) (keys ^. keysMoveRightWord)
         left =
-            E.keyPressOrRepeat (noMods MetaKey.Key'Left)
+            E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysLeft)
             (moveDoc [has . Dir.left])
         right =
-            E.keyPressOrRepeat (noMods MetaKey.Key'Right)
+            E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysRight)
             (moveDoc [has . Dir.right])
         ( logicalRetreatWord, logicalAdvanceWord
             , logicalRetreat, logicalAdvance) =
@@ -463,14 +520,8 @@ eventMap env cursor str myId _eventContext =
             Text.reverse before
         moveWord = moveRelative . Text.length $ tillEndOfWord after
 
-        keys = flip E.keyPresses
+        keyPresses = flip E.keyPresses
 
-        noMods = ModKey mempty
-        cmd = MetaKey.toModKey . MetaKey.cmd
-        ctrl = ModKey.ctrl
-        alt = ModKey.alt
-        homeKeys = [noMods MetaKey.Key'Home, ctrl MetaKey.Key'A]
-        endKeys = [noMods MetaKey.Key'End, ctrl MetaKey.Key'E]
         textLength = Text.length str
         lineCount = length $ Text.splitOn "\n" str
         (before, after) = Text.splitAt cursor str
