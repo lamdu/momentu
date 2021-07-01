@@ -72,7 +72,7 @@ JsonTH.derivePrefixed "_text" ''Texts
 newtype Keys key = Keys
     { _keysQuit :: [key]
     }
-    deriving (Eq, Show, Functor, Foldable, Traversable)
+    deriving stock (Eq, Show, Functor, Foldable, Traversable)
 
 Lens.makeLenses ''Keys
 JsonTH.derivePrefixed "_keys" ''Keys

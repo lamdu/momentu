@@ -1,7 +1,5 @@
 -- | Cross platform ModKey.
 
-{-# LANGUAGE TemplateHaskell #-}
-
 module GUI.Momentu.MetaKey
     ( OSString, cmdLens, cmd
     , parse, format
