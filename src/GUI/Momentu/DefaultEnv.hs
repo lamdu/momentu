@@ -13,7 +13,7 @@ import qualified GUI.Momentu.Hover as Hover
 import qualified GUI.Momentu.I18N as I18N
 import qualified GUI.Momentu.Main as Main
 import           GUI.Momentu.MetaKey (OSString)
-import           GUI.Momentu.ModKey (ModKey)
+import           GUI.Momentu.ModKey (ModKey, noMods)
 import           GUI.Momentu.State (HasCursor, GUIState)
 import qualified GUI.Momentu.Widgets.DropDownList as DropDownList
 import qualified GUI.Momentu.Widgets.EventMapHelp as EventMapHelp
@@ -21,6 +21,7 @@ import qualified GUI.Momentu.Widgets.Grid as Grid
 import qualified GUI.Momentu.Widgets.Menu as Menu
 import qualified GUI.Momentu.Widgets.Menu.Search as SearchMenu
 import qualified GUI.Momentu.Widgets.Spacer as Spacer
+import qualified GUI.Momentu.Widgets.StdKeys as StdKeys
 import qualified GUI.Momentu.Widgets.TextEdit as TextEdit
 import qualified GUI.Momentu.Widgets.TextView as TextView
 import qualified GUI.Momentu.Zoom as Zoom
@@ -41,6 +42,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _searchMenuTexts :: SearchMenu.Texts Text
     , _searchMenuStyle :: SearchMenu.TermStyle
     , _gridKeys :: Grid.Keys ModKey
+    , _dirKeys :: StdKeys.DirKeys ModKey
     , _mainKeys :: Main.Keys ModKey
     , _zoomTexts :: Zoom.Texts Text
     , _eventMapTexts :: EventMap.Texts Text
@@ -76,6 +78,7 @@ defaultEnv os font = DefaultEnv
     , _searchMenuStyle = SearchMenu.defaultTermStyle
     , _searchMenuConfig = SearchMenu.defaultConfig os
     , _gridKeys = Grid.stdKeys os
+    , _dirKeys = StdKeys.stdDirKeys <&> noMods
     , _mainKeys = Main.stdKeys os
     , _zoomTexts = Zoom.englishTexts
     , _eventMapTexts = EventMap.englishTexts
@@ -109,6 +112,7 @@ instance Has (Menu.Config ModKey)       (DefaultEnvG a) where has = searchMenuCo
 instance Has (Menu.Texts Text)          (DefaultEnvG a) where has = menuTexts
 instance Has (SearchMenu.Config ModKey) (DefaultEnvG a) where has = searchMenuConfig
 instance Has (SearchMenu.Texts Text)    (DefaultEnvG a) where has = searchMenuTexts
+instance Has (StdKeys.DirKeys ModKey)   (DefaultEnvG a) where has = dirKeys
 instance Has (TextEdit.Keys ModKey)     (DefaultEnvG a) where has = textEditKeys
 instance Has (TextEdit.Texts Text)      (DefaultEnvG a) where has = textEditTexts
 instance Has (Zoom.Texts Text)          (DefaultEnvG a) where has = zoomTexts

@@ -15,7 +15,7 @@ module GUI.Momentu.Widgets.TextEdit
         , textClipboard, textPaste, textCopy, textWord
     , englishTexts
     , Keys(..)
-        , keysDir, keysMoveLeftWord, keysMoveRightWord
+        , keysMoveLeftWord, keysMoveRightWord
         , keysDeleteCharBackward, keysDeleteCharForward, keysDeleteWordBackward
         , keysCopy, keysPaste
     , stdKeys
@@ -127,8 +127,7 @@ data Style = Style
 Lens.makeLenses ''Style
 
 data Keys key = Keys
-    { _keysDir :: DirKeys key
-    , _keysMoveLeftWord :: [key]
+    { _keysMoveLeftWord :: [key]
     , _keysMoveRightWord :: [key]
 
     , _keysHome :: [key]
@@ -152,8 +151,7 @@ JsonTH.derivePrefixed "_keys" ''Keys
 
 stdKeys :: OSString -> Keys ModKey
 stdKeys os = Keys
-    { _keysDir                     = StdKeys.stdDirKeys <&> noMods
-    , _keysMoveLeftWord            = [ctrl ModKey.Key'Left]
+    { _keysMoveLeftWord            = [ctrl ModKey.Key'Left]
     , _keysMoveRightWord           = [ctrl ModKey.Key'Right]
 
     , _keysHome                    = [noMods ModKey.Key'Home, ctrl ModKey.Key'A]
@@ -175,7 +173,10 @@ stdKeys os = Keys
 
 type HasStyle env = (Has Style env, TextView.HasStyle env)
 
-type Deps env = (State.HasCursor env, HasStyle env, HasTexts env, Has (Keys ModKey) env)
+type Deps env =
+    ( State.HasCursor env, HasStyle env, HasTexts env
+    , Has (Keys ModKey) env, Has (DirKeys ModKey) env
+    )
 
 instance Has TextView.Style Style where has = sTextViewStyle
 
@@ -328,7 +329,8 @@ eventResult myId newText newCursor =
 -- | given text...
 makeFocused ::
     Deps env =>
-    env -> Text -> EmptyStrings -> Modes (WithTextPos View) -> Cursor -> Anim.AnimId -> Widget.Id ->
+    env -> Text -> EmptyStrings -> Modes (WithTextPos View) -> Cursor ->
+    Anim.AnimId -> Widget.Id ->
     TextWidget ((,) Text)
 makeFocused env str emptyStr emptyViews cursor animId myId =
     makeInternal env focused str emptyViews animId myId
@@ -370,7 +372,7 @@ mkCursorRect env cursor str =
 
 -- TODO: Implement intra-TextEdit virtual cursor
 eventMap ::
-    (HasTexts env, Has (Keys ModKey) env) =>
+    (HasTexts env, Has (Keys ModKey) env, Has (DirKeys ModKey) env) =>
     env -> Cursor -> Text -> Widget.Id -> Widget.EventContext ->
     EventMap (Text, State.Update)
 eventMap env cursor str myId _eventContext =
@@ -381,13 +383,13 @@ eventMap env cursor str myId _eventContext =
         [ logicalAdvanceWord moveWord | cursor < textLength ],
 
         [ moveRelative (- cursorX - 1 - Text.length (Text.drop cursorX prevLine))
-            & E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysUp)
+            & E.keyPressesOrRepeat (env ^. has . StdKeys.keysUp)
             (moveDoc [has . Dir.up])
         | cursorY > 0 ],
 
         [ moveRelative
             (Text.length curLineAfter + 1 + min cursorX (Text.length nextLine))
-            & E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysDown)
+            & E.keyPressesOrRepeat (env ^. has . StdKeys.keysDown)
             (moveDoc [has . Dir.down])
         | cursorY < lineCount - 1 ],
 
@@ -471,10 +473,10 @@ eventMap env cursor str myId _eventContext =
         leftWord = keyPresses (moveWordDoc [has . Dir.left]) (keys ^. keysMoveLeftWord)
         rightWord = keyPresses (moveWordDoc [has . Dir.right]) (keys ^. keysMoveRightWord)
         left =
-            E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysLeft)
+            E.keyPressesOrRepeat (env ^. has . StdKeys.keysLeft)
             (moveDoc [has . Dir.left])
         right =
-            E.keyPressesOrRepeat (keys ^. keysDir . StdKeys.keysRight)
+            E.keyPressesOrRepeat (env ^. has . StdKeys.keysRight)
             (moveDoc [has . Dir.right])
         ( logicalRetreatWord, logicalAdvanceWord
             , logicalRetreat, logicalAdvance) =

@@ -37,7 +37,7 @@ import           GUI.Momentu.Widget (R, Widget(Widget))
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widget.Instances as WidgetGlue
 import qualified GUI.Momentu.Widgets.GridView as GridView
-import           GUI.Momentu.Widgets.StdKeys (DirKeys(..), stdDirKeys)
+import           GUI.Momentu.Widgets.StdKeys (DirKeys(..))
 import qualified GUI.Momentu.Widgets.StdKeys as StdKeys
 
 import           GUI.Momentu.Prelude
@@ -146,8 +146,7 @@ mkNavDests dir (Cursor (Vector2 cursorX cursorY)) virtCursor rows =
             <&> setVirt axis
 
 data Keys key = Keys
-    { _keysDir :: DirKeys key
-    , _keysMoreLeft :: [key]
+    { _keysMoreLeft :: [key]
     , _keysMoreRight :: [key]
     , _keysLeftMost :: [key]
     , _keysRightMost :: [key]
@@ -159,8 +158,7 @@ JsonTH.derivePrefixed "_keys" ''Keys
 
 stdKeys :: OSString -> Keys ModKey
 stdKeys os = Keys
-    { _keysDir = stdDirKeys <&> noMods
-    , _keysMoreLeft = [noMods ModKey.Key'Home]
+    { _keysMoreLeft = [noMods ModKey.Key'Home]
     , _keysMoreRight = [noMods ModKey.Key'End]
     , _keysLeftMost = [MetaKey.cmd os ModKey.Key'Home]
     , _keysRightMost = [MetaKey.cmd os ModKey.Key'End]
@@ -168,14 +166,14 @@ stdKeys os = Keys
     , _keysBottom = [noMods ModKey.Key'PageDown]
     }
 
-type Deps env = (HasTexts env, Has (Keys ModKey) env)
+type Deps env = (HasTexts env, Has (Keys ModKey) env, Has (DirKeys ModKey) env)
 
 addNavEventmap :: Deps env => env -> NavDests a -> EventMap a -> EventMap a
 addNavEventmap env navDests eMap =
     strongMap <> eMap <> weakMap
     where
         keys = env ^. has
-        dir = keys ^. keysDir
+        dir = env ^. has
         weakMap =
             [ movement Horizontal Backward (dir ^. StdKeys.keysLeft)  cursorLeft
             , movement Horizontal Forward  (dir ^. StdKeys.keysRight) cursorRight
@@ -223,7 +221,7 @@ each2d =
 -- TODO: We assume that the given Cursor selects a focused
 -- widget. Prove it by passing the Focused data of that widget
 toWidget ::
-    (Has (Keys ModKey) env, HasTexts env, Applicative f) =>
+    (Has (Keys ModKey) env, Has (DirKeys ModKey) env, HasTexts env, Applicative f) =>
     env -> Widget.Size ->
     [[(Rect, Widget f)]] ->
     Widget f
