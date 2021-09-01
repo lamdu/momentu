@@ -180,14 +180,8 @@ emptyPickEventMap ::
 emptyPickEventMap =
     Lens.view id
     <&> \env ->
-    E.keysEventMap (allPickKeys env)
+    E.keysEventMap (env ^. has . Menu.configKeysPickOption)
     (E.toDoc env [has . textPickNotApplicable]) (pure ())
-    where
-        allPickKeys env =
-            config ^. Menu.configKeysPickOption <>
-            config ^. Menu.configKeysPickOptionAndGotoNext
-            where
-                config = env ^. has
 
 -- | All search menu results must start with a common prefix.
 -- This is used to tell when cursor was on a result that got filtered out
