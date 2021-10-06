@@ -68,7 +68,7 @@ englishTexts = Texts
 data Style = Style
     { _submenuSymbolColorUnselected :: Draw.Color
     , _submenuSymbolColorSelected :: Draw.Color
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Generic)
 Lens.makeLenses ''Style
 JsonTH.derivePrefixed "_" ''Style
 

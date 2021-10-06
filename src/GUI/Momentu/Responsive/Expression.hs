@@ -33,7 +33,7 @@ data Style = Style
     { _indentBarWidth :: Double
     , _indentBarGap :: Double
     , _indentBarColor :: Draw.Color
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Generic)
 JsonTH.derivePrefixed "_" ''Style
 Lens.makeLenses ''Style
 

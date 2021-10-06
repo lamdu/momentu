@@ -130,7 +130,7 @@ data TermStyle = TermStyle
     { _bgColors :: TextEdit.Modes Draw.Color
     , _emptyStrings :: TextEdit.EmptyStrings
     , _emptyStringsColors :: TextEdit.Modes Draw.Color
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Generic)
 JsonTH.derivePrefixed "_"''TermStyle
 
 defaultTermStyle :: TermStyle
