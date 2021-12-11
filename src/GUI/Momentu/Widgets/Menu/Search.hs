@@ -407,7 +407,7 @@ make makeSearchTerm makeOptions ann menuId =
                 else
                     pure
                     ( Menu.NoPickFirstResult
-                    , (const . const . Widget.strongerEvents) openEventMap
+                    , (const . const . Widget.strongerEventsWithoutPreevents) openEventMap
                     , assignCursor menuId []
                     )
             else
