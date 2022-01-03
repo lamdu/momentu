@@ -379,7 +379,7 @@ make makeSearchTerm makeOptions ann menuId =
         WidgetState searchTerm isOpen <- readState menuId
 
         env <- Lens.view id
-        let setIsOpen x = updateWidgetState menuId . WidgetState searchTerm $ x
+        let setIsOpen = updateWidgetState menuId . WidgetState searchTerm
         let closeEventMap goto =
                 setIsOpen False <> goto
                 & pure & E.keyPresses (closeKeys env) (viewDoc env (has . textCloseResults))

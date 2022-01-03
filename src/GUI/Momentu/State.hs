@@ -26,6 +26,7 @@ import           GUI.Momentu.Prelude
 -- The virtual cursor is the focal area that would ideally match the
 -- direction of user movements
 newtype VirtualCursor = VirtualCursor { _vcRect :: Rect }
+    deriving stock (Show, Generic, Eq, Ord)
 Lens.makeLenses ''VirtualCursor
 
 -- The GUIState may persist in user-specified storage (e.g: the Lamdu

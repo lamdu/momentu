@@ -270,9 +270,10 @@ deleteKeys :: [KeyEvent] -> EventMap a -> EventMap a
 deleteKeys = foldr ((.) . deleteKey) id
 
 data Event
-     = EventKey Events.KeyEvent
-     | EventChar Char
-     | EventDropPaths [FilePath]
+    = EventKey Events.KeyEvent
+    | EventChar Char
+    | EventDropPaths [FilePath]
+    deriving stock (Show, Generic, Eq)
 
 lookup ::
     Applicative f =>
