@@ -169,7 +169,7 @@ verticalDisambigTest =
                     Options.box env disambig [unitItem, unitItem]
                     &
                         -- to avoid ambiguous type var
-                        Responsive.rWide . Align.tValue . W.wState . Lens.mapped %~ (<>[])
+                        W.widget . W.wState . Lens.mapped %~ (<>[])
         unitItem =
             Element.pad Dir.LeftToRight 0 1 Element.empty
         disambig =
