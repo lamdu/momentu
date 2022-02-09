@@ -24,6 +24,8 @@
 module GUI.Momentu.Responsive
     ( Responsive(..), rWide, rWideDisambig, rNarrow
 
+    , WideLayouts(..), lWide, lWideDisambig
+
     -- * Layout params
     , NarrowLayoutParams(..), layoutWidth, layoutNeedDisambiguation
 
@@ -63,6 +65,12 @@ data NarrowLayoutParams = NarrowLayoutParams
     , _layoutNeedDisambiguation :: Bool
     }
 Lens.makeLenses ''NarrowLayoutParams
+
+data WideLayouts f = WideLayouts
+    { _lWide :: TextWidget f
+    , _lWideDisambig :: TextWidget f
+    }
+Lens.makeLenses ''WideLayouts
 
 data Responsive f = Responsive
     { _rWide :: TextWidget f

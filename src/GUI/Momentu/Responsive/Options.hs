@@ -19,8 +19,8 @@ import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.Glue as Glue
 import           GUI.Momentu.Responsive
-    ( Responsive(..)
-    , rWide, rWideDisambig, rNarrow
+    ( Responsive(..), WideLayouts(..)
+    , rWide, rWideDisambig, rNarrow, lWide, lWideDisambig
     , layoutWidth, vbox, fromView, vertLayoutMaybeDisambiguate
     )
 import qualified GUI.Momentu.Widget as Widget
@@ -28,12 +28,6 @@ import qualified GUI.Momentu.Widgets.Grid as Grid
 import qualified GUI.Momentu.Widgets.Spacer as Spacer
 
 import           GUI.Momentu.Prelude
-
-data WideLayouts f = WideLayouts
-    { _lWide :: TextWidget f
-    , _lWideDisambig :: TextWidget f
-    }
-Lens.makeLenses ''WideLayouts
 
 data WideLayoutOption t f = WideLayoutOption
     { _wContexts ::
