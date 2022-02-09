@@ -20,7 +20,7 @@ import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.Glue as Glue
 import           GUI.Momentu.Responsive
     ( Responsive(..), WideLayouts(..)
-    , rWide, rWideDisambig, rNarrow, lWide, lWideDisambig
+    , rWide, rNarrow, lWide, lWideDisambig
     , layoutWidth, vbox, fromView, vertLayoutMaybeDisambiguate
     )
 import qualified GUI.Momentu.Widget as Widget
@@ -41,8 +41,7 @@ Lens.makeLenses ''WideLayoutOption
 tryWideLayout :: WideLayoutOption t a -> t (Responsive a) -> Responsive a -> Responsive a
 tryWideLayout layoutOption elements fallback =
     Responsive
-    { _rWide = wide
-    , _rWideDisambig = res ^. lWideDisambig
+    { _rWide = res
     , _rNarrow =
         \layoutParams ->
         if wide ^. Align.tValue . Widget.wSize . _1 <= layoutParams ^. layoutWidth
@@ -53,12 +52,7 @@ tryWideLayout layoutOption elements fallback =
         wide = res ^. lWide
         res = (layoutOption ^. wLayout) renderedElements
         renderedElements =
-            elements & Lens.cloneTraversal (layoutOption ^. wContexts) %~ takeWide
-        takeWide element =
-            WideLayouts
-            { _lWide = element ^. rWide
-            , _lWideDisambig = element ^. rWideDisambig
-            }
+            elements & Lens.cloneTraversal (layoutOption ^. wContexts) %~ (^. rWide)
 
 type HorizDisambiguator f = TextWidget f -> TextWidget f
 

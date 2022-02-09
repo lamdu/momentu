@@ -22,7 +22,7 @@
 {-# LANGUAGE TemplateHaskell, FlexibleInstances, MultiParamTypeClasses, TypeFamilies, UndecidableInstances #-}
 
 module GUI.Momentu.Responsive
-    ( Responsive(..), rWide, rWideDisambig, rNarrow
+    ( Responsive(..), rWide, rNarrow
 
     , WideLayouts(..), lWide, lWideDisambig
 
@@ -73,8 +73,7 @@ data WideLayouts f = WideLayouts
 Lens.makeLenses ''WideLayouts
 
 data Responsive f = Responsive
-    { _rWide :: TextWidget f
-    , _rWideDisambig :: TextWidget f
+    { _rWide :: WideLayouts f
     , _rNarrow :: NarrowLayoutParams -> TextWidget f
     }
 Lens.makeLenses ''Responsive
@@ -86,24 +85,48 @@ adjustNarrowLayoutParams Vertical _ = layoutNeedDisambiguation .~ True
 adjustNarrowLayoutParams Horizontal v = layoutWidth -~ v ^. Element.size . _1
 
 instance
+    GluesTo env (TextWidget a) (WithTextPos b) (TextWidget a)
+    => Glue env (WideLayouts a) (WithTextPos b) where
+    type Glued (WideLayouts a) (WithTextPos b) = WideLayouts a
+    glue env orientation l v =
+        WideLayouts
+        { _lWide = glue env orientation wide v
+        , _lWideDisambig = glue env orientation wide v
+        }
+        where
+            wide =
+                case orientation of
+                Horizontal -> l ^. lWideDisambig
+                Vertical -> l ^. lWide
+
+instance
+    GluesTo env (WithTextPos a) (TextWidget b) (TextWidget b)
+    => Glue env (WithTextPos a) (WideLayouts b) where
+    type Glued (WithTextPos a) (WideLayouts b) = WideLayouts b
+    glue env orientation v l =
+        WideLayouts
+        { _lWide = glue env orientation v wide
+        , _lWideDisambig = glue env orientation v wide
+        }
+        where
+            wide =
+                case orientation of
+                Horizontal -> l ^. lWideDisambig
+                Vertical -> l ^. lWide
+
+instance
     ( GluesTo env (TextWidget a) (WithTextPos b) (TextWidget a)
     , SizedElement b
     ) => Glue env (Responsive a) (WithTextPos b) where
     type Glued (Responsive a) (WithTextPos b) = Responsive a
     glue env orientation l v =
         Responsive
-        { _rWide = glue env orientation wide v
-        , _rWideDisambig = glue env orientation wide v
+        { _rWide = glue env orientation (l ^. rWide) v
         , _rNarrow =
             l ^. rNarrow
             & Lens.argument %~ adjustNarrowLayoutParams orientation v
             <&> (glue env orientation ?? v)
         }
-        where
-            wide =
-                case orientation of
-                Horizontal -> l ^. rWideDisambig
-                Vertical -> l ^. rWide
 
 instance
     ( GluesTo env (WithTextPos a) (TextWidget b) (TextWidget b)
@@ -112,45 +135,42 @@ instance
     type Glued (WithTextPos a) (Responsive b) = Responsive b
     glue env orientation v l =
         Responsive
-        { _rWide = glue env orientation v wide
-        , _rWideDisambig = glue env orientation v wide
+        { _rWide = glue env orientation v (l ^. rWide)
         , _rNarrow =
             l ^. rNarrow
             & Lens.argument %~ adjustNarrowLayoutParams orientation v
             <&> glue env orientation v
         }
-        where
-            wide =
-                case orientation of
-                Horizontal -> l ^. rWideDisambig
-                Vertical -> l ^. rWide
+
+instance Functor f => Element (WideLayouts f) where
+    setLayeredImage = Widget.widget . Element.setLayeredImage
+    hoverLayeredImage = Widget.widget %~ Element.hoverLayeredImage
+    empty = WideLayouts Element.empty Element.empty
+    scale = error "Responsive: scale not Implemented"
+    padImpl topLeft bottomRight = wAlignedWidget %~ Element.padImpl topLeft bottomRight
 
 instance Functor f => Element (Responsive f) where
     setLayeredImage = Widget.widget . Element.setLayeredImage
     hoverLayeredImage = Widget.widget %~ Element.hoverLayeredImage
-    empty = Responsive Element.empty Element.empty (const Element.empty)
+    empty = Responsive Element.empty (const Element.empty)
     scale = error "Responsive: scale not Implemented"
     padImpl topLeft bottomRight w =
         Responsive
         { _rWide = w ^. rWide & Element.padImpl topLeft bottomRight
-        , _rWideDisambig = w ^. rWideDisambig & Element.padImpl topLeft bottomRight
         , _rNarrow =
             w ^. rNarrow
             & Lens.argument . layoutWidth -~ topLeft ^. _1 + bottomRight ^. _1
             <&> Element.padImpl topLeft bottomRight
         }
 
+instance Widget.HasWidget WideLayouts where widget = wAlignedWidget . Align.tValue
 instance Widget.HasWidget Responsive where widget = alignedWidget . Align.tValue
 
-alignedWidget ::
-    Lens.Setter
-    (Responsive a) (Responsive b)
-    (TextWidget a) (TextWidget b)
-alignedWidget f (Responsive w wd n) =
-    Responsive
-    <$> f w
-    <*> f wd
-    <*> Lens.mapped f n
+wAlignedWidget :: Lens.Setter (WideLayouts a) (WideLayouts b) (TextWidget a) (TextWidget b)
+wAlignedWidget f (WideLayouts w wd) = WideLayouts <$> f w <*> f wd
+
+alignedWidget :: Lens.Setter (Responsive a) (Responsive b) (TextWidget a) (TextWidget b)
+alignedWidget f (Responsive w n) = Responsive <$> wAlignedWidget f w <*> Lens.mapped f n
 
 -- | Lifts a Widget into a 'Responsive'
 fromAlignedWidget :: Functor f => Aligned (Widget f) -> Responsive f
@@ -158,7 +178,7 @@ fromAlignedWidget (Aligned a w) =
     WithTextPos (a ^. _2 * w ^. Element.height) w & fromWithTextPos
 
 fromWithTextPos :: TextWidget a -> Responsive a
-fromWithTextPos x = Responsive x x (const x)
+fromWithTextPos x = Responsive (WideLayouts x x) (const x)
 
 -- | Lifts a Widget into a 'Responsive' with an alignment point at the top left
 fromWidget :: Functor f => Widget f -> Responsive f
@@ -185,8 +205,7 @@ Lens.makeLenses ''VerticalLayout
 verticalLayout :: Functor t => VerticalLayout t a -> t (Responsive a) -> Responsive a
 verticalLayout vert items =
     Responsive
-    { _rWide = wide
-    , _rWideDisambig = wide
+    { _rWide = WideLayouts wide wide
     , _rNarrow =
         \layoutParams ->
         let onItem params item =
@@ -199,7 +218,7 @@ verticalLayout vert items =
         (vert ^. vLayout) (items & Lens.cloneIndexedTraversal (vert ^. vContexts) %@~ onItem)
     }
     where
-        wide = (vert ^. vLayout) (items <&> (^. rWide))
+        wide = (vert ^. vLayout) (items <&> (^. rWide . lWide))
 
 -- | Vertical box with the alignment point from the top widget
 vbox ::
