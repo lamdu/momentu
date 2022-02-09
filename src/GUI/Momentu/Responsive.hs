@@ -31,7 +31,7 @@ module GUI.Momentu.Responsive
     , alignedWidget
 
     -- * Leaf generation
-    , fromAlignedWidget, fromWithTextPos, fromWidget, fromView, fromTextView, empty
+    , fromAlignedWidget, fromWithTextPos, fromWidget, fromView, fromTextView
 
     -- * Combinators
     , vbox, vboxSpaced, vboxWithSeparator
@@ -163,10 +163,6 @@ fromView = fromWidget . Widget.fromView
 -- | Lifts a View into a 'Responsive' with an alignment point at the top left
 fromTextView :: WithTextPos View -> Responsive a
 fromTextView tv = tv & Align.tValue %~ Widget.fromView & fromWithTextPos
-
--- | The empty 'Responsive'
-empty :: Functor f => Responsive f
-empty = fromView Element.empty
 
 data VerticalLayout t a = VerticalLayout
     { _vContexts ::
