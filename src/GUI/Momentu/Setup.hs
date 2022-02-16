@@ -6,6 +6,7 @@ module GUI.Momentu.Setup
     ) where
 
 import qualified Control.Lens as Lens
+import           Data.Vector.Vector2 (Vector2)
 import           Data.MRUMemo (memoIO)
 import           GUI.Momentu.DefaultEnv (defaultEnv, DefaultEnvWithCursor, defaultEnvWithCursor)
 import           GUI.Momentu.Font (Font)
@@ -23,7 +24,7 @@ import qualified System.Info as SysInfo
 import           GUI.Momentu.Prelude
 
 data SetupOptions = SetupOptions
-    { _setupWindowMode :: !WindowMode
+    { _setupWindowMode :: Vector2 Int -> WindowMode
     , _setupLcdSubPixel :: !Font.LCDSubPixelEnabled
     , _setupFontSize :: !Float
     }
@@ -31,7 +32,7 @@ Lens.makeLenses ''SetupOptions
 
 defaultSetupOptions :: SetupOptions
 defaultSetupOptions = SetupOptions
-    { _setupWindowMode = Window.Maximized
+    { _setupWindowMode = Window.Windowed
     , _setupLcdSubPixel = Font.LCDSubPixelEnabled
     , _setupFontSize = 24
     }

@@ -104,7 +104,7 @@ import           GUI.Momentu.Prelude
 
 type MainLoopEnv = MainLoop.Env
 
-createWindow :: String -> Window.WindowMode -> IO GLFW.Window
+createWindow :: String -> (Vector2 Int -> Window.WindowMode) -> IO GLFW.Window
 createWindow = Window.create
 
 type WidgetId = Widget.Id
