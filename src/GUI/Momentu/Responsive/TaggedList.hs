@@ -32,43 +32,51 @@ taggedList ::
     ) =>
     m ([TaggedItem f] -> Responsive f)
 taggedList =
-    (,,,)
-    <$> Element.pad
-    <*> (Glue.mkGlue ?? Glue.Horizontal)
-    <*> Glue.vbox
-    <*> (Spacer.stdVSpace <&> Widget.fromView <&> WithTextPos 0)
-    <&>
-    \(doPad, (/|/), vboxed, vspace) items ->
-    let preWidth = items ^.. traverse . tagPre . Lens._Just . Element.width & maxOr0
-        postWidth = items ^.. traverse . tagPost . Lens._Just . Element.width & maxOr0
-        renderItem ((Nothing, post), item) = (item, post)
-        renderItem ((Just pre, post), item) =
-            ( doPad (Vector2 (preWidth - pre ^. Element.width) 0) 0 pre
-                /|/ item
-            , post
+    do
+        doPad <- Element.pad
+        (/|/) <- Glue.mkGlue ?? Glue.Horizontal
+        renderItems <- makeRenderTable
+        pure (
+            \items ->
+            let preWidth = partWidth (tagPre . Lens._Just) items
+                renderItem ((Nothing, post), item) = (item, post)
+                renderItem ((Just pre, post), item) =
+                    ( doPad (Vector2 (preWidth - pre ^. Element.width) 0) 0 pre
+                        /|/ item
+                    , post
+                    )
+                idx =
+                    NarrowLayoutParams
+                    { _layoutWidth = preWidth + partWidth (tagPost . Lens._Just) items
+                    , _layoutNeedDisambiguation = False
+                    }
+            in
+            items <&> prepItem & Compose
+            & verticalLayout VerticalLayout
+            { _vContexts = Lens.reindexed (const idx) Lens.traversed
+            , _vLayout = renderItems . map renderItem . getCompose
+            }
             )
-        renderItems xs =
-            xs <&> renderRow & List.intersperse vspace & vboxed
-            where
+    where
+        prepItem (TaggedItem pre x post) = ((pre, post), x)
+
+makeRenderTable ::
+    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
+    m ([(TextWidget f, Maybe (TextWidget f))] -> TextWidget f)
+makeRenderTable =
+    do
+        doPad <- Element.pad
+        (/|/) <- Glue.mkGlue ?? Glue.Horizontal
+        vboxed <- Glue.vbox
+        vspace <- Spacer.stdVSpace <&> Widget.fromView <&> WithTextPos 0
+        pure (
+            \xs ->
+            let itemWidth = partWidth (Lens.filteredBy (_2 . Lens._Just) . _1) xs
                 renderRow (item, Nothing) = item
                 renderRow (item, Just post) =
                     item /|/
                     doPad (Vector2 (itemWidth - item ^. Element.width) 0) 0 post
-                itemWidth =
-                    xs ^.. traverse . Lens.filteredBy (_2 . Lens._Just) . _1 . Element.width
-                    & maxOr0
-        idx =
-            NarrowLayoutParams
-            { _layoutWidth = preWidth + postWidth
-            , _layoutNeedDisambiguation = False
-            }
-    in
-    items <&> prepItem & Compose
-    & verticalLayout VerticalLayout
-    { _vContexts = Lens.reindexed (const idx) Lens.traversed
-    , _vLayout = renderItems . map renderItem . getCompose
-    }
-    where
-        prepItem (TaggedItem pre x post) = ((pre, post), x)
-        maxOr0 [] = 0
-        maxOr0 xs = maximum xs
+            in xs <&> renderRow & List.intersperse vspace & vboxed)
+
+partWidth :: (Traversable t, Functor f) => Lens.ATraversal' a (TextWidget f) -> t a -> Widget.R
+partWidth l = foldl max 0 . (^.. traverse . Lens.cloneTraversal l . Element.width)
