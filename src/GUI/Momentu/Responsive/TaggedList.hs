@@ -2,7 +2,7 @@
 
 module GUI.Momentu.Responsive.TaggedList
     ( TaggedItem(..), tagPre, taggedItem, tagPost
-    , taggedList
+    , taggedListTable, taggedListIndent
     ) where
 
 import qualified Control.Lens as Lens
@@ -13,6 +13,8 @@ import           GUI.Momentu.Align (WithTextPos(..), TextWidget)
 import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.Glue as Glue
 import           GUI.Momentu.Responsive
+import qualified GUI.Momentu.Responsive.Expression as Expression
+import qualified GUI.Momentu.Responsive.Options as Options
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.Spacer as Spacer
 
@@ -26,56 +28,56 @@ data TaggedItem f = TaggedItem
 
 Lens.makeLenses ''TaggedItem
 
-taggedList ::
+taggedListTable ::
     ( MonadReader env m, Spacer.HasStdSpacing env, Applicative f
     , Glue.HasTexts env
     ) =>
     m ([TaggedItem f] -> Responsive f)
-taggedList =
-    do
-        doPad <- Element.pad
-        (/|/) <- Glue.mkGlue ?? Glue.Horizontal
-        renderItems <- makeRenderTable
-        pure (
-            \items ->
-            let preWidth = partWidth (tagPre . Lens._Just) items
-                renderItem ((Nothing, post), item) = (item, post)
-                renderItem ((Just pre, post), item) =
-                    ( doPad (Vector2 (preWidth - pre ^. Element.width) 0) 0 pre
-                        /|/ item
-                    , post
-                    )
-                idx =
-                    NarrowLayoutParams
-                    { _layoutWidth = preWidth + partWidth (tagPost . Lens._Just) items
-                    , _layoutNeedDisambiguation = False
-                    }
-            in
-            items <&> prepItem & Compose
-            & verticalLayout VerticalLayout
-            { _vContexts = Lens.reindexed (const idx) Lens.traversed
-            , _vLayout = renderItems . map renderItem . getCompose
+taggedListTable =
+    makeRenderTable <&>
+    \renderItems items ->
+    let idx =
+            NarrowLayoutParams
+            { _layoutWidth = partWidth (tagPre . Lens._Just) items + partWidth (tagPost . Lens._Just) items
+            , _layoutNeedDisambiguation = False
             }
-            )
+    in
+    prepItems items
+    & verticalLayout VerticalLayout
+    { _vContexts = Lens.reindexed (const idx) Lens.traversed
+    , _vLayout = renderItems
+    }
+
+prepItems :: [TaggedItem f] -> Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (Responsive f)
+prepItems =
+    Compose . map prepItem
     where
         prepItem (TaggedItem pre x post) = ((pre, post), x)
 
 makeRenderTable ::
     (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
-    m ([(TextWidget f, Maybe (TextWidget f))] -> TextWidget f)
+    m (Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (TextWidget f) -> TextWidget f)
 makeRenderTable =
     do
         doPad <- Element.pad
         (/|/) <- Glue.mkGlue ?? Glue.Horizontal
         vboxed <- makeVboxSpaced
         pure (
-            \xs ->
-            let itemWidth = partWidth (Lens.filteredBy (_2 . Lens._Just) . _1) xs
+            \(Compose xs) ->
+            let items = xs <&> addPre
+                addPre ((Nothing, post), item) = (item, post)
+                addPre ((Just pre, post), item) =
+                    ( doPad (Vector2 (preWidth - pre ^. Element.width) 0) 0 pre
+                        /|/ item
+                    , post
+                    )
+                preWidth = partWidth (_1 . _1 . Lens._Just) xs
+                itemWidth = partWidth (Lens.filteredBy (_2 . Lens._Just) . _1) items
                 renderRow (item, Nothing) = item
                 renderRow (item, Just post) =
                     item /|/
                     doPad (Vector2 (itemWidth - item ^. Element.width) 0) 0 post
-            in xs <&> renderRow & vboxed)
+            in items <&> renderRow & vboxed)
 
 -- TODO: This should be generic and in spacer? If Element had a fromView it could be
 makeVboxSpaced ::
@@ -89,3 +91,42 @@ makeVboxSpaced =
 
 partWidth :: (Traversable t, Functor f) => Lens.ATraversal' a (TextWidget f) -> t a -> Widget.R
 partWidth l = foldl max 0 . (^.. traverse . Lens.cloneTraversal l . Element.width)
+
+-- | Renders a table if there is enough space, otherwise indents the items.
+--
+-- The pre-tags seperate between indented items (so separation will be lacking without them).
+taggedListIndent ::
+    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasAnimIdPrefix env
+    , Has Expression.Style env, Applicative f
+    ) =>
+    m ([TaggedItem f] -> Responsive f)
+taggedListIndent =
+    do
+        vboxed <- vboxSpaced
+        mkItem <- indentedListItem
+        table <- makeRenderTable
+        pure (
+            \items ->
+            items <&> mkItem & vboxed
+            & Options.tryWideLayout Options.WideLayoutOption
+                { Options._wContexts = traverse <&> Lens.mapped . Lens.mapped . Lens.mapped %~ (^. lWide)
+                , Options._wLayout = join WideLayouts . table
+                } (prepItems items)
+            )
+
+indentedListItem ::
+    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasAnimIdPrefix env
+    , Has Expression.Style env, Applicative f
+    ) =>
+    m (TaggedItem f -> Responsive f)
+indentedListItem =
+    do
+        box <- Options.boxSpaced ?? Options.disambiguationNone
+        (/|/) <- Glue.mkGlue ?? Glue.Horizontal
+        indent <- Expression.indent <*> Lens.view Element.animIdPrefix
+        pure (
+            \(TaggedItem pre item post) ->
+            (pre ^.. Lens._Just <&> fromWithTextPos)
+            <> [vertLayoutMaybeDisambiguate indent (maybe id (flip (/|/)) post item)]
+            & box
+            )
