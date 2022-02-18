@@ -61,14 +61,13 @@ taggedList =
         prepItem (TaggedItem pre x post) = ((pre, post), x)
 
 makeRenderTable ::
-    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
+    (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
     m ([(TextWidget f, Maybe (TextWidget f))] -> TextWidget f)
 makeRenderTable =
     do
         doPad <- Element.pad
         (/|/) <- Glue.mkGlue ?? Glue.Horizontal
-        vboxed <- Glue.vbox
-        vspace <- Spacer.stdVSpace <&> Widget.fromView <&> WithTextPos 0
+        vboxed <- makeVboxSpaced
         pure (
             \xs ->
             let itemWidth = partWidth (Lens.filteredBy (_2 . Lens._Just) . _1) xs
@@ -76,7 +75,17 @@ makeRenderTable =
                 renderRow (item, Just post) =
                     item /|/
                     doPad (Vector2 (itemWidth - item ^. Element.width) 0) 0 post
-            in xs <&> renderRow & List.intersperse vspace & vboxed)
+            in xs <&> renderRow & vboxed)
+
+-- TODO: This should be generic and in spacer? If Element had a fromView it could be
+makeVboxSpaced ::
+    (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
+    m ([TextWidget f] -> TextWidget f)
+makeVboxSpaced =
+    do
+        vboxed <- Glue.vbox
+        vspace <- Spacer.stdVSpace <&> Widget.fromView <&> WithTextPos 0
+        vboxed . List.intersperse vspace & pure
 
 partWidth :: (Traversable t, Functor f) => Lens.ATraversal' a (TextWidget f) -> t a -> Widget.R
 partWidth l = foldl max 0 . (^.. traverse . Lens.cloneTraversal l . Element.width)
