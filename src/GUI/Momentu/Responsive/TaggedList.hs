@@ -62,16 +62,19 @@ makeRenderTable =
         doPad <- Element.pad
         (/|/) <- Glue.mkGlue ?? Glue.Horizontal
         vboxed <- makeVboxSpaced
+        hspace <- Spacer.getSpaceSize <&> (^. _2)
         pure (
             \(Compose xs) ->
             let items = xs <&> addPre
                 addPre ((Nothing, post), item) = (item, post)
                 addPre ((Just pre, post), item) =
-                    ( doPad (Vector2 (preWidth - pre ^. Element.width) 0) 0 pre
+                    ( doPad
+                        (Vector2 (preWidth - pre ^. Element.width - hspace) 0)
+                        (Vector2 hspace 0) pre
                         /|/ item
                     , post
                     )
-                preWidth = partWidth (_1 . _1 . Lens._Just) xs
+                preWidth = partWidth (_1 . _1 . Lens._Just) xs + hspace
                 itemWidth = partWidth (Lens.filteredBy (_2 . Lens._Just) . _1) items
                 renderRow (item, Nothing) = item
                 renderRow (item, Just post) =
