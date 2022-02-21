@@ -115,7 +115,7 @@ library
       FlexibleContexts
       TypeOperators
       NoImplicitPrelude
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -O2
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -Wunused-packages -O2
   build-depends:
       GLFW-b >=3.3.0.0 && <3.4
     , OpenGL
@@ -156,7 +156,7 @@ executable dropDownList
       DerivingStrategies
       FlexibleContexts
       TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -Wunused-packages -threaded
   build-depends:
       base >=4.12
     , base-compat
@@ -181,7 +181,7 @@ executable hello-world
       DerivingStrategies
       FlexibleContexts
       TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -Wunused-packages -threaded
   build-depends:
       base >=4.12
     , base-compat
@@ -205,13 +205,12 @@ executable searchmenu
       DerivingStrategies
       FlexibleContexts
       TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -Wunused-packages -threaded -Wno-partial-type-signatures
   build-depends:
       base >=4.12
     , base-compat
     , lens
     , momentu
-    , text
   default-language: Haskell2010
 
 executable sys-info
@@ -230,7 +229,7 @@ executable sys-info
       DerivingStrategies
       FlexibleContexts
       TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -Wunused-packages
   build-depends:
       GLFW-b
     , base >=4.12
@@ -253,7 +252,7 @@ executable textedit
       DerivingStrategies
       FlexibleContexts
       TypeOperators
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -threaded -Wno-partial-type-signatures
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -Wunused-packages -threaded -Wno-partial-type-signatures
   build-depends:
       base >=4.12
     , base-compat
@@ -286,7 +285,7 @@ test-suite momentu-test
       FlexibleContexts
       TypeOperators
       NoImplicitPrelude
-  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -O0
+  ghc-options: -Wall -Widentities -Wimplicit-prelude -Wmissing-home-modules -Wincomplete-patterns -Wnoncanonical-monad-instances -Wsemigroup -Wincomplete-record-updates -Wredundant-constraints -Wunused-packages -O0
   build-depends:
       GLFW-b
     , HUnit

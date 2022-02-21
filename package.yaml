@@ -29,6 +29,7 @@ ghc-options:
 - -Wsemigroup
 - -Wincomplete-record-updates
 - -Wredundant-constraints
+- -Wunused-packages
 
 dependencies:
 - base >=4.12
@@ -127,7 +128,6 @@ executables:
     - base-compat
     - lens
     - momentu
-    - text
     ghc-options:
     - -threaded
     - -Wno-partial-type-signatures
