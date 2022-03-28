@@ -17,6 +17,8 @@ extra-deps:
 - github: lamdu/FreetypeGL
   commit: 18ca298d8fd48ad18f75264553b57714bf070c77
 
+allow-newer: true
+
 ghc-options:
   # this is for weeder:
   "$locals": -fwrite-ide-info
