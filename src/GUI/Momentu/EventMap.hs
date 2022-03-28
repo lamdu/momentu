@@ -278,20 +278,19 @@ data Event
 lookup ::
     Applicative f =>
     f (Maybe Clipboard) -> Event -> EventMap a -> f (Maybe (DocHandler a))
-lookup _ (EventDropPaths paths) x =
-    map applyHandler (x ^. emDropHandlers) & asum & pure
-    where
-        applyHandler dh =
-            dh ^. dropDocHandler & dhHandler %~ ($ paths) & sequenceA
 lookup getClipboard event x =
     case event of
     EventChar c ->
         lookupCharGroup charGroups c <|> lookupAllCharHandler allCharHandlers c & pure
     EventKey k ->
         fromMaybe (pure Nothing) (lookupKeyMap getClipboard dict k)
-    _ -> pure Nothing
+    EventDropPaths paths ->
+        map applyHandler dropHandlers & asum & pure
+        where
+            applyHandler dh =
+                dh ^. dropDocHandler & dhHandler %~ ($ paths) & sequenceA
     where
-        EventMap dict _dropHandlers charGroups allCharHandlers = x
+        EventMap dict dropHandlers charGroups allCharHandlers = x
 
 lookupKeyMap ::
     Applicative f => f (Maybe Clipboard) -> KeyMap a -> Events.KeyEvent ->

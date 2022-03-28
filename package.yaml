@@ -71,7 +71,6 @@ tests:
     default-extensions:
     - NoImplicitPrelude
     dependencies:
-    - containers
     - lens
     - generic-random
     - GLFW-b

@@ -291,7 +291,6 @@ test-suite momentu-test
     , HUnit
     , QuickCheck
     , base >=4.12
-    , containers
     , generic-random
     , lens
     , momentu
