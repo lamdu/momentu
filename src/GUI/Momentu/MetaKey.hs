@@ -16,7 +16,7 @@ import           GUI.Momentu.Prelude
 -- | The OS string as defined by the result of System.Info.os
 type OSString = String
 
-cmdLens :: OSString -> Lens.ALens' ModifierKeys Bool
+cmdLens :: Functor f => OSString -> Lens.LensLike' f ModifierKeys Bool
 cmdLens os
     | os == "darwin" = ModKey.mSuper
     | otherwise      = ModKey.mControl

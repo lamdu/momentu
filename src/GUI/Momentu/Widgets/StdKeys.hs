@@ -22,7 +22,7 @@ data DirKeys key = DirKeys
 Lens.makeLenses ''DirKeys
 JsonTH.derivePrefixed "_keys" ''DirKeys
 
-dirKey :: Dir.Layout -> Orientation -> Order -> Lens.ALens' (DirKeys key) [key]
+dirKey :: Functor f => Dir.Layout -> Orientation -> Order -> Lens.LensLike' f (DirKeys key) [key]
 dirKey _ Vertical Backward = keysUp
 dirKey _ Vertical Forward = keysDown
 dirKey Dir.LeftToRight Horizontal Backward = keysLeft
