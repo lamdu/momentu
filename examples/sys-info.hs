@@ -21,5 +21,7 @@ main =
             <&> show
             <&> ("Video mode: " ++)
             >>= putStrLn
+        GLFW.getMonitorContentScale monitor
+            >>= \(x, y) -> putStrLn $ "Monitor content scale: " ++ show x ++ " x " ++ show y
         putStrLn ""
     & GLFWUtils.withGLFW
