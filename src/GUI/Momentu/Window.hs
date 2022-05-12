@@ -1,8 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 module GUI.Momentu.Window
-    ( WindowMode(..)
+    ( WindowMode(..), _FullScreen, _Windowed
     , MonitorInfo(..), monitorSizeMillimeters, monitorSizeOSLogicalPixels
-    , create, GLFW.Window
+    , createWindow, GLFW.Window
     ) where
 
 import qualified Control.Lens as Lens
@@ -25,10 +25,9 @@ data MonitorInfo = MonitorInfo
     , _monitorSizeOSLogicalPixels :: !(Vector2 Int)
          -- ^ The OS-specific "logical pixel" size of the monitor
     }
-Lens.makeLenses ''MonitorInfo
 
-create :: String -> (MonitorInfo -> WindowMode) -> IO GLFW.Window
-create title mode =
+createWindow :: String -> (MonitorInfo -> WindowMode) -> IO GLFW.Window
+createWindow title mode =
     do
         monitor <- GLFWUtils.getPrimaryMonitor
         osLogicalPixels <- GLFWUtils.getVideoModeSize monitor
@@ -38,3 +37,5 @@ create title mode =
             FullScreen -> createWin (Just monitor) osLogicalPixels
             Windowed size -> createWin Nothing (min <$> size <*> osLogicalPixels - 1)
 
+Lens.makeLenses ''MonitorInfo
+Lens.makePrisms ''WindowMode

@@ -41,7 +41,7 @@ type MakeWidget = (Float -> IO Font) -> DefaultEnvWithCursor -> IO (Widget IO)
 defaultSetup :: String -> FilePath -> SetupOptions -> MakeWidget -> IO ()
 defaultSetup title fontPath options makeWidget =
     do
-        win <- Window.create title (options ^. setupWindowMode)
+        win <- Window.createWindow title (options ^. setupWindowMode)
         cachedOpenFont <- memoIO (Font.openFont (options ^. setupLcdSubPixel) ?? fontPath)
         let cachedOpenFontBySizeFactor = cachedOpenFont . (* options ^. setupFontSize)
         mainLoop <- Main.mainLoopWidget

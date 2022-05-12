@@ -53,9 +53,7 @@ module GUI.Momentu
     , GLFWUtils.getVideoModeSize
     , GLFWUtils.withGLFW
 
-    , Window.WindowMode(..)
-    , Window.MonitorInfo(..)
-    , createWindow, Window.Window
+    , module GUI.Momentu.Window
 
     -- | Main loop
     , Zoom, Zoom.getZoomFactor
@@ -95,7 +93,7 @@ import qualified GUI.Momentu.View as View
 import           GUI.Momentu.Widget (Widget)
 import qualified GUI.Momentu.Widget as Widget
 import qualified GUI.Momentu.Widgets.Spacer as Spacer
-import qualified GUI.Momentu.Window as Window
+import           GUI.Momentu.Window
 import           GUI.Momentu.Zoom (Zoom)
 import qualified GUI.Momentu.Zoom as Zoom
 import qualified Graphics.UI.GLFW as GLFW
@@ -105,8 +103,6 @@ import           GUI.Momentu.Prelude
 
 type MainLoopEnv = MainLoop.Env
 
-createWindow :: String -> (Window.MonitorInfo -> Window.WindowMode) -> IO GLFW.Window
-createWindow = Window.create
 
 type WidgetId = Widget.Id
 pattern WidgetId :: AnimId -> Widget.Id
