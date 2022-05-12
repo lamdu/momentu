@@ -54,6 +54,7 @@ module GUI.Momentu
     , GLFWUtils.withGLFW
 
     , Window.WindowMode(..)
+    , Window.MonitorInfo(..)
     , createWindow, Window.Window
 
     -- | Main loop
@@ -104,7 +105,7 @@ import           GUI.Momentu.Prelude
 
 type MainLoopEnv = MainLoop.Env
 
-createWindow :: String -> (Vector2 Int -> Window.WindowMode) -> IO GLFW.Window
+createWindow :: String -> (Window.MonitorInfo -> Window.WindowMode) -> IO GLFW.Window
 createWindow = Window.create
 
 type WidgetId = Widget.Id

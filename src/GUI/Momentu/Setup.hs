@@ -6,7 +6,6 @@ module GUI.Momentu.Setup
     ) where
 
 import qualified Control.Lens as Lens
-import           Data.Vector.Vector2 (Vector2)
 import           Data.MRUMemo (memoIO)
 import           GUI.Momentu.DefaultEnv (defaultEnv, DefaultEnvWithCursor, defaultEnvWithCursor)
 import           GUI.Momentu.Font (Font)
@@ -15,7 +14,7 @@ import qualified GUI.Momentu.Main as Main
 import           GUI.Momentu.MetaKey (OSString)
 import           GUI.Momentu.Widget (Widget(..))
 import qualified GUI.Momentu.Widget as Widget
-import           GUI.Momentu.Window (WindowMode(..))
+import           GUI.Momentu.Window (MonitorInfo(..), WindowMode(..))
 import qualified GUI.Momentu.Window as Window
 import qualified GUI.Momentu.Zoom as Zoom
 import           Graphics.UI.GLFW.Utils (withGLFW)
@@ -24,7 +23,7 @@ import qualified System.Info as SysInfo
 import           GUI.Momentu.Prelude
 
 data SetupOptions = SetupOptions
-    { _setupWindowMode :: Vector2 Int -> WindowMode
+    { _setupWindowMode :: MonitorInfo -> WindowMode
     , _setupLcdSubPixel :: !Font.LCDSubPixelEnabled
     , _setupFontSize :: !Float
     }
@@ -32,7 +31,7 @@ Lens.makeLenses ''SetupOptions
 
 defaultSetupOptions :: SetupOptions
 defaultSetupOptions = SetupOptions
-    { _setupWindowMode = Window.Windowed
+    { _setupWindowMode = Window.Windowed . (^. Window.monitorSizeOSLogicalPixels)
     , _setupLcdSubPixel = Font.LCDSubPixelEnabled
     , _setupFontSize = 24
     }
