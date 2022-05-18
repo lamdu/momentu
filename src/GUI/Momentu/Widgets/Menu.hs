@@ -16,6 +16,7 @@ module GUI.Momentu.Widgets.Menu
     , noResultsId
     , HasTexts, Texts(..), downBlocked, upBlocked, submenuSymbol, commaNextEntry, noResults
     , englishTexts
+    , resultsIdPrefix
     ) where
 
 import qualified Control.Lens as Lens
@@ -313,8 +314,14 @@ addPickers =
     & Widget.addPreEvent preEvent
     & Widget.eventMapMaker . Lens.mapped %~ mappend (pickEventMap pick)
 
+-- | All search menu results must start with a common prefix.
+-- This is used to tell when cursor was on a result that got filtered out
+-- when the search term changed in order to redirect it to a result.
+resultsIdPrefix :: Widget.Id -> Widget.Id
+resultsIdPrefix = (`Widget.joinId` ["Results"])
+
 noResultsId :: Widget.Id -> Widget.Id
-noResultsId = (`Widget.joinId` ["no results"])
+noResultsId = (`Widget.joinId` ["no results"]) . resultsIdPrefix
 
 make ::
     ( MonadReader env m, Applicative f, Has TextView.Style env

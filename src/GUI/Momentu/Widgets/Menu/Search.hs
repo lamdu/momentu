@@ -2,7 +2,7 @@
 
 module GUI.Momentu.Widgets.Menu.Search
     ( emptyPickEventMap
-    , resultsIdPrefix
+    , Menu.resultsIdPrefix
     , ResultsContext(..), rSearchTerm, rResultIdPrefix
 
     , basicSearchTermEdit
@@ -183,12 +183,6 @@ emptyPickEventMap =
     E.keysEventMap (env ^. has . Menu.configKeysPickOption)
     (E.toDoc env [has . textPickNotApplicable]) (pure ())
 
--- | All search menu results must start with a common prefix.
--- This is used to tell when cursor was on a result that got filtered out
--- when the search term changed in order to redirect it to a result.
-resultsIdPrefix :: Id -> Id
-resultsIdPrefix = (`joinId` ["Results"])
-
 searchTermEditId :: Id -> Id
 searchTermEditId = (`joinId` ["SearchTerm"])
 
@@ -227,7 +221,7 @@ basicSearchTermEdit searchTermId menuId rawAllowedSearchTerm textEditEmpty =
                     & if Text.null searchTerm
                         then
                             State.uCursor .~
-                            Just (resultsIdPrefix menuId) ^. Lens._Unwrapped
+                            Just (Menu.resultsIdPrefix menuId) ^. Lens._Unwrapped
                         else id
         widget <-
             TextEdit.makeWithAnimId ?? textEditEmpty ?? searchTerm ?? searchTermId ?? searchTermEditId menuId
@@ -347,7 +341,7 @@ assignCursor menuId resultIds action =
         -- but the cursor prefix signifies whether we should be on a result.
         -- When that is the case but is not currently on any of the existing results
         -- the cursor will be sent to the default one.
-        shouldBeOnResult <- sub (resultsIdPrefix menuId)
+        shouldBeOnResult <- sub (Menu.resultsIdPrefix menuId)
         isOnResult <- traverse sub resultIds <&> or
 
         action
@@ -393,7 +387,7 @@ make makeSearchTerm makeOptions ann menuId =
             then if isOpen
                 then do
                     options <-
-                        ResultsContext searchTerm (resultsIdPrefix menuId) & makeOptions
+                        ResultsContext searchTerm (Menu.resultsIdPrefix menuId) & makeOptions
                     let assignTheCursor = assignCursor menuId (options ^.. traverse . Menu.oId)
                     (mPickFirst, makeMenu) <- Menu.makeHovered menuId ann options & assignTheCursor
                     let makeTheMenu term placement =
