@@ -12,7 +12,6 @@ module Graphics.UI.GLFW.Utils
 
 import           Control.Exception (bracket_)
 import           Control.Lens.Operators
-import           Control.Monad (unless)
 import           Data.Foldable (traverse_)
 import           Data.Vector.Vector2 (Vector2(..))
 import           GHC.Stack (currentCallStack)
@@ -21,9 +20,6 @@ import qualified Graphics.UI.GLFW as GLFW
 import           System.IO (hPutStrLn, hFlush, stderr)
 
 import           Prelude
-
-assert :: MonadFail m => String -> Bool -> m ()
-assert msg p = unless p (fail msg)
 
 printGLVersion :: IO ()
 printGLVersion =
@@ -45,7 +41,15 @@ withGLFW :: IO a -> IO a
 withGLFW act =
     do
         GLFW.setErrorCallback (Just printErrors)
-        bracket_ (GLFW.init >>= assert "initialize failed") GLFW.terminate act
+        bracket_ initialize GLFW.terminate act
+    where
+        initialize =
+            GLFW.init >>= \case
+            True -> pure ()
+            False ->
+                do
+                    err <- GLFW.getError
+                    putStrLn ("glfwInit failed: " ++ show err)
 
 createWindow :: String -> Maybe GLFW.Monitor -> Vector2 Int -> IO GLFW.Window
 createWindow title mMonitor (Vector2 w h) = do
