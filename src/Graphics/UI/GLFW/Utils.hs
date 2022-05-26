@@ -39,9 +39,10 @@ printErrors err msg =
 
 withGLFW :: IO a -> IO a
 withGLFW act =
+    bracket_ initialize GLFW.terminate $
     do
         GLFW.setErrorCallback (Just printErrors)
-        bracket_ initialize GLFW.terminate act
+        act
     where
         initialize =
             GLFW.init >>= \case
