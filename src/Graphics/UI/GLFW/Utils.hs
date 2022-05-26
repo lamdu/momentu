@@ -43,10 +43,9 @@ printErrors err msg =
 
 withGLFW :: IO a -> IO a
 withGLFW act =
-    bracket_ (GLFW.init >>= assert "initialize failed") GLFW.terminate $
     do
         GLFW.setErrorCallback (Just printErrors)
-        act
+        bracket_ (GLFW.init >>= assert "initialize failed") GLFW.terminate act
 
 createWindow :: String -> Maybe GLFW.Monitor -> Vector2 Int -> IO GLFW.Window
 createWindow title mMonitor (Vector2 w h) = do
