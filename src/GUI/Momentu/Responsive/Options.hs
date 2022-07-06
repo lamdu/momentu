@@ -97,7 +97,7 @@ table =
     WideLayoutOption
     { _wContexts = traverse . wideUnambiguous
     , _wLayout =
-        \(Compose elems) ->
+        \(Compose elems) form ->
         let (alignments, gridWidget) =
                 elems <&> Lens.mapped %~ toAligned & makeGrid
         in
@@ -107,7 +107,7 @@ table =
             gridWidget ^. Element.height
             * alignments ^?! traverse . traverse . Align.alignmentRatio . _2
         , _tValue = gridWidget
-        }
+        } (if length elems <= 1 then form else WideMultiLine)
     }
     where
         toAligned (WithTextPos y w) = Aligned (Vector2 0 (y / w ^. Element.height)) w
