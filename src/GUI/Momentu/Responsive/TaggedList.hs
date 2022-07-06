@@ -9,6 +9,7 @@ import qualified Control.Lens as Lens
 import           Data.Functor.Compose (Compose(..))
 import qualified Data.List as List
 import           Data.Vector.Vector2 (Vector2(..))
+import qualified GUI.Momentu.Animation as Anim
 import           GUI.Momentu.Align (WithTextPos(..), TextWidget)
 import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.Glue as Glue
@@ -110,7 +111,7 @@ taggedListIndent =
         table <- makeRenderTable
         pure (
             \items ->
-            items <&> mkItem & vboxed
+            Lens.imap mkItem items & vboxed
             & Options.tryWideLayout Options.WideLayoutOption
                 { Options._wContexts = traverse <&> Lens.mapped . Lens.mapped . Lens.mapped %~ (^. lWide)
                 , Options._wLayout = join WideLayouts . table
@@ -121,15 +122,17 @@ indentedListItem ::
     ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasAnimIdPrefix env
     , Has Expression.Style env, Applicative f
     ) =>
-    m (TaggedItem f -> Responsive f)
+    m (Int -> TaggedItem f -> Responsive f)
 indentedListItem =
     do
         box <- Options.boxSpaced ?? Options.disambiguationNone
         (/|/) <- Glue.mkGlue ?? Glue.Horizontal
-        indent <- Expression.indent <*> Lens.view Element.animIdPrefix
+        indentPrefix <- Lens.view Element.animIdPrefix <&> (<> ["tagged-item"])
+        indent <- Expression.indent
         pure (
-            \(TaggedItem pre item post) ->
+            \idx (TaggedItem pre item post) ->
             (pre ^.. Lens._Just <&> fromWithTextPos)
-            <> [vertLayoutMaybeDisambiguate indent (maybe id (flip (/|/)) post item)]
+            <> [vertLayoutMaybeDisambiguate (indent (Anim.augmentId idx indentPrefix))
+                (maybe id (flip (/|/)) post item)]
             & box
             )
