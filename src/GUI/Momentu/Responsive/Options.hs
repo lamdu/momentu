@@ -20,8 +20,8 @@ import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.Glue as Glue
 import           GUI.Momentu.Responsive
-    ( Responsive(..), WideLayouts(..)
-    , rWide, rNarrow, lWide, lWideDisambig
+    ( Responsive(..), WideLayouts(..), WideLayoutForm(..)
+    , rWide, rNarrow, lWide, lWideDisambig, lForm
     , layoutWidth, vbox, fromView, vertLayoutMaybeDisambiguate
     )
 import qualified GUI.Momentu.Widget as Widget
@@ -32,10 +32,10 @@ import           GUI.Momentu.Prelude
 
 data WideLayoutOption t f = WideLayoutOption
     { _wContexts ::
-        Lens.ATraversal
+        Lens.AnIndexedTraversal WideLayoutForm
         (t (Responsive f)) (t (TextWidget f))
         (Responsive f) (WideLayouts f)
-    , _wLayout :: t (TextWidget f) -> WideLayouts f
+    , _wLayout :: t (TextWidget f) -> WideLayoutForm -> WideLayouts f
     }
 Lens.makeLenses ''WideLayoutOption
 
@@ -51,24 +51,25 @@ tryWideLayout layoutOption elements fallback =
     }
     where
         wide = res ^. lWide
-        res = (layoutOption ^. wLayout) renderedElements
-        renderedElements =
-            elements & Lens.cloneTraversal (layoutOption ^. wContexts) %~ (^. rWide)
+        res = (layoutOption ^. wLayout) renderedElements form
+        (form, renderedElements) =
+            elements & Lens.cloneIndexedTraversal (layoutOption ^. wContexts) %%@~ (\i x -> (i, x ^. rWide))
 
 type HorizDisambiguator f = TextWidget f -> TextWidget f
 
-makeWideLayouts :: HorizDisambiguator a -> TextWidget a -> WideLayouts a
-makeWideLayouts disamb w =
+makeWideLayouts :: HorizDisambiguator a -> TextWidget a -> WideLayoutForm -> WideLayouts a
+makeWideLayouts disamb w form =
     WideLayouts
     { _lWide = w
     , _lWideDisambig = disamb w
+    , _lForm = form
     }
 
-wideUnambiguous :: Lens.Iso s (TextWidget f) s (WideLayouts f)
-wideUnambiguous = Lens.iso id (^. lWide)
+wideUnambiguous :: Lens.AnIndexedTraversal WideLayoutForm (Responsive f) (TextWidget f) (Responsive f) (WideLayouts f)
+wideUnambiguous = Lens.reindexed (^. rWide . lForm) Lens.selfIndex . Lens.iso id (^. lWide)
 
-wideNeedDisamib :: Lens.Iso s (TextWidget f) s (WideLayouts f)
-wideNeedDisamib = Lens.iso id (^. lWideDisambig)
+wideNeedDisamib :: Lens.AnIndexedTraversal WideLayoutForm (Responsive f) (TextWidget f) (Responsive f) (WideLayouts f)
+wideNeedDisamib = Lens.reindexed (^. rWide . lForm) Lens.selfIndex . Lens.iso id (^. lWideDisambig)
 
 hbox ::
     (MonadReader env m, Glue.HasTexts env, Applicative f) =>

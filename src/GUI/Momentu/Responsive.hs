@@ -24,7 +24,8 @@
 module GUI.Momentu.Responsive
     ( Responsive(..), rWide, rNarrow
 
-    , WideLayouts(..), lWide, lWideDisambig
+    , WideLayouts(..), lWide, lWideDisambig, lForm
+    , WideLayoutForm(..), _WideOneLiner, _WideMultiLine
 
     -- * Layout params
     , NarrowLayoutParams(..), layoutWidth, layoutNeedDisambiguation
@@ -66,9 +67,22 @@ data NarrowLayoutParams = NarrowLayoutParams
     }
 Lens.makeLenses ''NarrowLayoutParams
 
+-- One-liner layouts are recursive (all sub-layouts are also one-liner)
+data WideLayoutForm = WideOneLiner | WideMultiLine
+    deriving (Eq, Ord, Show)
+Lens.makePrisms ''WideLayoutForm
+
+instance Semigroup WideLayoutForm where
+    WideOneLiner <> WideOneLiner = WideOneLiner
+    _ <> _ = WideMultiLine
+
+instance Monoid WideLayoutForm where
+    mempty = WideOneLiner
+
 data WideLayouts f = WideLayouts
     { _lWide :: TextWidget f
     , _lWideDisambig :: TextWidget f
+    , _lForm :: WideLayoutForm
     }
 Lens.makeLenses ''WideLayouts
 
@@ -92,6 +106,7 @@ instance
         WideLayouts
         { _lWide = glue env orientation wide v
         , _lWideDisambig = glue env orientation wide v
+        , _lForm = if orientation == Horizontal then l ^. lForm else WideMultiLine
         }
         where
             wide =
@@ -107,6 +122,7 @@ instance
         WideLayouts
         { _lWide = glue env orientation v wide
         , _lWideDisambig = glue env orientation v wide
+        , _lForm = if orientation == Horizontal then l ^. lForm else WideMultiLine
         }
         where
             wide =
@@ -145,7 +161,7 @@ instance
 instance Functor f => Element (WideLayouts f) where
     setLayeredImage = Widget.widget . Element.setLayeredImage
     hoverLayeredImage = Widget.widget %~ Element.hoverLayeredImage
-    empty = WideLayouts Element.empty Element.empty
+    empty = WideLayouts Element.empty Element.empty mempty
     scale = error "Responsive: scale not Implemented"
     padImpl topLeft bottomRight = wAlignedWidget %~ Element.padImpl topLeft bottomRight
 
@@ -167,7 +183,7 @@ instance Widget.HasWidget WideLayouts where widget = wAlignedWidget . Align.tVal
 instance Widget.HasWidget Responsive where widget = alignedWidget . Align.tValue
 
 wAlignedWidget :: Lens.Setter (WideLayouts a) (WideLayouts b) (TextWidget a) (TextWidget b)
-wAlignedWidget f (WideLayouts w wd) = WideLayouts <$> f w <*> f wd
+wAlignedWidget f (WideLayouts w wd o) = WideLayouts <$> f w <*> f wd ?? o
 
 alignedWidget :: Lens.Setter (Responsive a) (Responsive b) (TextWidget a) (TextWidget b)
 alignedWidget f (Responsive w n) = Responsive <$> wAlignedWidget f w <*> Lens.mapped f n
@@ -178,7 +194,7 @@ fromAlignedWidget (Aligned a w) =
     WithTextPos (a ^. _2 * w ^. Element.height) w & fromWithTextPos
 
 fromWithTextPos :: TextWidget a -> Responsive a
-fromWithTextPos x = Responsive (WideLayouts x x) (const x)
+fromWithTextPos x = Responsive (WideLayouts x x WideOneLiner) (const x)
 
 -- | Lifts a Widget into a 'Responsive' with an alignment point at the top left
 fromWidget :: Functor f => Widget f -> Responsive f
@@ -205,7 +221,7 @@ Lens.makeLenses ''VerticalLayout
 verticalLayout :: Functor t => VerticalLayout t a -> t (Responsive a) -> Responsive a
 verticalLayout vert items =
     Responsive
-    { _rWide = WideLayouts wide wide
+    { _rWide = WideLayouts wide wide WideMultiLine
     , _rNarrow =
         \layoutParams ->
         let onItem params item =
