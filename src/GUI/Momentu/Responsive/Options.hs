@@ -70,9 +70,7 @@ hbox =
     Glue.hbox <&>
     \box disamb spacer ->
     WideLayoutOption
-    { _wContexts =
-        -- TODO: Better way to do this?
-        traverse <&> Lens.mapped . Lens.mapped . Lens.mapped %~ (^. lWideDisambig)
+    { _wContexts = traverse . Lens.iso id (^. lWideDisambig)
     , _wLayout = makeWideLayouts disamb . box . spacer
     }
 
@@ -85,9 +83,7 @@ table =
     Grid.make <&>
     \makeGrid ->
     WideLayoutOption
-    { _wContexts =
-        -- TODO: Better way to do this?
-        traverse <&> Lens.mapped . Lens.mapped . Lens.mapped %~ (^. lWide)
+    { _wContexts = traverse . Lens.iso id (^. lWide)
     , _wLayout =
         \(Compose elems) ->
         let (alignments, gridWidget) =

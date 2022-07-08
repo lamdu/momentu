@@ -113,7 +113,7 @@ taggedListIndent =
             \items ->
             Lens.imap mkItem items & vboxed
             & Options.tryWideLayout Options.WideLayoutOption
-                { Options._wContexts = traverse <&> Lens.mapped . Lens.mapped . Lens.mapped %~ (^. lWide)
+                { Options._wContexts = traverse . Lens.iso id (^. lWide)
                 , Options._wLayout = join WideLayouts . table
                 } (prepItems items)
             )
