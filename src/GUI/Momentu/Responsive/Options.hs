@@ -35,31 +35,35 @@ data WideLayoutOption t f = WideLayoutOption
         Lens.AnIndexedTraversal WideLayoutForm
         (t (Responsive f)) (t (TextWidget f))
         (Responsive f) (WideLayouts f)
-    , _wLayout :: t (TextWidget f) -> WideLayoutForm -> WideLayouts f
+    , _wLayout :: t (TextWidget f) -> WideLayoutForm -> Maybe (WideLayouts f)
     }
 Lens.makeLenses ''WideLayoutOption
 
 tryWideLayout :: WideLayoutOption t a -> t (Responsive a) -> Responsive a -> Responsive a
 tryWideLayout layoutOption elements fallback =
-    Responsive
-    { _rWide = res
-    , _rNarrow =
-        \layoutParams ->
-        if wide ^. Align.tValue . Widget.wSize . _1 <= layoutParams ^. layoutWidth
-        then wide
-        else (fallback ^. rNarrow) layoutParams
-    }
+    case (layoutOption ^. wLayout) renderedElements form of
+    Nothing -> fallback
+    Just res ->
+        Responsive
+        { _rWide = res
+        , _rNarrow =
+            \layoutParams ->
+            if wide ^. Align.tValue . Widget.wSize . _1 <= layoutParams ^. layoutWidth
+            then wide
+            else (fallback ^. rNarrow) layoutParams
+        }
+        where
+            wide = res ^. lWide
     where
-        wide = res ^. lWide
-        res = (layoutOption ^. wLayout) renderedElements form
         (form, renderedElements) =
             elements & Lens.cloneIndexedTraversal (layoutOption ^. wContexts) %%@~ (\i x -> (i, x ^. rWide))
 
 type HorizDisambiguator f = TextWidget f -> TextWidget f
 
-makeWideLayouts :: HorizDisambiguator a -> TextWidget a -> WideLayoutForm -> WideLayouts a
-makeWideLayouts disamb w form =
-    WideLayouts
+makeWideLayouts :: Bool -> HorizDisambiguator a -> TextWidget a -> WideLayoutForm -> Maybe (WideLayouts a)
+makeWideLayouts False _ _ WideMultiLine = Nothing
+makeWideLayouts _ disamb w form =
+    Just WideLayouts
     { _lWide = w
     , _lWideDisambig = disamb w
     , _lForm = form
@@ -79,7 +83,7 @@ hbox =
     \box disamb spacer ->
     WideLayoutOption
     { _wContexts = traverse . wideNeedDisamib
-    , _wLayout = makeWideLayouts disamb . box . spacer
+    , _wLayout = makeWideLayouts True disamb . box . spacer
     }
 
 table ::
@@ -97,7 +101,7 @@ table =
         let (alignments, gridWidget) =
                 elems <&> Lens.mapped %~ toAligned & makeGrid
         in
-        makeWideLayouts id
+        makeWideLayouts True id
         WithTextPos
         { _textTop =
             gridWidget ^. Element.height
