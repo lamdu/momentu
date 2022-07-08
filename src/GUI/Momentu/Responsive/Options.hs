@@ -2,6 +2,7 @@
 
 module GUI.Momentu.Responsive.Options
     ( WideLayoutOption(..), wContexts, wLayout
+    , wideNeedDisamib, wideUnambiguous
     , tryWideLayout
     , hbox, table
 
@@ -63,6 +64,12 @@ makeWideLayouts disamb w =
     , _lWideDisambig = disamb w
     }
 
+wideUnambiguous :: Lens.Iso s (TextWidget f) s (WideLayouts f)
+wideUnambiguous = Lens.iso id (^. lWide)
+
+wideNeedDisamib :: Lens.Iso s (TextWidget f) s (WideLayouts f)
+wideNeedDisamib = Lens.iso id (^. lWideDisambig)
+
 hbox ::
     (MonadReader env m, Glue.HasTexts env, Applicative f) =>
     m (HorizDisambiguator f -> ([TextWidget f] -> [TextWidget f]) -> WideLayoutOption [] f)
@@ -70,7 +77,7 @@ hbox =
     Glue.hbox <&>
     \box disamb spacer ->
     WideLayoutOption
-    { _wContexts = traverse . Lens.iso id (^. lWideDisambig)
+    { _wContexts = traverse . wideNeedDisamib
     , _wLayout = makeWideLayouts disamb . box . spacer
     }
 
@@ -83,7 +90,7 @@ table =
     Grid.make <&>
     \makeGrid ->
     WideLayoutOption
-    { _wContexts = traverse . Lens.iso id (^. lWide)
+    { _wContexts = traverse . wideUnambiguous
     , _wLayout =
         \(Compose elems) ->
         let (alignments, gridWidget) =
