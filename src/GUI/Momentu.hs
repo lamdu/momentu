@@ -8,6 +8,7 @@ module GUI.Momentu
     , ModKey.noMods, ModKey.shift, ModKey.ctrl, ModKey.alt, MetaKey.cmd
 
     -- | Events
+    , EventMap.EventMap
     , EventMap.Doc(..)
     , Widget.weakerEvents
 
@@ -22,6 +23,9 @@ module GUI.Momentu
     , Widget.isFocused
     , WidgetId, pattern WidgetId
     , State.Update
+
+    -- | Responsive Widget
+    , Responsive
 
     -- | View
     , View
@@ -86,6 +90,7 @@ import qualified GUI.Momentu.Main as MainLoop
 import qualified GUI.Momentu.MetaKey as MetaKey
 import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.ModKey as ModKey
+import           GUI.Momentu.Responsive (Responsive)
 import qualified GUI.Momentu.Setup as Setup
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View)
