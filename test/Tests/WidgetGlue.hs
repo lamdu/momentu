@@ -142,7 +142,7 @@ propStrollsCorrectly tree =
         treeWithIds =
             tree & Lens.traversed . Lens._Just %@~ (\idx () -> Widget.Id [encodeS idx])
 
-test :: Test
+test :: TestTree
 test =
     testGroup "glue-tests"
     [ testProperty "focused-has-focus" propFocusedWidgetHasFocus

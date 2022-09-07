@@ -30,14 +30,11 @@ import           Test.Momentu.Env (env)
 
 import           Test.Momentu.Prelude
 
-test :: Test
+test :: TestTree
 test =
     testGroup "Momentu"
     [ testCase "vertical-disambguation" verticalDisambigTest
     , testProperty "grid-sensible-size" propGridSensibleSize
-        & plusTestOptions mempty
-        { topt_maximum_generated_tests = Just 1000
-        }
     , testCase "grid-stroll" gridStrollTest
     ]
 

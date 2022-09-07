@@ -294,7 +294,7 @@ test-suite momentu-test
     , generic-random
     , lens
     , momentu
-    , test-framework
-    , test-framework-hunit
-    , test-framework-quickcheck2
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
   default-language: Haskell2010

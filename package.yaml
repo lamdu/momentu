@@ -77,9 +77,9 @@ tests:
     - HUnit
     - momentu
     - QuickCheck
-    - test-framework
-    - test-framework-hunit
-    - test-framework-quickcheck2
+    - tasty
+    - tasty-hunit
+    - tasty-quickcheck
     ghc-options:
     - -O0
 

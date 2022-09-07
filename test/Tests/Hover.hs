@@ -54,7 +54,7 @@ testHover topLeft bottomRight widget =
             , Events.keModKeys = mempty
             }
 
-positioningTest :: Test
+positioningTest :: TestTree
 positioningTest =
     do
         testHover 0 (Vector2 2 2) widget
@@ -70,7 +70,7 @@ positioningTest =
             & W.takesFocus (const (pure (W.Id ["blah"])))
             & H.anchor env
 
-anchorPointTest :: Test
+anchorPointTest :: TestTree
 anchorPointTest =
     assertEqual "unexpected anchor point" (widget ^. H.unHover . H.anchorPoint) (Vector2 0 1)
     & testCase "anchor-point"
@@ -79,7 +79,7 @@ anchorPointTest =
             (H.hover ?? square) /-/ (H.anchor ?? square)
             $ env
 
-test :: Test
+test :: TestTree
 test =
     testGroup "hover"
     [ positioningTest
