@@ -12,7 +12,7 @@ import qualified Control.Lens as Lens
 import           Control.Monad (msum)
 import qualified Data.Aeson.TH.Extended as JsonTH
 import           Data.Foldable (toList)
-import           Data.List.Extended (foldl', transpose, sortOn, groupOn, minimumOn)
+import           Data.List.Extended.Momentu (foldl', transpose, sortOn, groupOn, minimumOn)
 import           Data.MRUMemo (memo)
 import           Data.Maybe.Extended (unionMaybeWith)
 import           Data.Vector.Vector2 (Vector2(..))

@@ -30,7 +30,7 @@ library
       Data.Binary.Extended
       Data.ByteString.Extended
       Data.Has
-      Data.List.Extended
+      Data.List.Extended.Momentu
       Data.Maybe.Extended
       Data.MRUMemo
       Data.Property

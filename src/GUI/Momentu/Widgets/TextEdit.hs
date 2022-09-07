@@ -27,7 +27,7 @@ import qualified Control.Lens as Lens
 import qualified Data.Aeson.TH.Extended as JsonTH
 import qualified Data.Binary.Extended as Binary
 import           Data.Char (isSpace)
-import           Data.List.Extended (genericLength, minimumOn)
+import           Data.List.Extended.Momentu (genericLength, minimumOn)
 import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Semigroup (Max(..), sconcat)
 import qualified Data.Text as Text
