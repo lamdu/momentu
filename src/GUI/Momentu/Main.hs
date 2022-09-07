@@ -209,12 +209,15 @@ type HasMainLoopEnv env = (State.HasCursor env, Has Env env)
 
 jumpToTopOfCallStack :: DebugOptions -> CallStack -> IO ()
 jumpToTopOfCallStack debug callStack =
-    case getCallStack callStack of
+    case getCallStack callStack <&> snd of
     [] -> putStrLn "call stack empty, can't jump to it"
-    ((_func, topFrame):_) ->
+    (topFrame:restFrames) ->
         do
             putStrLn $ "Jumping to: " <> prettySrcLoc topFrame
+            putStrLn $ "Callers:\n" <> sep <> mconcat (restFrames <&> prettySrcLoc <&> ("\n  " <>)) <> "\n" <> sep
             jumpToSource debug topFrame
+        where
+            sep = "-------------------"
 
 data LookupMode = ApplyEvent | JumpToSource
 
