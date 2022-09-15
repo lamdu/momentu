@@ -60,10 +60,9 @@ tryWideLayout layoutOption elements fallback =
 
 type HorizDisambiguator f = TextWidget f -> TextWidget f
 
-makeWideLayouts :: Bool -> HorizDisambiguator a -> TextWidget a -> WideLayoutForm -> Maybe (WideLayouts a)
-makeWideLayouts False _ _ WideMultiLine = Nothing
-makeWideLayouts _ disamb w form =
-    Just WideLayouts
+makeWideLayouts :: HorizDisambiguator a -> TextWidget a -> WideLayoutForm -> WideLayouts a
+makeWideLayouts disamb w form =
+    WideLayouts
     { _lWide = w
     , _lWideDisambig = disamb w
     , _lForm = form
@@ -83,7 +82,9 @@ hbox =
     \box disamb spacer ->
     WideLayoutOption
     { _wContexts = traverse . wideNeedDisamib
-    , _wLayout = makeWideLayouts True disamb . box . spacer
+    , _wLayout =
+        makeWideLayouts disamb . box . spacer
+        <&> Lens.mapped %~ Just
     }
 
 table ::
@@ -101,13 +102,14 @@ table =
         let (alignments, gridWidget) =
                 elems <&> Lens.mapped %~ toAligned & makeGrid
         in
-        makeWideLayouts True id
+        makeWideLayouts id
         WithTextPos
         { _textTop =
             gridWidget ^. Element.height
             * alignments ^?! traverse . traverse . Align.alignmentRatio . _2
         , _tValue = gridWidget
         } (if length elems <= 1 then form else WideMultiLine)
+        & Just
     }
     where
         toAligned (WithTextPos y w) = Aligned (Vector2 0 (y / w ^. Element.height)) w
