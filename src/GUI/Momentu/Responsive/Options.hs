@@ -3,6 +3,7 @@
 module GUI.Momentu.Responsive.Options
     ( WideLayoutOption(..), wContexts, wLayout
     , wideNeedDisamib, wideUnambiguous
+    , wideLayoutUnambiguousOption
     , tryWideLayout
     , hbox, table
 
@@ -87,6 +88,15 @@ hbox =
         <&> Lens.mapped %~ Just
     }
 
+wideLayoutUnambiguousOption ::
+    Traversable t =>
+    (t (TextWidget f) -> WideLayoutForm -> Maybe (WideLayouts f)) -> WideLayoutOption t f
+wideLayoutUnambiguousOption layout =
+    WideLayoutOption
+    { _wContexts = traverse . wideUnambiguous
+    , _wLayout = layout
+    }
+
 table ::
     ( MonadReader env m, Traversable t0, Traversable t1, Applicative f
     , Grid.Deps env
@@ -95,22 +105,19 @@ table ::
 table =
     Grid.make <&>
     \makeGrid ->
-    WideLayoutOption
-    { _wContexts = traverse . wideUnambiguous
-    , _wLayout =
-        \(Compose elems) form ->
-        let (alignments, gridWidget) =
-                elems <&> Lens.mapped %~ toAligned & makeGrid
-        in
-        makeWideLayouts id
-        WithTextPos
-        { _textTop =
-            gridWidget ^. Element.height
-            * alignments ^?! traverse . traverse . Align.alignmentRatio . _2
-        , _tValue = gridWidget
-        } (if length elems <= 1 then form else WideMultiLine)
-        & Just
-    }
+    wideLayoutUnambiguousOption $
+    \(Compose elems) form ->
+    let (alignments, gridWidget) =
+            elems <&> Lens.mapped %~ toAligned & makeGrid
+    in
+    makeWideLayouts id
+    WithTextPos
+    { _textTop =
+        gridWidget ^. Element.height
+        * alignments ^?! traverse . traverse . Align.alignmentRatio . _2
+    , _tValue = gridWidget
+    } (if length elems <= 1 then form else WideMultiLine)
+    & Just
     where
         toAligned (WithTextPos y w) = Aligned (Vector2 0 (y / w ^. Element.height)) w
 
