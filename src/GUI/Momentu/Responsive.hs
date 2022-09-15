@@ -30,6 +30,9 @@ module GUI.Momentu.Responsive
     -- * Layout params
     , NarrowLayoutParams(..), layoutWidth, layoutNeedDisambiguation
 
+    -- * Rendering
+    , render
+
     -- * Lenses
     , alignedWidget
 
@@ -301,3 +304,15 @@ vertLayoutMaybeDisambiguate disamb vert =
     if layoutParams ^. layoutNeedDisambiguation
     then (disamb vert ^. rNarrow) layoutParams
     else (vert ^. rNarrow) layoutParams
+
+-- | Render a responsive layout to a widget
+render :: Functor a => NarrowLayoutParams -> Responsive a -> TextWidget a
+render params responsive
+    | wide ^. Element.width <= width = wide
+    | otherwise = params & responsive ^. rNarrow
+    where
+        wide = responsive ^. rWide . wideLens
+        wideLens
+            | params ^. layoutNeedDisambiguation = lWideDisambig
+            | otherwise = lWide
+        width = params ^. layoutWidth
