@@ -25,7 +25,11 @@ module GUI.Momentu.Widgets.Menu.Search
     , AllowedSearchTerm
 
     , Menu.Placement(..)
-    , Menu.OptionList(..)
+    , Menu.OptionList(..), Menu.olOptions, Menu.olIsTruncated, Menu.mkOptionList
+    , Menu.Option(..), Menu.oId, Menu.oRender, Menu.oSubmenuWidgets
+    , Menu.RenderedOption(..), Menu.rWidget, Menu.rPick
+    , Menu.PickResult(..), Menu.pickDest, Menu.pickMNextEntry
+    , Menu.Submenu(..), Menu._SubmenuEmpty, Menu._SubmenuItems
     , make
 
     , readSearchTerm
