@@ -6,6 +6,7 @@ module GUI.Momentu.Widgets.Menu
     , defaultStyle, defaultConfig
     , Submenu(..), _SubmenuEmpty, _SubmenuItems
     , OptionList(..), olOptions, olIsTruncated
+      , mkOptionList
     , PickResult(..), pickDest, pickMNextEntry
     , PickFirstResult(..)
     , RenderedOption(..), rWidget, rPick
@@ -227,6 +228,13 @@ data OptionList a = OptionList
     , _olOptions :: [a]
     } deriving (Functor, Foldable, Traversable)
 Lens.makeLenses ''OptionList
+
+-- | `mkOptionList` converts a list of options and a truncation threshold to an `OptionList`
+mkOptionList :: Int -> [a] -> OptionList a
+mkOptionList thres xs =
+    OptionList { _olIsTruncated = not (null after), _olOptions = before }
+    where
+        (before, after) = splitAt thres xs
 
 layoutOption ::
     ( MonadReader env m, Applicative f, Has (Texts Text) env
