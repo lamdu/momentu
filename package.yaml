@@ -127,6 +127,7 @@ executables:
     - base-compat
     - lens
     - momentu
+    - text
     ghc-options:
     - -threaded
     - -Wno-partial-type-signatures
