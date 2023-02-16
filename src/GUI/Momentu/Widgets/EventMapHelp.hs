@@ -297,7 +297,7 @@ toggle HelpShown = HelpNotShown
 toggle HelpNotShown = HelpShown
 
 helpElemId :: ElemId
-helpElemId = ["help box"]
+helpElemId = "help box"
 
 addHelpViewWith ::
     (MonadReader env m, HasStyle env, Glue.HasTexts env) =>

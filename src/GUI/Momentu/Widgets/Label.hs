@@ -7,6 +7,7 @@ import           GUI.Momentu.Align (WithTextPos(..), TextWidget)
 import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId(..))
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
 import qualified GUI.Momentu.Widget as Widget
@@ -19,7 +20,7 @@ make ::
     , Has Dir.Layout env
     ) =>
     Text -> m (WithTextPos View)
-make text = (TextView.make ?? text) <*> (Element.subElemId ?? [encodeUtf8 text])
+make text = (TextView.make ?? text) <*> (Element.subElemId ?? ElemId [encodeUtf8 text])
 
 makeFocusable ::
     ( MonadReader env m, Applicative f, State.HasCursor env
@@ -30,5 +31,5 @@ makeFocusable ::
 makeFocusable text =
     do
         toFocusable <- Widget.makeFocusableView
-        widgetId <- Element.subElemId ?? [encodeUtf8 text]
+        widgetId <- Element.subElemId ?? ElemId [encodeUtf8 text]
         make text <&> Align.tValue %~ toFocusable widgetId

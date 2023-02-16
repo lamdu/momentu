@@ -40,7 +40,7 @@ import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import           GUI.Momentu.Element (Element)
 import qualified GUI.Momentu.Element as Element
-import           GUI.Momentu.Element.Id (ElemId)
+import           GUI.Momentu.Element.Id (ElemId(..))
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
@@ -199,7 +199,7 @@ tillEndOfWord xs = spaces <> nonSpaces
         nonSpaces = Text.dropWhile isSpace xs & Text.takeWhile (not . isSpace)
 
 encodeCursor :: ElemId -> Cursor -> ElemId
-encodeCursor myId = (myId <>) . (:[]) . Binary.encodeS
+encodeCursor myId = (myId <>) . ElemId . (:[]) . Binary.encodeS
 
 -- | Returns at least one rect
 letterRects :: Has TextView.Style env => env -> Text -> [[Rect]]
@@ -240,8 +240,9 @@ cursorRects env str =
         addFirstCursor y = (Rect (Vector2 0 y) (Vector2 cursorWidth lineHeight) :)
         lineHeight = TextView.lineHeight (env ^. has)
 
-mkView :: (Has Dir.Layout env, Has TextView.Style env, Has Style s) =>
-                s -> [ByteString] -> Text -> (s -> env) -> WithTextPos View
+mkView ::
+    (Has Dir.Layout env, Has TextView.Style env, Has Style s) =>
+    s -> ElemId -> Text -> (s -> env) -> WithTextPos View
 mkView env animId displayStr setColor =
     TextView.make (setColor env) displayStr animId
     & Element.padAround (Vector2 (env ^. has . sCursorWidth / 2) 0)
@@ -254,7 +255,7 @@ _drawCursorRects animId env str =
     & mconcat
     where
         drawRect i rect =
-            Anim.augmentId i (animId ++ ["text-cursor"])
+            Anim.augmentId i (animId <> "text-cursor")
             & Anim.unitSquare
             -- & Anim.unitImages %~ Draw.tint (Draw.Color 1 1 1 1)
             & Anim.scale (rect ^. Rect.size)
@@ -343,7 +344,7 @@ makeFocused env str emptyStr emptyViews cursor animId myId =
         actualStr = if Text.null str then emptyStr ^. focused else str
         cursorRect@(Rect origin size) = mkCursorRect env cursor actualStr
         cursorFrame =
-            Anim.unitSquare ["text-cursor"]
+            Anim.unitSquare "text-cursor"
             & Anim.unitImages %~ Draw.tint (env ^. has . sCursorColor)
             & unitIntoCursorRect
         unitIntoCursorRect img =
@@ -538,7 +539,7 @@ getCursor =
         f sub str myId =
             sub myId <&> decodeCursor
             where
-                decodeCursor [x] = min (Text.length str) $ Binary.decodeS x
+                decodeCursor (ElemId [x]) = min (Text.length str) $ Binary.decodeS x
                 decodeCursor _ = Text.length str
 
 make ::

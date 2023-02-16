@@ -1,5 +1,5 @@
 {-# OPTIONS -Wno-partial-type-signatures #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude, OverloadedStrings #-}
 
 module Main where
 
@@ -38,9 +38,9 @@ makeWidget textRef _getFont rawEnv =
             & pure
     where
         env = rawEnv & M.cursor %~ assignCursor
-        ltrId = ["ltr"]
-        rtlId = ["rtl"]
-        assignCursor [] = ltrId
+        ltrId = "ltr"
+        rtlId = "rtl"
+        assignCursor (M.ElemId []) = ltrId
         assignCursor c = c
 
 mkTextEdit ::

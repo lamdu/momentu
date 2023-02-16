@@ -68,6 +68,6 @@ render w =
                     cursorColor
                     & Draw.alphaChannel //~ (areaSize / unit**2) ** power
             cursorFrame config =
-                Anim.coloredRectangle ["cursor"] (color config)
+                Anim.coloredRectangle "cursor" (color config)
                 & Anim.scale (area ^. Rect.size)
                 & Anim.translate (area ^. Rect.topLeft)

@@ -292,7 +292,7 @@ virtualCursorImage (Just (State.VirtualCursor r)) debug =
     <&> \case
     Nothing -> mempty
     Just color ->
-        Anim.coloredRectangle ["debug-virtual-cursor"] color
+        Anim.coloredRectangle "debug-virtual-cursor" color
         & Anim.scale (r ^. Rect.size) & Anim.translate (r ^. Rect.topLeft)
 
 wrapMakeWidget ::
@@ -333,7 +333,7 @@ wrapMakeWidget zoom options lookupModeRef mkWidgetUnmemod size =
             | Widget.isFocused w = pure w
             | otherwise = fail "Creating widget on the empty cursor failed"
         bgColorElemId :: ElemId
-        bgColorElemId = ["invalid-cursor-background"]
+        bgColorElemId = "invalid-cursor-background"
         showInvalidCursor :: IO (Widget IO -> Widget IO)
         showInvalidCursor =
             options ^. oConfig . MainConfig.cInvalidCursorOverlayColor <&>

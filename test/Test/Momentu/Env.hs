@@ -64,7 +64,7 @@ env =
         , MomentuTexts._backward = "Backward"
         , MomentuTexts._language = "Language"
         }
-    , _eElemId = ["foo"]
+    , _eElemId = "foo"
     , _eHoverStyle =
         Hover.Style
         { Hover._frameColor = Color 1 1 1 1

@@ -183,7 +183,7 @@ makeNoResults ::
 makeNoResults isTruncated =
     TextView.make
     <*> (if isTruncated then pure "..." else Lens.view (has . noResults))
-    <*> (Element.subElemId ?? ["no results"])
+    <*> (Element.subElemId ?? "no results")
 
 blockEvents ::
     ( Applicative f
@@ -217,7 +217,7 @@ makeSubmenuSymbol isSelected =
         color <- Lens.view (has . submenuSymbolColor)
         TextView.make
             <*> Lens.view (has . submenuSymbol)
-            <*> (Element.subElemId ?? ["submenu sym"])
+            <*> (Element.subElemId ?? "submenu sym")
             & Reader.local (TextView.color .~ color)
     where
         submenuSymbolColor
@@ -264,7 +264,7 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
                     hoverBeside <- Hover.hoverBesideOptionsAxis
                     (_, submenus) <-
                         action <&> OptionList False
-                        >>= make (optionId <> ["submenu"]) 0
+                        >>= make (optionId <> "submenu") 0
                     let anchored = base & Align.tValue %~ anc
                     anchored
                         & Align.tValue %~
@@ -327,10 +327,10 @@ addPickers =
 -- This is used to tell when cursor was on a result that got filtered out
 -- when the search term changed in order to redirect it to a result.
 resultsIdPrefix :: ElemId -> ElemId
-resultsIdPrefix = (<> ["Results"])
+resultsIdPrefix = (<> "Results")
 
 noResultsId :: ElemId -> ElemId
-noResultsId = (<> ["no results"]) . resultsIdPrefix
+noResultsId = (<> "no results") . resultsIdPrefix
 
 make ::
     ( MonadReader env m, Applicative f, Has TextView.Style env

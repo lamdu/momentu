@@ -203,9 +203,9 @@ addFrame =
     else
     gui
     & Element.padAround (s ^. bgPadding)
-    & Draw.backgroundColor (subElemId ["hover bg"]) (s ^. bgColor)
+    & Draw.backgroundColor (subElemId "hover bg") (s ^. bgColor)
     & Element.padAround (s ^. framePadding)
-    & Draw.backgroundColor (subElemId ["hover frame"]) (s ^. frameColor)
+    & Draw.backgroundColor (subElemId "hover frame") (s ^. frameColor)
 
 hover ::
     (MonadReader env m, SizedElement a, Has Style env, Element.HasElemIdPrefix env) =>

@@ -1,7 +1,7 @@
 module GUI.Momentu.Widget
     ( module Types
 
-    , ElemId
+    , ElemId(..)
 
     -- Types:
     , R, Size
@@ -63,7 +63,7 @@ import qualified GUI.Momentu.Rect as Rect
 import           GUI.Momentu.State (VirtualCursor(..), HasCursor(..))
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
-import           GUI.Momentu.Element.Id (ElemId)
+import           GUI.Momentu.Element.Id (ElemId(..))
 import qualified GUI.Momentu.Element.Id as ElemId
 import           GUI.Momentu.Widget.Instances
 import           GUI.Momentu.Widget.Types as Types

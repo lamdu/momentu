@@ -67,7 +67,7 @@ positioningTest =
             anchor
         anchor =
             square
-            & W.takesFocus (const (pure ["blah"]))
+            & W.takesFocus (const (pure "blah"))
             & H.anchor env
 
 anchorPointTest :: TestTree

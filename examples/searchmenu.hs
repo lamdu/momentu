@@ -52,10 +52,10 @@ makeWidget textRef _getFont env =
         menu =
             makeMenu $
             \text -> resultId <$ writeIORef textRef text
-        menuId x = ["Menu", Text.encodeUtf8 x]
+        menuId x = M.ElemId ["Menu", Text.encodeUtf8 x]
 
 resultId :: M.ElemId
-resultId = ["result"]
+resultId = "result"
 
 makeResultWidget ::
     Applicative f => Text -> M.DefaultEnvWithCursor -> M.WithTextPos (Widget.Widget f)
@@ -96,4 +96,4 @@ makeMenu pickText opts menuId =
                 }
             }
             where
-                widgetId = resultIdPrefix <> [Text.encodeUtf8 text]
+                widgetId = resultIdPrefix <> M.ElemId [Text.encodeUtf8 text]

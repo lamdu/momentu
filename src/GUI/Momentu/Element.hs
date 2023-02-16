@@ -85,14 +85,14 @@ height :: SizedElement a => Lens.Getter a R
 height = size . _2
 
 class HasElemIdPrefix env where animIdPrefix :: Lens' env ElemId
-instance HasElemIdPrefix [ByteString] where animIdPrefix = id
+instance HasElemIdPrefix ElemId where animIdPrefix = id
 
 locallyAugmented ::
     (HasElemIdPrefix env, MonadReader env m, Show t) => t -> m a -> m a
 locallyAugmented x = Lens.locally animIdPrefix (Anim.augmentId x)
 
 subElemId :: (MonadReader env m, HasElemIdPrefix env) => m (ElemId -> ElemId)
-subElemId = Lens.view animIdPrefix <&> (++)
+subElemId = Lens.view animIdPrefix <&> (<>)
 
 padToSize ::
     (MonadReader env m, SizedElement a, Has Dir.Layout env) =>

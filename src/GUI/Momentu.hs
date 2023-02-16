@@ -12,7 +12,7 @@ module GUI.Momentu
     , Widget.weakerEvents
 
     -- | Animations
-    , ElemId
+    , ElemId(..)
 
     -- | Element class
     , Element(..), Element.tint, Element.width, Element.height, Element.padAround
@@ -76,11 +76,11 @@ module GUI.Momentu
 
 import           Data.Vector.Vector2 (Vector2(..))
 import qualified GUI.Momentu.Align as Align
-import           GUI.Momentu.Animation (ElemId)
 import           GUI.Momentu.DefaultEnv (DefaultEnv, DefaultEnvWithCursor, defaultEnv, defaultEnvWithCursor)
 import qualified GUI.Momentu.Draw as MDraw
 import           GUI.Momentu.Element (Element(..))
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId(..))
 import qualified GUI.Momentu.EventMap as EventMap
 import qualified GUI.Momentu.Font as Font
 import           GUI.Momentu.Glue ((/-/), (/|/), Glued)

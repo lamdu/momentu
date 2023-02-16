@@ -187,7 +187,7 @@ emptyPickEventMap =
     (E.toDoc env [has . textPickNotApplicable]) (pure ())
 
 searchTermEditId :: ElemId -> ElemId
-searchTermEditId = (<> ["SearchTerm"])
+searchTermEditId = (<> "SearchTerm")
 
 readState :: (MonadReader env m, HasState env) => ElemId -> m WidgetState
 readState menuId = State.readWidgetState menuId <&> fromMaybe (WidgetState "" False)
@@ -281,7 +281,7 @@ addSearchTermBgColor menuId =
                 if isActive then TextEdit.focused else TextEdit.unfocused)
         Draw.backgroundColor bgElemId bgColor & pure
     where
-        bgElemId = menuId <> ["hover background"]
+        bgElemId = menuId <> "hover background"
 
 addSearchTermEmptyColors ::
     ( MonadReader env m, Has TermStyle env, Has TextEdit.Style env

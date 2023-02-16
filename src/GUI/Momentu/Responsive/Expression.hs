@@ -14,10 +14,10 @@ import qualified Data.Aeson.TH.Extended as JsonTH
 import           Data.Text.Encoding (encodeUtf8)
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (TextWidget)
-import           GUI.Momentu.Animation (ElemId)
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Draw as Draw
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId(..))
 import qualified GUI.Momentu.Glue as Glue
 import           GUI.Momentu.Responsive (Responsive)
 import qualified GUI.Momentu.Responsive as Responsive
@@ -62,7 +62,7 @@ addParens ::
 addParens =
     Lens.view id <&>
     \env myId w ->
-    let paren t = TextView.make env t (myId ++ [encodeUtf8 t])
+    let paren t = TextView.make env t (myId <> ElemId [encodeUtf8 t])
     in  paren "(" ||| w ||| paren ")"
     where
         Glue.Poly (|||) = Glue.mkPoly Dir.LeftToRight Glue.Horizontal
@@ -107,7 +107,7 @@ indentBar =
                     & Draw.backgroundColor bgElemId (s ^. indentBarColor)
                 barWidth = stdSpace * s ^. indentBarWidth
                 gapWidth = stdSpace * s ^. indentBarGap
-                bgElemId = myId ++ ["("]
+                bgElemId = myId <> "("
             in  bar ||| Spacer.make (Vector2 gapWidth 0)
 
 boxSpacedMDisamb ::

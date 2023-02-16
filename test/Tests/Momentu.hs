@@ -10,6 +10,7 @@ import qualified GUI.Momentu.Align as Align
 import           GUI.Momentu.Animation (R)
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId(..))
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.Main.Events (KeyEvent(..))
 import           GUI.Momentu.ModKey (ModKey(..))
@@ -116,8 +117,8 @@ gridStrollTest =
             w ^. W.wState . W._StateFocused .
             Lens.to ($ W.Surrounding 0 0 0 0) .
             W.fEventMap . Lens.to ($ eventCtx)
-        fromCursor ~[bs] = decodeS bs
-        toCursor i = [encodeS i]
+        fromCursor ~(ElemId [bs]) = decodeS bs
+        toCursor i = ElemId [encodeS i]
         keyEventTarget msg keys w =
             getEventMap w
             & E.lookup (Identity Nothing) (simpleKeyEvent (head keys))
