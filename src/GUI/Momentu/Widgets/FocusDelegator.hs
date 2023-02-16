@@ -1,11 +1,13 @@
 module GUI.Momentu.Widgets.FocusDelegator
     ( FocusEntryTarget(..)
     , Config(..)
-    , make
+    , make, makeNew
     ) where
 
 import qualified Control.Lens as Lens
+import           Control.Monad.Reader (local)
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element (HasElemIdPrefix)
 import           GUI.Momentu.Element.Id (ElemId)
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
@@ -59,6 +61,15 @@ modifyEntry myId fullChildRect target mChildEnter =
             , Widget._enterResultLayer = 0
             , Widget._enterResultEvent = State.updateCursor myId & pure
             }
+
+makeNew ::
+    (HasCallStack, MonadReader env m, State.HasCursor env, HasElemIdPrefix env, Applicative f, Widget.HasWidget w) =>
+    m (w f) -> m (Config -> FocusEntryTarget -> w f)
+makeNew makeChild =
+    do
+        elemId <- Lens.view Element.elemIdPrefix
+        child <- local (Element.elemIdPrefix .~ elemId <> "inFD") makeChild
+        make <&> (\mk conf target -> mk conf target elemId child)
 
 make ::
     (HasCallStack, MonadReader env m, State.HasCursor env, Applicative f, Widget.HasWidget w) =>

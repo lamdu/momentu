@@ -1,7 +1,7 @@
 -- | A vertical-expand (combo-like) choice widget
 {-# LANGUAGE TemplateHaskell, DerivingVia #-}
 module GUI.Momentu.Widgets.DropDownList
-    ( make
+    ( make, makeNew
     , defaultFdConfig
     , Config(..), defaultConfig
     , Orientation(..)
@@ -10,14 +10,16 @@ module GUI.Momentu.Widgets.DropDownList
     ) where
 
 import qualified Control.Lens as Lens
+import           Control.Monad.Reader (local)
 import qualified Data.Aeson.TH.Extended as JsonTH
 import           Data.Property (Property(..))
+import           Data.String (IsString(..))
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (TextWidget)
 import qualified GUI.Momentu.Align as Align
 import           GUI.Momentu.Direction (Orientation(..), perpendicular, axis)
 import qualified GUI.Momentu.Element as Element
-import           GUI.Momentu.Element.Id (ElemId)
+import           GUI.Momentu.Element.Id (ElemId(..))
 import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
@@ -68,6 +70,25 @@ defaultConfig =
     { ddFDConfig = defFd helpCategory
     , ddListBox = ListBox.defaultConfig
     }
+
+makeNew ::
+    ( Eq childId, MonadReader env m, Applicative f, Foldable t
+    , State.HasCursor env, Has Hover.Style env, Element.HasElemIdPrefix env
+    , Glue.HasTexts env
+    ) =>
+    t (childId, m (TextWidget f)) -> m (Property f childId -> Config -> TextWidget f)
+makeNew mkChildren =
+    do
+        elemId <- Lens.view Element.elemIdPrefix
+        children <-
+            mkChildren ^.. Lens.folded
+            & Lens.itraverse
+                (\i (childId, mkChild) ->
+                    mkChild <&> (,) childId
+                    & local (Element.elemIdPrefix <>~ elemId <> "inDDL" <> fromString (show i)
+                )
+            )
+        make <&> (\mk prop config -> mk prop children config elemId)
 
 make ::
     ( Eq childId, MonadReader env m, Applicative f, Functor t, Foldable t

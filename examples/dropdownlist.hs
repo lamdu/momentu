@@ -39,8 +39,8 @@ makeWidget dropDownListRef _getFont env =
     do
         prop <- Property.fromIORef dropDownListRef ^. Property.mkProperty
         let dropDownListWidget =
-                DropDownList.make env prop (map makeDropDownList colors)
-                (DropDownList.defaultConfig env "Color") mempty
+                DropDownList.makeNew (map makeDropDownList colors) env prop
+                (DropDownList.defaultConfig env "Color")
                 ^. M.tValue
         let Just color = lookup (Property.value prop) colors
         let box =
@@ -51,4 +51,4 @@ makeWidget dropDownListRef _getFont env =
             & M.weakerEvents (M.quitEventMap env)
             & pure
     where
-        makeDropDownList (name, _color) = (name, Label.makeFocusable name env)
+        makeDropDownList (name, _color) = (name, Label.makeFocusable name)
