@@ -16,7 +16,7 @@ import           Data.Binary.Extended (decodeOrFail, encodeS)
 import           Data.ByteString.Extended as BS
 import qualified Data.Map as Map
 import qualified Data.Monoid as Monoid
-import           GUI.Momentu.Element.Id (AnimId)
+import           GUI.Momentu.Element.Id (ElemId)
 import           GUI.Momentu.Rect (Rect)
 import           GUI.Momentu.Widget.Id (Id(..))
 import qualified GUI.Momentu.Widget.Id as Id
@@ -78,7 +78,7 @@ class HasCursor env where
 
 instance HasCursor GUIState where cursor = sCursor
 
-subId :: (MonadReader env m, HasCursor env) => m (Id -> Maybe AnimId)
+subId :: (MonadReader env m, HasCursor env) => m (Id -> Maybe ElemId)
 subId = Lens.view cursor <&> flip Id.subId
 
 isSubCursor :: (MonadReader env m, HasCursor env) => m (Id -> Bool)
@@ -96,7 +96,7 @@ assignCursor src dest =
 
 assignCursorPrefix ::
     (HasCursor env, MonadReader env m) =>
-    Id -> (AnimId -> Id) -> m a -> m a
+    Id -> (ElemId -> Id) -> m a -> m a
 assignCursorPrefix srcFolder dest =
     Lens.locally cursor replace
     where

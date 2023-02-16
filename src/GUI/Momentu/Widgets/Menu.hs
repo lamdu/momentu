@@ -174,7 +174,7 @@ type HasTexts env = (Has (Texts Text) env, Has Dir.Layout env)
 
 makeNoResults ::
     ( MonadReader env m
-    , Element.HasAnimIdPrefix env
+    , Element.HasElemIdPrefix env
     , Has TextView.Style env
     , HasTexts env
     ) =>
@@ -182,7 +182,7 @@ makeNoResults ::
 makeNoResults isTruncated =
     TextView.make
     <*> (if isTruncated then pure "..." else Lens.view (has . noResults))
-    <*> (Element.subAnimId ?? ["no results"])
+    <*> (Element.subElemId ?? ["no results"])
 
 blockEvents ::
     ( Applicative f
@@ -207,7 +207,7 @@ blockEvents env =
             E.keyPresses [noMods key] (doc keyName) (pure mempty)
 
 makeSubmenuSymbol ::
-    ( MonadReader env m, Has Style env, Element.HasAnimIdPrefix env
+    ( MonadReader env m, Has Style env, Element.HasElemIdPrefix env
     , Has TextView.Style env, HasTexts env
     ) =>
     Bool -> m (WithTextPos View)
@@ -216,7 +216,7 @@ makeSubmenuSymbol isSelected =
         color <- Lens.view (has . submenuSymbolColor)
         TextView.make
             <*> Lens.view (has . submenuSymbol)
-            <*> (Element.subAnimId ?? ["submenu sym"])
+            <*> (Element.subElemId ?? ["submenu sym"])
             & Reader.local (TextView.color .~ color)
     where
         submenuSymbolColor
@@ -238,7 +238,7 @@ mkOptionList thres xs =
 
 layoutOption ::
     ( MonadReader env m, Applicative f, Has (Texts Text) env
-    , Element.HasAnimIdPrefix env, Has TextView.Style env
+    , Element.HasElemIdPrefix env, Has TextView.Style env
     , State.HasCursor env, Has Hover.Style env, Has (Config ModKey) env, Has Style env
     , Glue.HasTexts env
     ) =>
@@ -272,7 +272,7 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
                          (submenus <&> hover <&> Hover.sequenceHover) anchored <&> (^. Align.tValue))
                         & pure
                 else pure base
-    & Reader.local (Element.animIdPrefix .~ Widget.toAnimId optionId)
+    & Reader.local (Element.animIdPrefix .~ Widget.toElemId optionId)
     where
         padToWidth w r = Element.padToSize ?? Vector2 w 0 ?? 0 ?? r
 
@@ -333,7 +333,7 @@ noResultsId = (`Widget.joinId` ["no results"]) . resultsIdPrefix
 
 make ::
     ( MonadReader env m, Applicative f, Has TextView.Style env
-    , Has Hover.Style env, Element.HasAnimIdPrefix env, Has Style env
+    , Has Hover.Style env, Element.HasElemIdPrefix env, Has Style env
     , Has (Config ModKey) env
     , State.HasCursor env, Has (Texts Text) env, Glue.HasTexts env
     ) =>
@@ -388,7 +388,7 @@ data Placement = Above | Below | AnyPlace
 
 hoverOptions ::
     ( MonadReader env m, Applicative f, Has Hover.Style env
-    , Element.HasAnimIdPrefix env, Glue.HasTexts env
+    , Element.HasElemIdPrefix env, Glue.HasTexts env
     ) =>
     m ( Placement ->
         View ->
@@ -441,7 +441,7 @@ hoverOptions =
 
 makeHovered ::
     ( Applicative f, State.HasCursor env, Has (Config ModKey) env
-    , Has TextView.Style env, Element.HasAnimIdPrefix env
+    , Has TextView.Style env, Element.HasElemIdPrefix env
     , Has Hover.Style env, Has (Texts Text) env, MonadReader env m
     , Glue.HasTexts env, Has Style env
     ) =>

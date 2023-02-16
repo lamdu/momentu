@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, FlexibleInstances #-}
 module GUI.Momentu.Element
     ( Element(..), SizedElement(..), Size
-    , HasAnimIdPrefix(..), subAnimId, locallyAugmented
+    , HasElemIdPrefix(..), subElemId, locallyAugmented
     , LayeredImage(..), layers, translateLayeredImage, layeredImageAbove, render
     , pad, padAround
     , topLayer, bottomLayer
@@ -12,7 +12,7 @@ module GUI.Momentu.Element
 
 import qualified Control.Lens as Lens
 import           Data.Vector.Vector2 (Vector2(..))
-import           GUI.Momentu.Animation (AnimId, R, Size)
+import           GUI.Momentu.Animation (ElemId, R, Size)
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import qualified Graphics.DrawingCombinators as Draw
@@ -84,15 +84,15 @@ width = size . _1
 height :: SizedElement a => Lens.Getter a R
 height = size . _2
 
-class HasAnimIdPrefix env where animIdPrefix :: Lens' env AnimId
-instance HasAnimIdPrefix [ByteString] where animIdPrefix = id
+class HasElemIdPrefix env where animIdPrefix :: Lens' env ElemId
+instance HasElemIdPrefix [ByteString] where animIdPrefix = id
 
 locallyAugmented ::
-    (HasAnimIdPrefix env, MonadReader env m, Show t) => t -> m a -> m a
+    (HasElemIdPrefix env, MonadReader env m, Show t) => t -> m a -> m a
 locallyAugmented x = Lens.locally animIdPrefix (Anim.augmentId x)
 
-subAnimId :: (MonadReader env m, HasAnimIdPrefix env) => m (AnimId -> AnimId)
-subAnimId = Lens.view animIdPrefix <&> (++)
+subElemId :: (MonadReader env m, HasElemIdPrefix env) => m (ElemId -> ElemId)
+subElemId = Lens.view animIdPrefix <&> (++)
 
 padToSize ::
     (MonadReader env m, SizedElement a, Has Dir.Layout env) =>

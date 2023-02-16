@@ -24,7 +24,7 @@ data Env = Env
     , _eGridKeys :: Grid.Keys ModKey
     , _eDirKeys :: StdKeys.DirKeys ModKey
     , _eMomentuTexts :: MomentuTexts.Texts Text
-    , _eAnimId :: Anim.AnimId
+    , _eElemId :: Anim.ElemId
     , _eHoverStyle :: Hover.Style
     }
 
@@ -64,7 +64,7 @@ env =
         , MomentuTexts._backward = "Backward"
         , MomentuTexts._language = "Language"
         }
-    , _eAnimId = ["foo"]
+    , _eElemId = ["foo"]
     , _eHoverStyle =
         Hover.Style
         { Hover._frameColor = Color 1 1 1 1
@@ -76,7 +76,7 @@ env =
 
 Lens.makeLenses ''Env
 
-instance Element.HasAnimIdPrefix Env where animIdPrefix = eAnimId
+instance Element.HasElemIdPrefix Env where animIdPrefix = eElemId
 instance Has (Dir.Texts Text) Env where has = eDirTexts
 instance Has (Glue.Texts Text) Env where has = eGlueTexts
 instance Has (Grid.Keys ModKey) Env where has = eGridKeys

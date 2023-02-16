@@ -24,10 +24,10 @@ alphaChannel :: Lens' Draw.Color R
 alphaChannel f (Draw.Color r g b a) = f a <&> Draw.Color r g b
 
 backgroundColor ::
-    (MonadReader env m, Element.HasAnimIdPrefix env, Element a) =>
+    (MonadReader env m, Element.HasElemIdPrefix env, Element a) =>
     m (Draw.Color -> a -> a)
 backgroundColor =
-    Element.subAnimId ?? ["bg"] <&>
+    Element.subElemId ?? ["bg"] <&>
     \animId color -> Element.setLayeredImage . Element.layers %@~ \sz ->
     addBg (Anim.coloredRectangle animId color & Anim.scale sz)
     where
@@ -35,10 +35,10 @@ backgroundColor =
         addBg bg (x:xs) = x <> bg : xs
 
 addInnerFrame ::
-    (MonadReader env m, Element.HasAnimIdPrefix env, Element a) =>
+    (MonadReader env m, Element.HasElemIdPrefix env, Element a) =>
     m (Draw.Color -> Vector2 R -> a -> a)
 addInnerFrame =
-    Element.subAnimId ?? ["inner-frame"] <&>
+    Element.subElemId ?? ["inner-frame"] <&>
     \animId color frameWidth -> Element.bottomLayer %@~ \sz ->
     mappend
     ( Anim.emptyRectangle frameWidth sz animId

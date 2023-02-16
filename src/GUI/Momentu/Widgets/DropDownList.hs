@@ -70,7 +70,7 @@ defaultConfig =
 
 make ::
     ( Eq childId, MonadReader env m, Applicative f, Functor t, Foldable t
-    , State.HasCursor env, Has Hover.Style env, Element.HasAnimIdPrefix env
+    , State.HasCursor env, Has Hover.Style env, Element.HasElemIdPrefix env
     , Glue.HasTexts env
     ) =>
     m (Property f childId -> t (childId, TextWidget f) -> Config -> Widget.Id -> TextWidget f)

@@ -14,7 +14,7 @@ import qualified Data.Aeson.TH.Extended as JsonTH
 import           Data.Text.Encoding (encodeUtf8)
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (TextWidget)
-import           GUI.Momentu.Animation (AnimId)
+import           GUI.Momentu.Animation (ElemId)
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Draw as Draw
 import qualified GUI.Momentu.Element as Element
@@ -41,7 +41,7 @@ disambiguators ::
     ( MonadReader env m, Functor f, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (AnimId -> Options.Disambiguators f)
+    m (ElemId -> Options.Disambiguators f)
 disambiguators =
     do
         h <- addParens
@@ -52,13 +52,13 @@ mDisambiguators ::
     ( MonadReader env m, Functor f, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (Maybe AnimId -> Options.Disambiguators f)
+    m (Maybe ElemId -> Options.Disambiguators f)
 mDisambiguators = disambiguators <&> maybe Options.disambiguationNone
 
 addParens ::
     ( MonadReader env m, Has TextView.Style env, Functor f, Has Dir.Layout env
     ) =>
-    m (AnimId -> TextWidget f -> TextWidget f)
+    m (ElemId -> TextWidget f -> TextWidget f)
 addParens =
     Lens.view id <&>
     \env myId w ->
@@ -71,7 +71,7 @@ indent ::
     ( MonadReader env m, Functor f, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (AnimId -> Responsive f -> Responsive f)
+    m (ElemId -> Responsive f -> Responsive f)
 indent =
     do
         bWidth <- totalBarWidth
@@ -95,7 +95,7 @@ indentBar ::
     ( MonadReader env m, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (Widget.R -> AnimId -> View)
+    m (Widget.R -> ElemId -> View)
 indentBar =
     do
         s <- Lens.view has
@@ -104,15 +104,15 @@ indentBar =
         pure $ \height myId ->
             let bar =
                     Spacer.make (Vector2 barWidth height)
-                    & Draw.backgroundColor bgAnimId (s ^. indentBarColor)
+                    & Draw.backgroundColor bgElemId (s ^. indentBarColor)
                 barWidth = stdSpace * s ^. indentBarWidth
                 gapWidth = stdSpace * s ^. indentBarGap
-                bgAnimId = myId ++ ["("]
+                bgElemId = myId ++ ["("]
             in  bar ||| Spacer.make (Vector2 gapWidth 0)
 
 boxSpacedMDisamb ::
     ( MonadReader env m, Applicative f, Has Style env, Spacer.HasStdSpacing env
     , Glue.HasTexts env
     ) =>
-    m (Maybe AnimId -> [Responsive f] -> Responsive f)
+    m (Maybe ElemId -> [Responsive f] -> Responsive f)
 boxSpacedMDisamb = (.) <$> Options.boxSpaced <*> mDisambiguators

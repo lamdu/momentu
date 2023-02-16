@@ -18,7 +18,7 @@ import qualified Data.Set as Set
 import           Data.Time.Clock (NominalDiffTime, UTCTime, getCurrentTime, addUTCTime, diffUTCTime)
 import           Data.Vector.Vector2 (Vector2(..))
 import qualified Data.Vector.Vector2 as Vector2
-import           GUI.Momentu.Animation (Image, iRect, iAnimId, iUnitImage, Frame(..), frameImages, images, R)
+import           GUI.Momentu.Animation (Image, iRect, iElemId, iUnitImage, Frame(..), frameImages, images, R)
 import           GUI.Momentu.Rect (Rect(Rect))
 import qualified GUI.Momentu.Rect as Rect
 import qualified Graphics.DrawingCombinators as Draw
@@ -172,23 +172,23 @@ setNewDest destFrame interpolations =
     go (curFrame ^. frameImages) (destFrame ^. frameImages)
     where
         go (c:cs) (d:ds)
-            | c ^. iAnimId == d ^. iAnimId =
+            | c ^. iElemId == d ^. iElemId =
                 modifying d (c ^. iRect) : go cs ds
         go (c:cs) ds
-            | destIds ^. Lens.contains (c ^. iAnimId) =
+            | destIds ^. Lens.contains (c ^. iElemId) =
                 go cs ds -- c will be treated in its new position
             | otherwise =
                 Deleting c : go cs ds
         go [] ds = map goDest ds
         goDest d =
-            curRects ^. Lens.at (d ^. iAnimId)
+            curRects ^. Lens.at (d ^. iElemId)
             & fromMaybe (Rect (d ^. iRect . Rect.center) 0)
             & modifying d
         modifying destImage prevRect =
             Modifying (rImg & iRect .~ prevRect) (destImage ^. iRect)
             where
                 rImg
-                    | duplicateDestIds ^. Lens.contains (destImage ^. iAnimId)
+                    | duplicateDestIds ^. Lens.contains (destImage ^. iElemId)
                         = destImage & iUnitImage %~ mappend redX
                     | otherwise = destImage
                 redX = Draw.tint red unitX
@@ -196,9 +196,9 @@ setNewDest destFrame interpolations =
         curRects =
             do
                 img <- curFrame ^. frameImages
-                [(img ^. iAnimId, img ^. iRect)]
+                [(img ^. iElemId, img ^. iRect)]
             & Map.fromList
-        sortedDestIds = destFrame ^.. images . iAnimId & List.sort
+        sortedDestIds = destFrame ^.. images . iElemId & List.sort
         duplicateDestIds =
             List.group sortedDestIds <&> tail & concat & Set.fromAscList
         destIds = Set.fromAscList sortedDestIds

@@ -3,7 +3,7 @@ module GUI.Momentu.DefaultEnv where
 
 import qualified Control.Lens as Lens
 import           Data.Vector.Vector2 (Vector2(..))
-import           GUI.Momentu.Element.Id (AnimId)
+import           GUI.Momentu.Element.Id (ElemId)
 import qualified GUI.Momentu.Direction as Direction
 import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.EventMap as EventMap
@@ -48,7 +48,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _eventMapTexts :: EventMap.Texts Text
     , _glueTexts :: Glue.Texts Text
     , _helpTexts :: EventMapHelp.Texts Text
-    , _animIdPrefix :: AnimId
+    , _animIdPrefix :: ElemId
     , _helpConfig :: EventMapHelp.Config
     , _helpStyle :: EventMapHelp.Style
     , _textEditKeys :: TextEdit.Keys ModKey
@@ -98,7 +98,7 @@ defaultEnv os font = DefaultEnv
 defaultEnvWithCursor :: OSString -> GUIState -> Font -> DefaultEnvWithCursor
 defaultEnvWithCursor os state font = defaultEnv os font & guiState .~ state
 
-instance Element.HasAnimIdPrefix        (DefaultEnvG a) where animIdPrefix = animIdPrefix
+instance Element.HasElemIdPrefix        (DefaultEnvG a) where animIdPrefix = animIdPrefix
 instance Has (Direction.Texts Text)     (DefaultEnvG a) where has = directionTexts
 instance Has (DropDownList.Texts Text)  (DefaultEnvG a) where has = dropDownTexts
 instance Has (EventMap.Texts Text)      (DefaultEnvG a) where has = eventMapTexts

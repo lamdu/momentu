@@ -136,7 +136,7 @@ partWidth l = foldl max 0 . (^.. traverse . Lens.cloneTraversal l . Element.widt
 --
 -- The pre-tags seperate between indented items (so separation will be lacking without them).
 taggedListIndent ::
-    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasAnimIdPrefix env
+    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasElemIdPrefix env
     , Has Expression.Style env, Applicative f
     ) =>
     m ([TaggedItem f] -> Responsive f)
@@ -161,7 +161,7 @@ taggedListIndent =
             )
 
 indentedListItem ::
-    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasAnimIdPrefix env
+    ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasElemIdPrefix env
     , Has Expression.Style env, Applicative f
     ) =>
     m (Int -> TaggedItem f -> Responsive f)

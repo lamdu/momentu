@@ -17,7 +17,7 @@ import qualified Data.Text.Bidi as Bidi
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (WithTextPos(..), TextWidget)
 import qualified GUI.Momentu.Align as Align
-import           GUI.Momentu.Animation (AnimId)
+import           GUI.Momentu.Animation (ElemId)
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import           GUI.Momentu.Font (Font, RenderedText(..), renderedText, renderedTextSize, bounding, advance)
@@ -65,7 +65,7 @@ type HasStyle env = (Has Dir.Layout env, Has Style env)
 
 nestedFrame ::
     (Show a, HasStyle env) =>
-    env -> (a, RenderedText (Draw.Image ())) -> RenderedText (AnimId -> Anim.Frame)
+    env -> (a, RenderedText (Draw.Image ())) -> RenderedText (ElemId -> Anim.Frame)
 nestedFrame env (i, RenderedText size img) =
     RenderedText size draw
     where
@@ -80,13 +80,13 @@ nestedFrame env (i, RenderedText size img) =
         anchorSize = env ^. has & lineHeight & pure
 
 drawText ::
-    (MonadReader env m, HasStyle env) => m (Text -> RenderedText (AnimId -> Anim.Frame))
+    (MonadReader env m, HasStyle env) => m (Text -> RenderedText (ElemId -> Anim.Frame))
 drawText =
     Lens.view id
     <&> \env text ->
     nestedFrame env ("text" :: Text, fontRender (env ^. has) text)
 
-make :: (MonadReader env m, HasStyle env) => m (Text -> AnimId -> WithTextPos View)
+make :: (MonadReader env m, HasStyle env) => m (Text -> ElemId -> WithTextPos View)
 make =
     drawText <&> \draw text animId ->
     let RenderedText textSize frame = draw text
@@ -103,5 +103,5 @@ makeFocusable =
         toFocusable <- Widget.makeFocusableView
         mkText <- make
         pure $ \text myId ->
-            mkText text (Widget.toAnimId myId)
+            mkText text (Widget.toElemId myId)
             & Align.tValue %~ toFocusable myId

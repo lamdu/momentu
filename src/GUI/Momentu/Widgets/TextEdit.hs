@@ -6,7 +6,7 @@ module GUI.Momentu.Widgets.TextEdit
         , sCursorColor, sCursorWidth, sEmptyStringsColors, sTextViewStyle
     , Modes(..), focused, unfocused
     , EmptyStrings
-    , make, makeWithAnimId
+    , make, makeWithElemId
     , defaultStyle
     , getCursor, encodeCursor
     , Texts(..)
@@ -246,7 +246,7 @@ mkView env animId displayStr setColor =
     & Element.padAround (Vector2 (env ^. has . sCursorWidth / 2) 0)
 
 -- A debugging facility, showing all the potential locations of all cursors
-_drawCursorRects :: HasStyle env => Anim.AnimId -> env -> Text -> Anim.Frame
+_drawCursorRects :: HasStyle env => Anim.ElemId -> env -> Text -> Anim.Frame
 _drawCursorRects animId env str =
     cursorRects env str
     & Lens.traversed %@~ drawRect
@@ -259,14 +259,14 @@ _drawCursorRects animId env str =
             & Anim.scale (rect ^. Rect.size)
             & Anim.translate (rect ^. Rect.topLeft)
 
-_addCursorRects :: (Element t, HasStyle env) => env -> Anim.AnimId -> Text -> t -> t
+_addCursorRects :: (Element t, HasStyle env) => env -> Anim.ElemId -> Text -> t -> t
 _addCursorRects env animId str =
     Element.setLayeredImage . Element.layers %~ (_drawCursorRects animId env str :)
 
 makeInternal ::
     HasStyle env =>
     env -> (forall a. Lens.Getting a (Modes a) a) ->
-    Text -> Modes (WithTextPos View) -> Anim.AnimId -> Widget.Id ->
+    Text -> Modes (WithTextPos View) -> Anim.ElemId -> Widget.Id ->
     TextWidget ((,) Text)
 makeInternal env mode str emptyViews animId myId =
     v
@@ -330,7 +330,7 @@ eventResult myId newText newCursor =
 makeFocused ::
     Deps env =>
     env -> Text -> EmptyStrings -> Modes (WithTextPos View) -> Cursor ->
-    Anim.AnimId -> Widget.Id ->
+    Anim.ElemId -> Widget.Id ->
     TextWidget ((,) Text)
 makeFocused env str emptyStr emptyViews cursor animId myId =
     makeInternal env focused str emptyViews animId myId
@@ -545,7 +545,7 @@ make ::
     m ( EmptyStrings -> Text -> Widget.Id ->
         TextWidget ((,) Text)
       )
-make = makeWithAnimId <&> Lens.mapped . Lens.mapped %~ \f w -> f (Widget.toAnimId w) w
+make = makeWithElemId <&> Lens.mapped . Lens.mapped %~ \f w -> f (Widget.toElemId w) w
 
 align ::
     (Element.SizedElement a, Has Dir.Layout env) =>
@@ -559,12 +559,12 @@ align env emptyViews widget =
             <&> (^. Align.tValue . View.vSize)
             <&> Lens.mapped %~ Max & sconcat <&> getMax
 
-makeWithAnimId ::
+makeWithElemId ::
     (MonadReader env m, Deps env) =>
-    m ( EmptyStrings -> Text -> Anim.AnimId -> Widget.Id ->
+    m ( EmptyStrings -> Text -> Anim.ElemId -> Widget.Id ->
         TextWidget ((,) Text)
       )
-makeWithAnimId =
+makeWithElemId =
     do
         get <- getCursor
         env <- Lens.view id

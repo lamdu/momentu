@@ -7,13 +7,13 @@ module GUI.Momentu.Widget.Id
 import qualified Control.Lens as Lens
 import           Data.List (intercalate)
 import           Data.List.Lens (prefixed)
-import           GUI.Momentu.Element.Id (AnimId)
+import           GUI.Momentu.Element.Id (ElemId)
 import           Numeric.Extended (encodeHex)
 
 import           GUI.Momentu.Prelude
 
 newtype Id = Id
-    { toAnimId :: AnimId
+    { toElemId :: ElemId
     }
     deriving stock (Read, Generic)
     deriving newtype (Eq, Ord, Binary, Semigroup, Monoid)
@@ -24,10 +24,10 @@ instance Show Id where
         where
             each bs = encodeHex bs ++ "(" ++ show bs ++ ")"
 
-joinId :: Id -> AnimId -> Id
+joinId :: Id -> ElemId -> Id
 joinId (Id x) y = x ++ y & Id
 
-subId :: Id -> Id -> Maybe AnimId
+subId :: Id -> Id -> Maybe ElemId
 Id short `subId` Id long = long ^? prefixed short
 
 isSubId :: Id -> Id -> Bool

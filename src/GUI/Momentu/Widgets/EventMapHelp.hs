@@ -30,7 +30,7 @@ import           GHC.Stack (CallStack)
 import qualified GHC.Stack as Stack
 import           GUI.Momentu.Align (Aligned(..), WithTextPos)
 import qualified GUI.Momentu.Align as Align
-import           GUI.Momentu.Animation (AnimId, R)
+import           GUI.Momentu.Animation (ElemId, R)
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Draw as MDraw
 import qualified GUI.Momentu.Element as Element
@@ -139,7 +139,7 @@ groupInputDocs = (^@.. Lens.itraversed) . Map.fromListWith (<>) . (Lens.traverse
 
 makeShortcutKeyView ::
     ( MonadReader env m, Glue.HasTexts env, HasStyle env
-    , Element.HasAnimIdPrefix env
+    , Element.HasElemIdPrefix env
     ) => [(CallStack, E.InputDoc)] -> m (WithTextPos View)
 makeShortcutKeyView inputDocs =
     do
@@ -169,7 +169,7 @@ makeShortcutKeyView inputDocs =
 
 makeTextViews ::
     ( MonadReader env m, HasStyle env, Glue.HasTexts env
-    , Element.HasAnimIdPrefix env
+    , Element.HasElemIdPrefix env
     ) => Tree Text [(CallStack, E.InputDoc)] ->
     m (Tree (WithTextPos View) (WithTextPos View))
 makeTextViews =
@@ -195,7 +195,7 @@ columns maxHeight itemHeight =
 
 make ::
     ( MonadReader env m, Glue.HasTexts env, Has (E.Texts Text) env
-    , HasStyle env, Element.HasAnimIdPrefix env
+    , HasStyle env, Element.HasElemIdPrefix env
     ) => Vector2 R -> EventMap a -> m View
 make size eventMap =
     do
@@ -213,7 +213,7 @@ make size eventMap =
 
 makeFromFocus ::
     ( MonadReader env m, Glue.HasTexts env, Has (E.Texts Text) env, HasStyle env
-    , Element.HasAnimIdPrefix env
+    , Element.HasElemIdPrefix env
     ) =>
     Widget.Size -> Widget.Focused (f a) -> m View
 makeFromFocus size focus =
@@ -225,7 +225,7 @@ makeFromFocus size focus =
     & make size
 
 makeTooltip ::
-    ( MonadReader env m, Element.HasAnimIdPrefix env, Glue.HasTexts env
+    ( MonadReader env m, Element.HasElemIdPrefix env, Glue.HasTexts env
     , HasStyle env, Has Config env, Has (Texts Text) env
     ) => m View
 makeTooltip =
@@ -296,8 +296,8 @@ toggle :: IsHelpShown -> IsHelpShown
 toggle HelpShown = HelpNotShown
 toggle HelpNotShown = HelpShown
 
-helpAnimId :: AnimId
-helpAnimId = ["help box"]
+helpElemId :: ElemId
+helpElemId = ["help box"]
 
 addHelpViewWith ::
     (MonadReader env m, HasStyle env, Glue.HasTexts env) =>
@@ -308,14 +308,14 @@ addHelpViewWith mkHelpView size focus =
         helpView <-
             (.)
             <$> (Element.tint <$> Lens.view (has . styleTint))
-            <*> (MDraw.backgroundColor helpAnimId <$> Lens.view (has . styleBGColor))
+            <*> (MDraw.backgroundColor helpElemId <$> Lens.view (has . styleBGColor))
             <*> mkHelpView size focus
         atEdge <- hoverEdge size ?? helpView
         focus & Widget.fLayers %~ Element.layeredImageAbove (atEdge ^. vAnimLayers) & pure
 
 addHelpView ::
     ( MonadReader env m, HasStyle env
-    , Element.HasAnimIdPrefix env, Glue.HasTexts env, Has (E.Texts Text) env
+    , Element.HasElemIdPrefix env, Glue.HasTexts env, Has (E.Texts Text) env
     ) => Widget.Size -> Widget.Focused (f a) -> m (Widget.Focused (f a))
 addHelpView = addHelpViewWith makeFromFocus
 
@@ -340,7 +340,7 @@ toggleEventMap showingHelp =
             )
 
 helpViewForState ::
-    ( MonadReader env m, Element.HasAnimIdPrefix env
+    ( MonadReader env m, Element.HasElemIdPrefix env
     , HasStyle env, Has Config env, HasTexts env
     ) =>
     IsHelpShown -> Widget.Size -> Widget.Focused (f a) -> m View
@@ -349,7 +349,7 @@ helpViewForState HelpShown = makeFromFocus
 
 toggledHelpAdder ::
     ( MonadReader env m, Monad f
-    , Element.HasAnimIdPrefix env
+    , Element.HasElemIdPrefix env
     , Has Config env, HasStyle env, HasTexts env
     ) =>
     m (Property f IsHelpShown -> Widget.Size -> Widget f -> Widget f)

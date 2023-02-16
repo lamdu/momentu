@@ -194,21 +194,21 @@ hoverBesideOptions =
         doHover o (Ordered h h) src
 
 addFrame ::
-    (MonadReader env m, Has Style env, SizedElement a, Element.HasAnimIdPrefix env) =>
+    (MonadReader env m, Has Style env, SizedElement a, Element.HasElemIdPrefix env) =>
     m (a -> a)
 addFrame =
-    (,) <$> Lens.view has <*> Element.subAnimId
-    <&> \(s, subAnimId) gui ->
+    (,) <$> Lens.view has <*> Element.subElemId
+    <&> \(s, subElemId) gui ->
     if gui ^. Element.size == 0 then gui
     else
     gui
     & Element.padAround (s ^. bgPadding)
-    & Draw.backgroundColor (subAnimId ["hover bg"]) (s ^. bgColor)
+    & Draw.backgroundColor (subElemId ["hover bg"]) (s ^. bgColor)
     & Element.padAround (s ^. framePadding)
-    & Draw.backgroundColor (subAnimId ["hover frame"]) (s ^. frameColor)
+    & Draw.backgroundColor (subElemId ["hover frame"]) (s ^. frameColor)
 
 hover ::
-    (MonadReader env m, SizedElement a, Has Style env, Element.HasAnimIdPrefix env) =>
+    (MonadReader env m, SizedElement a, Has Style env, Element.HasElemIdPrefix env) =>
     m (a -> Hover a)
 hover = addFrame <&> ((Hover . Element.hoverLayeredImage) .)
 
@@ -273,7 +273,7 @@ hoverInPlaceOf hoverOptions@(Hover defaultOption:_) place
 hoverBeside ::
     ( GluesTo env (Hover w) (AnchoredWidget f) (Hover (AnchoredWidget f))
     , MonadReader env m, Functor f, SizedElement w
-    , Element.HasAnimIdPrefix env, Has Style env, Has Dir.Layout env
+    , Element.HasElemIdPrefix env, Has Style env, Has Dir.Layout env
     ) =>
     (forall a b. Lens (t a) (t b) a b) ->
     m

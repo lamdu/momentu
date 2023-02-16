@@ -52,4 +52,4 @@ makeText ::
     ) =>
     Widget.Id -> Config f -> Text -> m (TextWidget f)
 makeText myId config text =
-    (make ?? myId ?? config) <*> (TextView.make ?? text ?? Widget.toAnimId myId)
+    (make ?? myId ?? config) <*> (TextView.make ?? text ?? Widget.toElemId myId)

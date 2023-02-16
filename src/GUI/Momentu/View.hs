@@ -49,7 +49,7 @@ make sz frame = View sz (Element.LayeredImage [frame])
 animFrames :: Lens.Traversal' View Anim.Frame
 animFrames = vAnimLayers . Element.layers . traverse
 
-unitSquare :: (MonadReader env m, Element.HasAnimIdPrefix env) => m View
+unitSquare :: (MonadReader env m, Element.HasElemIdPrefix env) => m View
 unitSquare =
     Lens.view Element.animIdPrefix
     <&> Anim.unitSquare

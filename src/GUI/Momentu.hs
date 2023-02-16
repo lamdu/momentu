@@ -13,7 +13,7 @@ module GUI.Momentu
     , Widget.weakerEvents
 
     -- | Animations
-    , AnimId
+    , ElemId
 
     -- | Element class
     , Element(..), Element.tint, Element.width, Element.height, Element.padAround
@@ -45,7 +45,7 @@ module GUI.Momentu
     , MDraw.addInnerFrame
 
     -- | Environments
-    , Element.HasAnimIdPrefix(..)
+    , Element.HasElemIdPrefix(..)
     , State.HasCursor(..)
     , State.GUIState(..)
     , State.readWidgetState
@@ -78,7 +78,7 @@ module GUI.Momentu
 
 import           Data.Vector.Vector2 (Vector2(..))
 import qualified GUI.Momentu.Align as Align
-import           GUI.Momentu.Animation (AnimId)
+import           GUI.Momentu.Animation (ElemId)
 import           GUI.Momentu.DefaultEnv (DefaultEnv, DefaultEnvWithCursor, defaultEnv, defaultEnvWithCursor)
 import qualified GUI.Momentu.Draw as MDraw
 import           GUI.Momentu.Element (Element(..))
@@ -110,7 +110,7 @@ type MainLoopEnv = MainLoop.Env
 
 
 type WidgetId = Widget.Id
-pattern WidgetId :: AnimId -> Widget.Id
+pattern WidgetId :: ElemId -> Widget.Id
 pattern WidgetId animId = Widget.Id animId
 
 runMainLoop :: MainLoop.MainLoop handlers -> GLFW.Window -> handlers -> IO ()

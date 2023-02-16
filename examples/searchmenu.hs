@@ -62,7 +62,7 @@ makeResultWidget ::
 makeResultWidget text =
     do
         toFocusable <- Widget.makeFocusableView
-        TextView.make ?? text ?? Widget.toAnimId resultId <&> M.tValue %~ toFocusable resultId
+        TextView.make ?? text ?? Widget.toElemId resultId <&> M.tValue %~ toFocusable resultId
 
 makeMenu :: Applicative f => (Text -> f Widget.Id) -> [Text] -> Widget.Id -> M.DefaultEnvWithCursor -> M.TextWidget f
 makeMenu pickText opts menuId =

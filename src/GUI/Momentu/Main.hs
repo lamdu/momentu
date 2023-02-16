@@ -27,7 +27,7 @@ import qualified Data.Property as Property
 import qualified Data.Text as Text
 import           Data.Vector.Vector2 (Vector2)
 import           GHC.Stack (CallStack, SrcLoc, prettySrcLoc, getCallStack)
-import           GUI.Momentu.Animation (AnimId)
+import           GUI.Momentu.Animation (ElemId)
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Draw as Draw
 import qualified GUI.Momentu.Element as Element
@@ -146,7 +146,7 @@ defaultDebugOptions =
 
 defaultOptions ::
     ( Has (Texts Text) env, Has (Zoom.Texts Text) env
-    , Element.HasAnimIdPrefix env, Has EventMapHelp.Config env
+    , Element.HasElemIdPrefix env, Has EventMapHelp.Config env
     , EventMapHelp.HasStyle env, EventMapHelp.HasTexts env
     ) =>
     OSString -> env -> IO Options
@@ -332,14 +332,14 @@ wrapMakeWidget zoom options lookupModeRef mkWidgetUnmemod size =
         assertFocused w
             | Widget.isFocused w = pure w
             | otherwise = fail "Creating widget on the empty cursor failed"
-        bgColorAnimId :: AnimId
-        bgColorAnimId = ["invalid-cursor-background"]
+        bgColorElemId :: ElemId
+        bgColorElemId = ["invalid-cursor-background"]
         showInvalidCursor :: IO (Widget IO -> Widget IO)
         showInvalidCursor =
             options ^. oConfig . MainConfig.cInvalidCursorOverlayColor <&>
             \color ->
             Element.setLayeredImage . Element.layers <. Lens.reversed . Lens.ix 0 %@~
-            (<>) . (`Anim.scale` Anim.coloredRectangle bgColorAnimId color)
+            (<>) . (`Anim.scale` Anim.coloredRectangle bgColorElemId color)
 
 runInner ::
     IORef (IO ()) -> (GLFW.Window -> MainAnim.Handlers -> IO b) ->

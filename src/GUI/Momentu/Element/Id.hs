@@ -1,6 +1,6 @@
 {-# LANGUAGE DefaultSignatures, ScopedTypeVariables #-}
 module GUI.Momentu.Element.Id
-    ( AnimId
+    ( ElemId
     , augmentId
     , ElemIds(..)
     ) where
@@ -13,15 +13,15 @@ import           Data.Typeable (Typeable, typeRep)
 
 import           GUI.Momentu.Prelude
 
-type AnimId = [ByteString]
+type ElemId = [ByteString]
 
-augmentId :: Show a => a -> AnimId -> AnimId
+augmentId :: Show a => a -> ElemId -> ElemId
 augmentId x animId = animId ++ [show x & SBS8.pack]
 
 -- | Global ids for elements in a container of kind `* -> *`.
 class ElemIds t where
-    elemIds :: t AnimId
-    default elemIds :: (Typeable t, Traversable t, Applicative t) => t AnimId
+    elemIds :: t ElemId
+    default elemIds :: (Typeable t, Traversable t, Applicative t) => t ElemId
     elemIds =
         let typeStr = SBS8.pack (show (typeRep (Proxy :: Proxy t)))
         in  pure ()

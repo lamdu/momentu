@@ -49,7 +49,7 @@ import qualified Data.Aeson.TH.Extended as JsonTH
 import qualified Data.Text as Text
 import           GUI.Momentu.Align (TextWidget)
 import qualified GUI.Momentu.Align as Align
-import           GUI.Momentu.Animation (AnimId)
+import           GUI.Momentu.Animation (ElemId)
 import qualified GUI.Momentu.Draw as Draw
 import qualified GUI.Momentu.Element as Element
 import           GUI.Momentu.EventMap (EventMap)
@@ -211,7 +211,7 @@ basicSearchTermEdit ::
     ( MonadReader env m, Applicative f, HasTexts env
     , TextEdit.Deps env, HasState env
     ) =>
-    AnimId -> Id -> AllowedSearchTerm -> TextEdit.EmptyStrings -> m (Term f)
+    ElemId -> Id -> AllowedSearchTerm -> TextEdit.EmptyStrings -> m (Term f)
 basicSearchTermEdit searchTermId menuId rawAllowedSearchTerm textEditEmpty =
     do
         searchTerm <- readSearchTerm menuId
@@ -228,7 +228,7 @@ basicSearchTermEdit searchTermId menuId rawAllowedSearchTerm textEditEmpty =
                             Just (Menu.resultsIdPrefix menuId) ^. Lens._Unwrapped
                         else id
         widget <-
-            TextEdit.makeWithAnimId ?? textEditEmpty ?? searchTerm ?? searchTermId ?? searchTermEditId menuId
+            TextEdit.makeWithElemId ?? textEditEmpty ?? searchTerm ?? searchTermId ?? searchTermEditId menuId
             <&> Align.tValue . Widget.eventMapMaker . Lens.mapped %~
                 E.filter (_tcTextEdit . allowedSearchTerm . fst)
             <&> Align.tValue . Widget.updates %~ pure . onEvents
@@ -280,9 +280,9 @@ addSearchTermBgColor menuId =
             Lens.view
             (has . bgColors .
                 if isActive then TextEdit.focused else TextEdit.unfocused)
-        Draw.backgroundColor bgAnimId bgColor & pure
+        Draw.backgroundColor bgElemId bgColor & pure
     where
-        bgAnimId = Widget.toAnimId menuId <> ["hover background"]
+        bgElemId = Widget.toElemId menuId <> ["hover background"]
 
 addSearchTermEmptyColors ::
     ( MonadReader env m, Has TermStyle env, Has TextEdit.Style env
@@ -307,7 +307,7 @@ searchTermEdit menuId allowedSearchTerm mPickFirst =
     )
     <*>
         ( Lens.view (has . emptyStrings)
-            >>= basicSearchTermEdit (searchTermEditId menuId & Widget.toAnimId) menuId allowedSearchTerm
+            >>= basicSearchTermEdit (searchTermEditId menuId & Widget.toElemId) menuId allowedSearchTerm
             & (addDelSearchTerm menuId <*>)
         )
     & addSearchTermEmptyColors
@@ -362,7 +362,7 @@ enterWithSearchTerm searchTerm menuId =
 
 type Deps env =
     ( HasTexts env, HasState env, HasConfig env
-    , HasStyle env, Element.HasAnimIdPrefix env
+    , HasStyle env, Element.HasElemIdPrefix env
     , HasTexts env, Glue.HasTexts env
     )
 
@@ -413,7 +413,7 @@ make makeSearchTerm makeOptions ann menuId =
         makeSearchTerm mPickFirst
             <&> (\term placement -> term ^. termWidget & Align.tValue %~ toMenu term placement)
             <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
-            & Reader.local (Element.animIdPrefix .~ toAnimId menuId)
+            & Reader.local (Element.animIdPrefix .~ toElemId menuId)
             & assignTheCursor
     where
         openKeys env = env ^. has . configOpenKeys

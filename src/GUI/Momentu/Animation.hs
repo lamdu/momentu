@@ -2,7 +2,7 @@
 
 module GUI.Momentu.Animation
     ( R, Size
-    , Image(..), iAnimId, iUnitImage, iRect
+    , Image(..), iElemId, iUnitImage, iRect
     , Frame(..), frameImages, unitImages, images
     , draw
     , unitSquare, emptyRectangle
@@ -26,7 +26,7 @@ import           GUI.Momentu.Prelude
 type Size = Vector2 R
 
 data Image = Image
-    { _iAnimId :: AnimId
+    { _iElemId :: ElemId
     , _iUnitImage :: !(Draw.Image ())
         -- iUnitImage always occupies (0,0)..(1,1),
         -- the translation/scaling occurs when drawing
@@ -54,13 +54,13 @@ images = frameImages . traverse
 unitImages :: Lens.Traversal' Frame (Draw.Image ())
 unitImages = images . iUnitImage
 
-singletonFrame :: Size -> AnimId -> Draw.Image () -> Frame
+singletonFrame :: Size -> ElemId -> Draw.Image () -> Frame
 singletonFrame size animId =
     scale size .
     singletonUnitImage animId .
     (Draw.scaleV (1 / size) %%)
 
-singletonUnitImage :: AnimId -> Draw.Image () -> Frame
+singletonUnitImage :: ElemId -> Draw.Image () -> Frame
 singletonUnitImage animId image = Frame [Image animId image (Rect 0 1)]
 
 draw :: Frame -> Draw.Image ()
@@ -75,10 +75,10 @@ draw frame =
             Draw.scaleV (rect ^. Rect.size) %%
             img
 
-unitSquare :: AnimId -> Frame
+unitSquare :: ElemId -> Frame
 unitSquare animId = singletonFrame 1 animId Draw.square
 
-emptyRectangle :: Vector2 R -> Vector2 R -> AnimId -> Frame
+emptyRectangle :: Vector2 R -> Vector2 R -> ElemId -> Frame
 emptyRectangle (Vector2 fX fY) totalSize@(Vector2 sX sY) animId =
     mconcat
     [ rect 0                      (Vector2 sX fY)
@@ -93,7 +93,7 @@ emptyRectangle (Vector2 fX fY) totalSize@(Vector2 sX sY) animId =
             & (Draw.scaleV size %%)
             & (Draw.translateV origin %%)
 
-coloredRectangle :: AnimId -> Draw.Color -> Frame
+coloredRectangle :: ElemId -> Draw.Color -> Frame
 coloredRectangle animId color =
     unitSquare animId
     & unitImages %~ Draw.tint color

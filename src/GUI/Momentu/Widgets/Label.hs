@@ -15,20 +15,20 @@ import qualified GUI.Momentu.Widgets.TextView as TextView
 import           GUI.Momentu.Prelude
 
 make ::
-    ( MonadReader env m, Has TextView.Style env, Element.HasAnimIdPrefix env
+    ( MonadReader env m, Has TextView.Style env, Element.HasElemIdPrefix env
     , Has Dir.Layout env
     ) =>
     Text -> m (WithTextPos View)
-make text = (TextView.make ?? text) <*> (Element.subAnimId ?? [encodeUtf8 text])
+make text = (TextView.make ?? text) <*> (Element.subElemId ?? [encodeUtf8 text])
 
 makeFocusable ::
     ( MonadReader env m, Applicative f, State.HasCursor env
     , Has Dir.Layout env
-    , Has TextView.Style env, Element.HasAnimIdPrefix env
+    , Has TextView.Style env, Element.HasElemIdPrefix env
     ) =>
     Text -> m (TextWidget f)
 makeFocusable text =
     do
         toFocusable <- Widget.makeFocusableView
-        widgetId <- Element.subAnimId ?? [encodeUtf8 text] <&> Widget.Id
+        widgetId <- Element.subElemId ?? [encodeUtf8 text] <&> Widget.Id
         make text <&> Align.tValue %~ toFocusable widgetId
