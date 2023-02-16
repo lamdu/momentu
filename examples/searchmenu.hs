@@ -5,7 +5,6 @@ module Main (main) where
 import           Control.Lens.Operators
 import           Data.IORef
 import           Data.Text (Text, isInfixOf)
-import qualified Data.Text.Encoding as Text
 import           GUI.Momentu ((/-/))
 import qualified GUI.Momentu as M
 import           GUI.Momentu.DataFiles (getDefaultFontPath)
@@ -52,7 +51,7 @@ makeWidget textRef _getFont env =
         menu =
             makeMenu $
             \text -> resultId <$ writeIORef textRef text
-        menuId x = "Menu" <> M.asElemId x
+        menuId x = "Menu" <> x
 
 resultId :: M.ElemId
 resultId = "result"
