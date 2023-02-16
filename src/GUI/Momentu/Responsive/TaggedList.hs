@@ -169,7 +169,7 @@ indentedListItem =
     do
         box <- Options.boxSpaced ?? Options.disambiguationNone
         (/|/) <- Glue.mkGlue ?? Glue.Horizontal
-        indentPrefix <- Lens.view Element.animIdPrefix <&> (<> "tagged-item")
+        indentPrefix <- Lens.view Element.elemIdPrefix <&> (<> "tagged-item")
         indent <- Expression.indent
         pure (
             \idx (TaggedItem pre item post) ->

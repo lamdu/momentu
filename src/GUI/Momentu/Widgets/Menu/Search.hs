@@ -412,7 +412,7 @@ make makeSearchTerm makeOptions ann menuId =
         makeSearchTerm mPickFirst
             <&> (\term placement -> term ^. termWidget & Align.tValue %~ toMenu term placement)
             <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
-            & Reader.local (Element.animIdPrefix .~ menuId)
+            & Reader.local (Element.elemIdPrefix .~ menuId)
             & assignTheCursor
     where
         openKeys env = env ^. has . configOpenKeys

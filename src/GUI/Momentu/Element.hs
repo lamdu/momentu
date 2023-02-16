@@ -84,15 +84,15 @@ width = size . _1
 height :: SizedElement a => Lens.Getter a R
 height = size . _2
 
-class HasElemIdPrefix env where animIdPrefix :: Lens' env ElemId
-instance HasElemIdPrefix ElemId where animIdPrefix = id
+class HasElemIdPrefix env where elemIdPrefix :: Lens' env ElemId
+instance HasElemIdPrefix ElemId where elemIdPrefix = id
 
 locallyAugmented ::
     (HasElemIdPrefix env, MonadReader env m, Show t) => t -> m a -> m a
-locallyAugmented x = Lens.locally animIdPrefix (Anim.augmentId x)
+locallyAugmented x = Lens.locally elemIdPrefix (Anim.augmentId x)
 
 subElemId :: (MonadReader env m, HasElemIdPrefix env) => m (ElemId -> ElemId)
-subElemId = Lens.view animIdPrefix <&> (<>)
+subElemId = Lens.view elemIdPrefix <&> (<>)
 
 padToSize ::
     (MonadReader env m, SizedElement a, Has Dir.Layout env) =>

@@ -76,7 +76,7 @@ env =
 
 Lens.makeLenses ''Env
 
-instance Element.HasElemIdPrefix Env where animIdPrefix = eElemId
+instance Element.HasElemIdPrefix Env where elemIdPrefix = eElemId
 instance Has (Dir.Texts Text) Env where has = eDirTexts
 instance Has (Glue.Texts Text) Env where has = eGlueTexts
 instance Has (Grid.Keys ModKey) Env where has = eGridKeys

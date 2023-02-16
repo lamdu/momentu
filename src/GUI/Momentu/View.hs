@@ -51,6 +51,6 @@ animFrames = vAnimLayers . Element.layers . traverse
 
 unitSquare :: (MonadReader env m, Element.HasElemIdPrefix env) => m View
 unitSquare =
-    Lens.view Element.animIdPrefix
+    Lens.view Element.elemIdPrefix
     <&> Anim.unitSquare
     <&> make 1

@@ -273,7 +273,7 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
                          (submenus <&> hover <&> Hover.sequenceHover) anchored <&> (^. Align.tValue))
                         & pure
                 else pure base
-    & Reader.local (Element.animIdPrefix .~ optionId)
+    & Reader.local (Element.elemIdPrefix .~ optionId)
     where
         padToWidth w r = Element.padToSize ?? Vector2 w 0 ?? 0 ?? r
 

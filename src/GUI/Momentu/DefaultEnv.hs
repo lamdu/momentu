@@ -48,7 +48,7 @@ data DefaultEnvG guiState = DefaultEnv
     , _eventMapTexts :: EventMap.Texts Text
     , _glueTexts :: Glue.Texts Text
     , _helpTexts :: EventMapHelp.Texts Text
-    , _animIdPrefix :: ElemId
+    , _elemIdPrefix :: ElemId
     , _helpConfig :: EventMapHelp.Config
     , _helpStyle :: EventMapHelp.Style
     , _textEditKeys :: TextEdit.Keys ModKey
@@ -84,7 +84,7 @@ defaultEnv os font = DefaultEnv
     , _eventMapTexts = EventMap.englishTexts
     , _glueTexts = Glue.englishTexts
     , _helpTexts = EventMapHelp.englishTexts
-    , _animIdPrefix = mempty
+    , _elemIdPrefix = mempty
     , _helpConfig = EventMapHelp.defaultConfig
     , _helpStyle = EventMapHelp.defaultStyle font
     , _textEditKeys = TextEdit.stdKeys os
@@ -98,7 +98,7 @@ defaultEnv os font = DefaultEnv
 defaultEnvWithCursor :: OSString -> GUIState -> Font -> DefaultEnvWithCursor
 defaultEnvWithCursor os state font = defaultEnv os font & guiState .~ state
 
-instance Element.HasElemIdPrefix        (DefaultEnvG a) where animIdPrefix = animIdPrefix
+instance Element.HasElemIdPrefix        (DefaultEnvG a) where elemIdPrefix = elemIdPrefix
 instance Has (Direction.Texts Text)     (DefaultEnvG a) where has = directionTexts
 instance Has (DropDownList.Texts Text)  (DefaultEnvG a) where has = dropDownTexts
 instance Has (EventMap.Texts Text)      (DefaultEnvG a) where has = eventMapTexts
