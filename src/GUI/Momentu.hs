@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternSynonyms #-}
 -- | A convenience API module that re-exports the functionality in the Momentu library
 
 module GUI.Momentu
@@ -21,7 +20,6 @@ module GUI.Momentu
     -- | Widget
     , Widget
     , Widget.isFocused
-    , WidgetId, pattern WidgetId
     , State.Update
 
     -- | Responsive Widget
@@ -107,11 +105,6 @@ import qualified Graphics.UI.GLFW.Utils as GLFWUtils
 import           GUI.Momentu.Prelude
 
 type MainLoopEnv = MainLoop.Env
-
-
-type WidgetId = Widget.Id
-pattern WidgetId :: ElemId -> Widget.Id
-pattern WidgetId animId = Widget.Id animId
 
 runMainLoop :: MainLoop.MainLoop handlers -> GLFW.Window -> handlers -> IO ()
 runMainLoop = MainLoop.run

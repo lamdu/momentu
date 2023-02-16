@@ -19,7 +19,7 @@ import           GUI.Momentu.EventMap (EventMap)
 import           GUI.Momentu.FocusDirection (FocusDirection)
 import           GUI.Momentu.Rect (Rect)
 import           GUI.Momentu.State (VirtualCursor, Update)
-import           GUI.Momentu.Widget.Id (Id)
+import           GUI.Momentu.Element.Id (ElemId)
 
 import           GUI.Momentu.Prelude
 
@@ -38,7 +38,7 @@ data Unfocused a = Unfocused
     , _uMStroll ::
         -- "Strolling" is navigating using "Tab"/"Shift-Tab"
         -- to form entry fields or other points of interest.
-        Maybe (Semigroup.First Id, Semigroup.Last Id)
+        Maybe (Semigroup.First ElemId, Semigroup.Last ElemId)
     , _uLayers :: Element.LayeredImage
     } deriving Functor
 

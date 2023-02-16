@@ -115,7 +115,7 @@ data DebugOptions = DebugOptions
     , postProcessEvent :: Main.Events.Event -> IO ()
     }
 
-iorefStateStorage :: Widget.Id -> IO (MkProperty' IO GUIState)
+iorefStateStorage :: ElemId -> IO (MkProperty' IO GUIState)
 iorefStateStorage initialCursor =
     newIORef (GUIState initialCursor mempty) <&> Property.fromIORef
 
@@ -155,7 +155,7 @@ defaultOptions os env =
         helpProp <- newIORef EventMapHelp.HelpNotShown <&> Property.fromIORef
         -- Note that not every app is necessarily interactive and even uses a cursor,
         -- so an empty value might be fitting.
-        stateStorage <- iorefStateStorage (Widget.Id [])
+        stateStorage <- iorefStateStorage mempty
         pure Options
             { _oConfig = Config
                 { _cAnim =

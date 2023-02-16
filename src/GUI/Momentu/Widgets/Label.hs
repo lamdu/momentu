@@ -30,5 +30,5 @@ makeFocusable ::
 makeFocusable text =
     do
         toFocusable <- Widget.makeFocusableView
-        widgetId <- Element.subElemId ?? [encodeUtf8 text] <&> Widget.Id
+        widgetId <- Element.subElemId ?? [encodeUtf8 text]
         make text <&> Align.tValue %~ toFocusable widgetId

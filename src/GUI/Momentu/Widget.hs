@@ -1,7 +1,7 @@
 module GUI.Momentu.Widget
     ( module Types
 
-    , Id(..), Id.joinId
+    , ElemId
 
     -- Types:
     , R, Size
@@ -63,8 +63,8 @@ import qualified GUI.Momentu.Rect as Rect
 import           GUI.Momentu.State (VirtualCursor(..), HasCursor(..))
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
-import           GUI.Momentu.Widget.Id (Id(..))
-import qualified GUI.Momentu.Widget.Id as Id
+import           GUI.Momentu.Element.Id (ElemId)
+import qualified GUI.Momentu.Element.Id as ElemId
 import           GUI.Momentu.Widget.Instances
 import           GUI.Momentu.Widget.Types as Types
 
@@ -79,11 +79,11 @@ updates = widget . wState . Lens.mapped
 isFocused :: Widget a -> Bool
 isFocused = Lens.has (wState . _StateFocused)
 
-enterResultCursor :: (HasWidget w, Functor f) => Lens.Setter' (w f) Id
+enterResultCursor :: (HasWidget w, Functor f) => Lens.Setter' (w f) ElemId
 enterResultCursor =
     widget . enterResult . enterResultEvent . Lens.mapped . State.uCursor . Lens.mapped
 
-takesStroll :: HasWidget w => Id -> w a -> w a
+takesStroll :: HasWidget w => ElemId -> w a -> w a
 takesStroll myId =
     widget . wState . _StateUnfocused . uMStroll ?~
     (myId ^. Lens._Unwrapped, myId ^. Lens._Unwrapped)
@@ -93,7 +93,7 @@ disableStroll = widget . wState . _StateUnfocused . uMStroll .~ Nothing
 
 takesFocus ::
     (HasWidget w, Functor f) =>
-    (FocusDirection -> f Id) -> w f -> w f
+    (FocusDirection -> f ElemId) -> w f -> w f
 takesFocus enterFunc =
     widget %~
     \w ->
@@ -234,27 +234,27 @@ setFocusedWith rect eventMap =
 
 respondToCursorBy ::
     (MonadReader env m, HasCursor env, HasWidget w) =>
-    m ((Id -> Bool) -> w a -> w a)
+    m ((ElemId -> Bool) -> w a -> w a)
 respondToCursorBy =
     Lens.view cursor
     <&> \c f -> if f c then setFocused else id
 
 respondToCursorPrefix ::
     (MonadReader env m, HasCursor env, HasWidget w) =>
-    m (Id -> w a -> w a)
+    m (ElemId -> w a -> w a)
 respondToCursorPrefix =
     respondToCursorBy
-    <&> \respond myIdPrefix -> respond (Lens.has Lens._Just . Id.subId myIdPrefix)
+    <&> \respond myIdPrefix -> respond (Lens.has Lens._Just . ElemId.subId myIdPrefix)
 
 makeFocusableView ::
     (MonadReader env m, HasCursor env, Applicative f) =>
-    m (Id -> View -> Widget f)
+    m (ElemId -> View -> Widget f)
 makeFocusableView = makeFocusableWidget <&> Lens.mapped . Lens.argument %~ fromView
 
 -- TODO: Describe why makeFocusableView is to be usually preferred
 makeFocusableWidget ::
     (MonadReader env m, HasCursor env, Applicative f) =>
-    m (Id -> Widget f -> Widget f)
+    m (ElemId -> Widget f -> Widget f)
 makeFocusableWidget =
     makeFocusableWidgetWith
     <&> \makeFocusableWith myIdPrefix ->
@@ -262,7 +262,7 @@ makeFocusableWidget =
 
 makeFocusableWidgetWith ::
     (MonadReader env m, HasCursor env, Applicative f) =>
-    m (Id -> (FocusDirection -> f Id) -> Widget f -> Widget f)
+    m (ElemId -> (FocusDirection -> f ElemId) -> Widget f -> Widget f)
 makeFocusableWidgetWith =
     respondToCursorPrefix
     <&> \respond myIdPrefix enter w ->

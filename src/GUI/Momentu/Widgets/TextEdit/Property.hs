@@ -9,6 +9,7 @@ import           Data.Property (Property)
 import qualified Data.Property as Property
 import           GUI.Momentu.Align (TextWidget)
 import qualified GUI.Momentu.Align as Align
+import           GUI.Momentu.Element.Id (ElemId)
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.ModKey (ModKey(..), noMods)
@@ -21,7 +22,7 @@ import           GUI.Momentu.Prelude
 make ::
     (MonadReader env m, Applicative f, TextEdit.Deps env) =>
     m
-    (TextEdit.EmptyStrings -> Property f Text -> Widget.Id ->
+    (TextEdit.EmptyStrings -> Property f Text -> ElemId ->
      TextWidget f)
 make =
     TextEdit.make <&> f
@@ -41,7 +42,7 @@ deleteKeyEventHandler = E.deleteKey . E.KeyEvent ModKey.KeyState'Pressed
 makeLineEdit ::
     (MonadReader env m, Applicative f, TextEdit.Deps env) =>
     m
-    (TextEdit.EmptyStrings -> Property f Text -> Widget.Id ->
+    (TextEdit.EmptyStrings -> Property f Text -> ElemId ->
      TextWidget f)
 makeLineEdit =
     make
@@ -53,7 +54,7 @@ makeLineEdit =
 makeWordEdit ::
     (MonadReader env m, Applicative f, TextEdit.Deps env) =>
     m
-    (TextEdit.EmptyStrings -> Property f Text -> Widget.Id -> TextWidget f)
+    (TextEdit.EmptyStrings -> Property f Text -> ElemId -> TextWidget f)
 makeWordEdit =
     makeLineEdit
     <&> \mk empty textRef myId -> mk empty textRef myId

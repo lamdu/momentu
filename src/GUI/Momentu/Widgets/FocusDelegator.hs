@@ -6,6 +6,7 @@ module GUI.Momentu.Widgets.FocusDelegator
 
 import qualified Control.Lens as Lens
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId)
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection)
@@ -39,7 +40,7 @@ focusChildEventMap config =
 
 modifyEntry ::
     Applicative f =>
-    Widget.Id -> Rect -> FocusEntryTarget ->
+    ElemId -> Rect -> FocusEntryTarget ->
     Maybe (FocusDirection -> Widget.EnterResult (f State.Update)) ->
     Maybe (FocusDirection -> Widget.EnterResult (f State.Update))
 modifyEntry myId fullChildRect target mChildEnter =
@@ -61,7 +62,7 @@ modifyEntry myId fullChildRect target mChildEnter =
 
 make ::
     (HasCallStack, MonadReader env m, State.HasCursor env, Applicative f, Widget.HasWidget w) =>
-    m (Config -> FocusEntryTarget -> Widget.Id -> w f -> w f)
+    m (Config -> FocusEntryTarget -> ElemId -> w f -> w f)
 make =
     Lens.view State.cursor <&>
     \cursor config focusEntryTarget myId -> Widget.widget %~ \childWidget ->

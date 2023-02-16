@@ -38,14 +38,14 @@ makeWidget textRef _getFont rawEnv =
             & pure
     where
         env = rawEnv & M.cursor %~ assignCursor
-        ltrId = Widget.Id ["ltr"]
-        rtlId = Widget.Id ["rtl"]
-        assignCursor (Widget.Id []) = ltrId
+        ltrId = ["ltr"]
+        rtlId = ["rtl"]
+        assignCursor [] = ltrId
         assignCursor c = c
 
 mkTextEdit ::
     TextEdit.Deps env =>
-    IORef ioref -> Text -> Text -> Widget.Id -> Lens.ALens' ioref Text ->
+    IORef ioref -> Text -> Text -> M.ElemId -> Lens.ALens' ioref Text ->
     IO (env -> Widget.Widget IO)
 mkTextEdit textRef uempty fempty myId alens =
     readIORef textRef

@@ -30,6 +30,7 @@ import           GUI.Momentu.Direction (Orientation(..))
 import qualified GUI.Momentu.Direction as Dir
 import qualified GUI.Momentu.Draw as Draw
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId)
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.Glue ((/|/))
@@ -100,8 +101,8 @@ defaultConfig = Config
 -- When pickMNextEntry has a value, strolling would go to that value
 -- rather than the normal stroll.
 data PickResult = PickResult
-    { _pickDest :: Widget.Id
-    , _pickMNextEntry :: Maybe Widget.Id
+    { _pickDest :: ElemId
+    , _pickMNextEntry :: Maybe ElemId
     }
 Lens.makeLenses ''PickResult
 
@@ -153,7 +154,7 @@ data Submenu m f
 data Option m f = Option
     { -- | Must be the prefix of all both the menu option and its submenu options,
       --  also used to create this option's submenu arrow frame:
-      _oId :: !Widget.Id
+      _oId :: !ElemId
     , -- A widget that represents this option
       _oRender :: m (RenderedOption f)
     , -- An optionally empty submenu
@@ -243,7 +244,7 @@ layoutOption ::
     , Glue.HasTexts env
     ) =>
     Widget.R ->
-    (Widget.Id, TextWidget f, Submenu m f) ->
+    (ElemId, TextWidget f, Submenu m f) ->
     m (TextWidget f)
 layoutOption maxOptionWidth (optionId, rendered, submenu) =
     case submenu of
@@ -263,7 +264,7 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
                     hoverBeside <- Hover.hoverBesideOptionsAxis
                     (_, submenus) <-
                         action <&> OptionList False
-                        >>= make (optionId `Widget.joinId` ["submenu"]) 0
+                        >>= make (optionId <> ["submenu"]) 0
                     let anchored = base & Align.tValue %~ anc
                     anchored
                         & Align.tValue %~
@@ -272,7 +273,7 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
                          (submenus <&> hover <&> Hover.sequenceHover) anchored <&> (^. Align.tValue))
                         & pure
                 else pure base
-    & Reader.local (Element.animIdPrefix .~ Widget.toElemId optionId)
+    & Reader.local (Element.animIdPrefix .~ optionId)
     where
         padToWidth w r = Element.padToSize ?? Vector2 w 0 ?? 0 ?? r
 
@@ -325,11 +326,11 @@ addPickers =
 -- | All search menu results must start with a common prefix.
 -- This is used to tell when cursor was on a result that got filtered out
 -- when the search term changed in order to redirect it to a result.
-resultsIdPrefix :: Widget.Id -> Widget.Id
-resultsIdPrefix = (`Widget.joinId` ["Results"])
+resultsIdPrefix :: ElemId -> ElemId
+resultsIdPrefix = (<> ["Results"])
 
-noResultsId :: Widget.Id -> Widget.Id
-noResultsId = (`Widget.joinId` ["no results"]) . resultsIdPrefix
+noResultsId :: ElemId -> ElemId
+noResultsId = (<> ["no results"]) . resultsIdPrefix
 
 make ::
     ( MonadReader env m, Applicative f, Has TextView.Style env
@@ -337,7 +338,7 @@ make ::
     , Has (Config ModKey) env
     , State.HasCursor env, Has (Texts Text) env, Glue.HasTexts env
     ) =>
-    Widget.Id -> Widget.R -> OptionList (Option m f) ->
+    ElemId -> Widget.R -> OptionList (Option m f) ->
     m (PickFirstResult f, Hover.Ordered (TextWidget f))
 make myId _ (OptionList isTruncated []) =
     (Widget.makeFocusableView ?? noResultsId myId <&> (Align.tValue %~))
@@ -445,7 +446,7 @@ makeHovered ::
     , Has Hover.Style env, Has (Texts Text) env, MonadReader env m
     , Glue.HasTexts env, Has Style env
     ) =>
-    Widget.Id -> View ->
+    ElemId -> View ->
     OptionList (Option m f) ->
     m
     ( PickFirstResult f

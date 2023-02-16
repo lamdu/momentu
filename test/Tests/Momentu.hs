@@ -116,8 +116,8 @@ gridStrollTest =
             w ^. W.wState . W._StateFocused .
             Lens.to ($ W.Surrounding 0 0 0 0) .
             W.fEventMap . Lens.to ($ eventCtx)
-        fromCursor ~(W.Id [bs]) = decodeS bs
-        toCursor i = W.Id [encodeS i]
+        fromCursor ~[bs] = decodeS bs
+        toCursor i = [encodeS i]
         keyEventTarget msg keys w =
             getEventMap w
             & E.lookup (Identity Nothing) (simpleKeyEvent (head keys))

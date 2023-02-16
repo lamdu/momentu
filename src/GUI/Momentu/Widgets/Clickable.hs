@@ -9,6 +9,7 @@ import qualified Control.Lens as Lens
 import           GUI.Momentu.Align (WithTextPos(..), TextWidget)
 import qualified GUI.Momentu.Align as Align
 import qualified GUI.Momentu.Direction as Dir
+import           GUI.Momentu.Element.Id (ElemId)
 import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.FocusDirection as Dir
 import           GUI.Momentu.ModKey (ModKey)
@@ -20,7 +21,7 @@ import qualified GUI.Momentu.Widgets.TextView as TextView
 import           GUI.Momentu.Prelude
 
 data Config f = Config
-    { _action :: f Widget.Id
+    { _action :: f ElemId
     , _doc :: E.Doc
     , _keys :: [ModKey]
     }
@@ -29,7 +30,7 @@ Lens.makeLenses ''Config
 
 make ::
     (MonadReader env m, Applicative f, State.HasCursor env) =>
-    m (Widget.Id -> Config f -> WithTextPos View -> TextWidget f)
+    m (ElemId -> Config f -> WithTextPos View -> TextWidget f)
 make =
     Widget.makeFocusableWidgetWith
     <&> \mkFocusableWith myId config view ->
@@ -50,6 +51,6 @@ makeText ::
     , Has Dir.Layout env
     , Has TextView.Style env
     ) =>
-    Widget.Id -> Config f -> Text -> m (TextWidget f)
+    ElemId -> Config f -> Text -> m (TextWidget f)
 makeText myId config text =
-    (make ?? myId ?? config) <*> (TextView.make ?? text ?? Widget.toElemId myId)
+    (make ?? myId ?? config) <*> (TextView.make ?? text ?? myId)

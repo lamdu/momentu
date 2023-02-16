@@ -17,6 +17,7 @@ import           GUI.Momentu.Align (TextWidget)
 import qualified GUI.Momentu.Align as Align
 import           GUI.Momentu.Direction (Orientation(..), perpendicular, axis)
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId)
 import qualified GUI.Momentu.EventMap as E
 import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.Hover as Hover
@@ -73,7 +74,7 @@ make ::
     , State.HasCursor env, Has Hover.Style env, Element.HasElemIdPrefix env
     , Glue.HasTexts env
     ) =>
-    m (Property f childId -> t (childId, TextWidget f) -> Config -> Widget.Id -> TextWidget f)
+    m (Property f childId -> t (childId, TextWidget f) -> Config -> ElemId -> TextWidget f)
 make =
     (,,,,)
     <$> Element.padToSize

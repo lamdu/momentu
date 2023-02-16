@@ -17,9 +17,8 @@ import           Data.ByteString.Extended as BS
 import qualified Data.Map as Map
 import qualified Data.Monoid as Monoid
 import           GUI.Momentu.Element.Id (ElemId)
+import qualified GUI.Momentu.Element.Id as ElemId
 import           GUI.Momentu.Rect (Rect)
-import           GUI.Momentu.Widget.Id (Id(..))
-import qualified GUI.Momentu.Widget.Id as Id
 
 import           GUI.Momentu.Prelude
 
@@ -35,17 +34,17 @@ Lens.makeLenses ''VirtualCursor
 -- updates.
 
 data GUIState = GUIState
-    { _sCursor :: Id
-    , _sWidgetStates :: Map Id ByteString
+    { _sCursor :: ElemId
+    , _sWidgetStates :: Map ElemId ByteString
     }
     deriving stock Generic
     deriving anyclass Binary
 Lens.makeLenses ''GUIState
 
 data Update = Update
-    { _uCursor :: Monoid.Last Id
+    { _uCursor :: Monoid.Last ElemId
     , _uPreferStroll :: Monoid.Any
-    , _uWidgetStateUpdates :: Map Id ByteString
+    , _uWidgetStateUpdates :: Map ElemId ByteString
     , _uVirtualCursor :: Monoid.Last VirtualCursor
     , _uSetSystemClipboard :: Maybe Text
     }
@@ -53,7 +52,7 @@ data Update = Update
     deriving (Semigroup, Monoid) via Generically Update
 Lens.makeLenses ''Update
 
-updateCursor :: Id -> Update
+updateCursor :: ElemId -> Update
 updateCursor c = mempty { _uCursor = Just c & Monoid.Last }
 
 fullUpdate :: GUIState -> Update
@@ -68,25 +67,25 @@ update u s =
         & has . sCursor .~ c
         & has . sWidgetStates %~ Map.filterWithKey f
         where
-            f k _v = Id.subId k c & Lens.has Lens._Just
+            f k _v = ElemId.subId k c & Lens.has Lens._Just
     & has . sWidgetStates %~ mappend (u ^. uWidgetStateUpdates)
 
 class HasCursor env where
-    cursor :: Lens' env Id
-    default cursor :: Has GUIState env => Lens' env Id
+    cursor :: Lens' env ElemId
+    default cursor :: Has GUIState env => Lens' env ElemId
     cursor = has . sCursor
 
 instance HasCursor GUIState where cursor = sCursor
 
-subId :: (MonadReader env m, HasCursor env) => m (Id -> Maybe ElemId)
-subId = Lens.view cursor <&> flip Id.subId
+subId :: (MonadReader env m, HasCursor env) => m (ElemId -> Maybe ElemId)
+subId = Lens.view cursor <&> flip ElemId.subId
 
-isSubCursor :: (MonadReader env m, HasCursor env) => m (Id -> Bool)
+isSubCursor :: (MonadReader env m, HasCursor env) => m (ElemId -> Bool)
 isSubCursor = subId <&> \sub prefix -> sub prefix & Lens.has Lens._Just
 
 assignCursor ::
     (HasCursor env, MonadReader env m) =>
-    Id -> Id -> m a -> m a
+    ElemId -> ElemId -> m a -> m a
 assignCursor src dest =
     Lens.locally cursor replace
     where
@@ -96,11 +95,11 @@ assignCursor src dest =
 
 assignCursorPrefix ::
     (HasCursor env, MonadReader env m) =>
-    Id -> (ElemId -> Id) -> m a -> m a
+    ElemId -> (ElemId -> ElemId) -> m a -> m a
 assignCursorPrefix srcFolder dest =
     Lens.locally cursor replace
     where
-        replace c = Id.subId srcFolder c & maybe c dest
+        replace c = ElemId.subId srcFolder c & maybe c dest
 
 -- TODO: Currently widget state is cleaned for widgets whose id isn't prefix of the cursor.
 -- Consider allowing all widgets to store state which are cleaned when not access while generating root widget.
@@ -109,11 +108,11 @@ type HasState env = (HasCursor env, Has GUIState env)
 
 readWidgetState ::
     (Has GUIState env, MonadReader env m, Binary a) =>
-    Id -> m (Maybe a)
+    ElemId -> m (Maybe a)
 readWidgetState wid =
     Lens.view (has . sWidgetStates . Lens.at wid) <&> (>>= f)
     where
         f x = decodeOrFail (BS.lazify x) ^? Lens._Right . _3
 
-updateWidgetState :: Binary a => Id -> a -> Update
+updateWidgetState :: Binary a => ElemId -> a -> Update
 updateWidgetState wid val = mempty & uWidgetStateUpdates . Lens.at wid ?~ encodeS val

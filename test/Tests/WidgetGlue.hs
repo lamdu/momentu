@@ -9,6 +9,7 @@ import           Data.Binary.Extended (encodeS)
 import           Data.Semigroup (First(..), Last(..))
 import           Data.Vector.Vector2 (Vector2)
 import qualified GUI.Momentu.Direction as Dir
+import           GUI.Momentu.Element.Id (ElemId)
 import qualified GUI.Momentu.EventMap as EventMap
 import           GUI.Momentu.Glue
 import qualified GUI.Momentu.Hover as Hover
@@ -50,7 +51,7 @@ instance Arbitrary a => Arbitrary (FocusedWidget a) where
 instance Arbitrary a => Arbitrary (UnfocusedWidget a) where
     arbitrary = genericArbitraryRec uniform `withBaseCase` (UnfocusedLeaf <$> arbitrary <*> arbitrary)
 
-toWidgetUnfocused :: Applicative f => UnfocusedWidget (Maybe Widget.Id) -> Widget f
+toWidgetUnfocused :: Applicative f => UnfocusedWidget (Maybe ElemId) -> Widget f
 toWidgetUnfocused (UnfocusedLeaf size x) =
     Widget.StateUnfocused Widget.Unfocused
     { Widget._uMEnter = Nothing -- TODO
@@ -69,7 +70,7 @@ glueFocused FocusedFirst = glue TestEnv.env
 glueFocused FocusedLast = glue TestEnv.env <&> flip
 
 
-toWidgetFocused :: Applicative f => FocusedWidget (Maybe Widget.Id) -> Widget f
+toWidgetFocused :: Applicative f => FocusedWidget (Maybe ElemId) -> Widget f
 toWidgetFocused (FocusedLeaf size) =
     const Widget.Focused
     { Widget._fFocalAreas = [Rect (pure 0) size]
@@ -140,7 +141,7 @@ propStrollsCorrectly tree =
             (toWidgetFocused treeWithIds :: Widget Identity)
             ^?! Widget.wState . Widget._StateFocused
         treeWithIds =
-            tree & Lens.traversed . Lens._Just %@~ (\idx () -> Widget.Id [encodeS idx])
+            tree & Lens.traversed . Lens._Just %@~ (\idx () -> [encodeS idx])
 
 test :: TestTree
 test =

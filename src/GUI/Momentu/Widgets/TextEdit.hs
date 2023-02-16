@@ -40,6 +40,7 @@ import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import           GUI.Momentu.Element (Element)
 import qualified GUI.Momentu.Element as Element
+import           GUI.Momentu.Element.Id (ElemId)
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
@@ -197,8 +198,8 @@ tillEndOfWord xs = spaces <> nonSpaces
         spaces = Text.takeWhile isSpace xs
         nonSpaces = Text.dropWhile isSpace xs & Text.takeWhile (not . isSpace)
 
-encodeCursor :: Widget.Id -> Cursor -> Widget.Id
-encodeCursor myId = Widget.joinId myId . (:[]) . Binary.encodeS
+encodeCursor :: ElemId -> Cursor -> ElemId
+encodeCursor myId = (myId <>) . (:[]) . Binary.encodeS
 
 -- | Returns at least one rect
 letterRects :: Has TextView.Style env => env -> Text -> [[Rect]]
@@ -266,7 +267,7 @@ _addCursorRects env animId str =
 makeInternal ::
     HasStyle env =>
     env -> (forall a. Lens.Getting a (Modes a) a) ->
-    Text -> Modes (WithTextPos View) -> Anim.ElemId -> Widget.Id ->
+    Text -> Modes (WithTextPos View) -> Anim.ElemId -> ElemId ->
     TextWidget ((,) Text)
 makeInternal env mode str emptyViews animId myId =
     v
@@ -293,7 +294,7 @@ cursorNearRect env str fromRect =
 
 enterFromDirection ::
     HasStyle env =>
-    env -> Rect -> Text -> Widget.Id ->
+    env -> Rect -> Text -> ElemId ->
     FocusDirection -> Widget.EnterResult (Text, State.Update)
 enterFromDirection env rect str myId dir =
     encodeCursor myId cursor
@@ -319,7 +320,7 @@ enterFromDirection env rect str myId dir =
             | otherwise = id
         fromRect = cursorNearRect env str . maybeInvert
 
-eventResult :: Widget.Id -> Text -> Cursor -> (Text, State.Update)
+eventResult :: ElemId -> Text -> Cursor -> (Text, State.Update)
 eventResult myId newText newCursor =
     ( newText
     , encodeCursor myId newCursor & State.updateCursor
@@ -330,7 +331,7 @@ eventResult myId newText newCursor =
 makeFocused ::
     Deps env =>
     env -> Text -> EmptyStrings -> Modes (WithTextPos View) -> Cursor ->
-    Anim.ElemId -> Widget.Id ->
+    Anim.ElemId -> ElemId ->
     TextWidget ((,) Text)
 makeFocused env str emptyStr emptyViews cursor animId myId =
     makeInternal env focused str emptyViews animId myId
@@ -373,7 +374,7 @@ mkCursorRect env cursor str =
 -- TODO: Implement intra-TextEdit virtual cursor
 eventMap ::
     (HasTexts env, Has (Keys ModKey) env, Has (DirKeys ModKey) env) =>
-    env -> Cursor -> Text -> Widget.Id -> Widget.EventContext ->
+    env -> Cursor -> Text -> ElemId -> Widget.EventContext ->
     EventMap (Text, State.Update)
 eventMap env cursor str myId _eventContext =
     mconcat $ concat [
@@ -530,7 +531,7 @@ eventMap env cursor str myId _eventContext =
 
 getCursor ::
     (MonadReader env m, State.HasCursor env) =>
-    m (Text -> Widget.Id -> Maybe Int)
+    m (Text -> ElemId -> Maybe Int)
 getCursor =
     State.subId <&> f
     where
@@ -542,10 +543,10 @@ getCursor =
 
 make ::
     (MonadReader env m, Deps env) =>
-    m ( EmptyStrings -> Text -> Widget.Id ->
+    m ( EmptyStrings -> Text -> ElemId ->
         TextWidget ((,) Text)
       )
-make = makeWithElemId <&> Lens.mapped . Lens.mapped %~ \f w -> f (Widget.toElemId w) w
+make = makeWithElemId <&> Lens.mapped . Lens.mapped %~ join
 
 align ::
     (Element.SizedElement a, Has Dir.Layout env) =>
@@ -561,7 +562,7 @@ align env emptyViews widget =
 
 makeWithElemId ::
     (MonadReader env m, Deps env) =>
-    m ( EmptyStrings -> Text -> Anim.ElemId -> Widget.Id ->
+    m ( EmptyStrings -> Text -> Anim.ElemId -> ElemId ->
         TextWidget ((,) Text)
       )
 makeWithElemId =

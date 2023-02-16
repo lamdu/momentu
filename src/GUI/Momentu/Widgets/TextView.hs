@@ -97,11 +97,11 @@ make =
 
 makeFocusable ::
     (MonadReader env m, Applicative f, State.HasCursor env, HasStyle env) =>
-    m (Text -> Widget.Id -> TextWidget f)
+    m (Text -> ElemId -> TextWidget f)
 makeFocusable =
     do
         toFocusable <- Widget.makeFocusableView
         mkText <- make
         pure $ \text myId ->
-            mkText text (Widget.toElemId myId)
+            mkText text myId
             & Align.tValue %~ toFocusable myId

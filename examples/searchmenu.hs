@@ -52,19 +52,19 @@ makeWidget textRef _getFont env =
         menu =
             makeMenu $
             \text -> resultId <$ writeIORef textRef text
-        menuId x = Widget.Id ["Menu", Text.encodeUtf8 x]
+        menuId x = ["Menu", Text.encodeUtf8 x]
 
-resultId :: Widget.Id
-resultId = Widget.Id ["result"]
+resultId :: M.ElemId
+resultId = ["result"]
 
 makeResultWidget ::
     Applicative f => Text -> M.DefaultEnvWithCursor -> M.WithTextPos (Widget.Widget f)
 makeResultWidget text =
     do
         toFocusable <- Widget.makeFocusableView
-        TextView.make ?? text ?? Widget.toElemId resultId <&> M.tValue %~ toFocusable resultId
+        TextView.make ?? text ?? resultId <&> M.tValue %~ toFocusable resultId
 
-makeMenu :: Applicative f => (Text -> f Widget.Id) -> [Text] -> Widget.Id -> M.DefaultEnvWithCursor -> M.TextWidget f
+makeMenu :: Applicative f => (Text -> f M.ElemId) -> [Text] -> M.ElemId -> M.DefaultEnvWithCursor -> M.TextWidget f
 makeMenu pickText opts menuId =
     SearchMenu.make makeSearchTerm makeResults Element.empty menuId
     ?? SearchMenu.AnyPlace
@@ -96,4 +96,4 @@ makeMenu pickText opts menuId =
                 }
             }
             where
-                widgetId = resultIdPrefix `Widget.joinId` [Text.encodeUtf8 text]
+                widgetId = resultIdPrefix <> [Text.encodeUtf8 text]

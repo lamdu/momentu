@@ -39,11 +39,11 @@ import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import           Data.String (IsString(..))
 import           GHC.Stack (CallStack, callStack, withFrozenCallStack)
+import           GUI.Momentu.Element.Id (ElemId)
 import qualified GUI.Momentu.Main.Events as Events
 import           GUI.Momentu.ModKey (ModKey(..))
 import qualified GUI.Momentu.ModKey as ModKey
 import qualified GUI.Momentu.State as State
-import           GUI.Momentu.Widget.Id (Id)
 import qualified GUI.Momentu.Prelude as Prelude
 
 import           GUI.Momentu.Prelude hiding (lookup, filter, repeat)
@@ -356,7 +356,7 @@ keysEventMap keys doc act =
 
 -- | Convenience method to just set the cursor
 keysEventMapMovesCursor ::
-    (HasCallStack, Functor f) => [ModKey] -> Doc -> f Id -> EventMap (f State.Update)
+    (HasCallStack, Functor f) => [ModKey] -> Doc -> f ElemId -> EventMap (f State.Update)
 keysEventMapMovesCursor keys doc act =
     withFrozenCallStack $ keyPresses keys doc (act <&> State.updateCursor)
 
