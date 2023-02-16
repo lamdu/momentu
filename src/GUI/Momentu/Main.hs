@@ -214,7 +214,7 @@ jumpToTopOfCallStack debug callStack =
     (topFrame:restFrames) ->
         do
             putStrLn $ "Jumping to: " <> prettySrcLoc topFrame
-            when (not (null restFrames)) $
+            unless (null restFrames) $
                 putStrLn $ "Callers:\n" <> sep <> mconcat (restFrames <&> prettySrcLoc <&> ("\n  " <>)) <> "\n" <> sep
             jumpToSource debug topFrame
         where
