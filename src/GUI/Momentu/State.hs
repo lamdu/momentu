@@ -16,7 +16,7 @@ import           Data.Binary.Extended (decodeOrFail, encodeS)
 import           Data.ByteString.Extended as BS
 import qualified Data.Map as Map
 import qualified Data.Monoid as Monoid
-import           GUI.Momentu.Animation.Id (AnimId)
+import           GUI.Momentu.Element.Id (AnimId)
 import           GUI.Momentu.Rect (Rect)
 import           GUI.Momentu.Widget.Id (Id(..))
 import qualified GUI.Momentu.Widget.Id as Id

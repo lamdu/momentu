@@ -1,5 +1,5 @@
 {-# LANGUAGE DefaultSignatures, ScopedTypeVariables #-}
-module GUI.Momentu.Animation.Id
+module GUI.Momentu.Element.Id
     ( AnimId
     , augmentId
     , ElemIds(..)

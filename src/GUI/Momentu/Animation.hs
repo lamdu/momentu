@@ -9,13 +9,13 @@ module GUI.Momentu.Animation
     , coloredRectangle
     , translate, scale
     , singletonFrame, singletonUnitImage
-    , module GUI.Momentu.Animation.Id
+    , module GUI.Momentu.Element.Id
     ) where
 
 import           Control.DeepSeq (NFData(..), deepseq)
 import qualified Control.Lens as Lens
 import           Data.Vector.Vector2 (Vector2(..))
-import           GUI.Momentu.Animation.Id
+import           GUI.Momentu.Element.Id
 import           GUI.Momentu.Rect (Rect(Rect))
 import qualified GUI.Momentu.Rect as Rect
 import           Graphics.DrawingCombinators (R, (%%))

@@ -7,7 +7,7 @@ module GUI.Momentu.Widget.Id
 import qualified Control.Lens as Lens
 import           Data.List (intercalate)
 import           Data.List.Lens (prefixed)
-import           GUI.Momentu.Animation.Id (AnimId)
+import           GUI.Momentu.Element.Id (AnimId)
 import           Numeric.Extended (encodeHex)
 
 import           GUI.Momentu.Prelude

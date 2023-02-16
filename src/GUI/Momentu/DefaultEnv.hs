@@ -3,7 +3,7 @@ module GUI.Momentu.DefaultEnv where
 
 import qualified Control.Lens as Lens
 import           Data.Vector.Vector2 (Vector2(..))
-import           GUI.Momentu.Animation.Id (AnimId)
+import           GUI.Momentu.Element.Id (AnimId)
 import qualified GUI.Momentu.Direction as Direction
 import qualified GUI.Momentu.Element as Element
 import qualified GUI.Momentu.EventMap as EventMap

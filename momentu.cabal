@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -45,13 +45,13 @@ library
       GUI.Momentu.Align
       GUI.Momentu.Animation
       GUI.Momentu.Animation.Engine
-      GUI.Momentu.Animation.Id
       GUI.Momentu.DataFiles
       GUI.Momentu.DefaultEnv
       GUI.Momentu.Direction
       GUI.Momentu.Draw
       GUI.Momentu.Draw.FPS
       GUI.Momentu.Element
+      GUI.Momentu.Element.Id
       GUI.Momentu.EventMap
       GUI.Momentu.FocusDirection
       GUI.Momentu.Font
