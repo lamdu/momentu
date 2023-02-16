@@ -40,7 +40,7 @@ import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import           GUI.Momentu.Element (Element)
 import qualified GUI.Momentu.Element as Element
-import           GUI.Momentu.Element.Id (ElemId(..))
+import           GUI.Momentu.Element.Id (ElemId(..), asElemId)
 import           GUI.Momentu.EventMap (EventMap)
 import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
@@ -255,7 +255,7 @@ _drawCursorRects animId env str =
     & mconcat
     where
         drawRect i rect =
-            Anim.augmentId i (animId <> "text-cursor")
+            animId <> "text-cursor" <> asElemId i
             & Anim.unitSquare
             -- & Anim.unitImages %~ Draw.tint (Draw.Color 1 1 1 1)
             & Anim.scale (rect ^. Rect.size)

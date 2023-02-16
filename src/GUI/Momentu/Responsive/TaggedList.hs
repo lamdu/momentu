@@ -174,7 +174,7 @@ indentedListItem =
         pure (
             \idx (TaggedItem pre item post) ->
             (pre ^.. Lens._Just <&> fromWithTextPos)
-            <> [vertLayoutMaybeDisambiguate (indent (Anim.augmentId idx indentPrefix))
+            <> [vertLayoutMaybeDisambiguate (indent (indentPrefix <> Anim.asElemId idx))
                 (maybe id (flip (/|/)) post item)]
             & box
             )

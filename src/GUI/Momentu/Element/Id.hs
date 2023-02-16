@@ -2,7 +2,7 @@
 module GUI.Momentu.Element.Id
     ( ElemId(..)
     , ElemIds(..)
-    , augmentId, subId, isSubId
+    , asElemId, subId, isSubId
     ) where
 
 import           Control.DeepSeq (NFData)
@@ -33,8 +33,8 @@ class ElemIds t where
         in  pure ()
             & Lens.traversed %@~ const . ElemId . (typeStr :) . (:[]) . encodeS
 
-augmentId :: Show a => a -> ElemId -> ElemId
-augmentId x animId = animId <> ElemId [show x & SBS8.pack]
+asElemId :: Show a => a -> ElemId
+asElemId x = ElemId [show x & SBS8.pack]
 
 subId :: ElemId -> ElemId -> Maybe ElemId
 ElemId short `subId` ElemId long = long ^? Lens.prefixed short <&> ElemId

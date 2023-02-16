@@ -12,9 +12,10 @@ module GUI.Momentu.Element
 
 import qualified Control.Lens as Lens
 import           Data.Vector.Vector2 (Vector2(..))
-import           GUI.Momentu.Animation (ElemId, R, Size)
+import           GUI.Momentu.Animation (R, Size)
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
+import           GUI.Momentu.Element.Id (ElemId, asElemId)
 import qualified Graphics.DrawingCombinators as Draw
 
 import           GUI.Momentu.Prelude
@@ -89,7 +90,7 @@ instance HasElemIdPrefix ElemId where elemIdPrefix = id
 
 locallyAugmented ::
     (HasElemIdPrefix env, MonadReader env m, Show t) => t -> m a -> m a
-locallyAugmented x = Lens.locally elemIdPrefix (Anim.augmentId x)
+locallyAugmented x = Lens.locally elemIdPrefix (<> asElemId x)
 
 subElemId :: (MonadReader env m, HasElemIdPrefix env) => m (ElemId -> ElemId)
 subElemId = Lens.view elemIdPrefix <&> (<>)

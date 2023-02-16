@@ -5,11 +5,10 @@ module Tests.WidgetGlue
 
 import           Control.Applicative ((<|>))
 import qualified Control.Lens as Lens
-import           Data.Binary.Extended (encodeS)
 import           Data.Semigroup (First(..), Last(..))
 import           Data.Vector.Vector2 (Vector2)
 import qualified GUI.Momentu.Direction as Dir
-import           GUI.Momentu.Element.Id (ElemId(..))
+import           GUI.Momentu.Element.Id (ElemId(..), asElemId)
 import qualified GUI.Momentu.EventMap as EventMap
 import           GUI.Momentu.Glue
 import qualified GUI.Momentu.Hover as Hover
@@ -141,7 +140,7 @@ propStrollsCorrectly tree =
             (toWidgetFocused treeWithIds :: Widget Identity)
             ^?! Widget.wState . Widget._StateFocused
         treeWithIds =
-            tree & Lens.traversed . Lens._Just %@~ (\idx () -> ElemId [encodeS idx])
+            tree & Lens.traversed . Lens._Just %@~ const asElemId
 
 test :: TestTree
 test =

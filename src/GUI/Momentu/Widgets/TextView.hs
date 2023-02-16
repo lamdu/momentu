@@ -17,7 +17,7 @@ import qualified Data.Text.Bidi as Bidi
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (WithTextPos(..), TextWidget)
 import qualified GUI.Momentu.Align as Align
-import           GUI.Momentu.Animation (ElemId)
+import           GUI.Momentu.Animation (ElemId, asElemId)
 import qualified GUI.Momentu.Animation as Anim
 import qualified GUI.Momentu.Direction as Dir
 import           GUI.Momentu.Font (Font, RenderedText(..), renderedText, renderedTextSize, bounding, advance)
@@ -69,7 +69,7 @@ nestedFrame ::
 nestedFrame env (i, RenderedText size img) =
     RenderedText size draw
     where
-        toFrame animId = Anim.singletonFrame anchorSize (Anim.augmentId i animId)
+        toFrame animId = Anim.singletonFrame anchorSize (animId <> asElemId i)
         widthV = Vector2 (size ^. bounding . _1) 0
         draw animId =
             case env ^. has of
