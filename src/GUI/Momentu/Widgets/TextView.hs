@@ -79,17 +79,14 @@ nestedFrame env (i, RenderedText size img) =
                 & Anim.translate widthV
         anchorSize = env ^. has & lineHeight & pure
 
-drawText ::
-    (MonadReader env m, HasStyle env) => m (Text -> RenderedText (ElemId -> Anim.Frame))
-drawText =
-    Lens.view id
-    <&> \env text ->
-    nestedFrame env ("text" :: Text, fontRender (env ^. has) text)
+drawText :: (MonadReader env m, HasStyle env) => Text -> m (RenderedText (ElemId -> Anim.Frame))
+drawText text =
+    Lens.view id <&> \env -> nestedFrame env ("text" :: Text, fontRender (env ^. has) text)
 
-make :: (MonadReader env m, HasStyle env) => m (Text -> ElemId -> WithTextPos View)
-make =
-    drawText <&> \draw text animId ->
-    let RenderedText textSize frame = draw text
+make :: (MonadReader env m, HasStyle env) => Text -> ElemId -> m (WithTextPos View)
+make text animId =
+    drawText text <&> \draw ->
+    let RenderedText textSize frame = draw
     in  WithTextPos
         { _textTop = 0
         , _tValue = View.make (textSize ^. bounding) (frame animId)
@@ -97,11 +94,6 @@ make =
 
 makeFocusable ::
     (MonadReader env m, Applicative f, State.HasCursor env, HasStyle env) =>
-    m (Text -> ElemId -> TextWidget f)
-makeFocusable =
-    do
-        toFocusable <- Widget.makeFocusableView
-        mkText <- make
-        pure $ \text myId ->
-            mkText text myId
-            & Align.tValue %~ toFocusable myId
+    Text -> ElemId -> m (TextWidget f)
+makeFocusable text myId =
+    make text myId >>= Align.tValue (Widget.makeFocusableView myId)

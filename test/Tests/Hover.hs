@@ -34,7 +34,7 @@ testHover topLeft bottomRight widget =
             | rectWithin a paddedRect = pure ()
             | otherwise =
                 assertString ("hover out of screen: " <> show (a, paddedRect))
-        padded = Element.pad env topLeft bottomRight widget
+        padded = Element.pad topLeft bottomRight widget env
         paddedRect = R.Rect 0 (padded ^. W.wSize)
         rectWithin inner outer =
             R.isWithin (inner ^. R.topLeft) outer &&
@@ -63,21 +63,19 @@ positioningTest =
     where
         widget =
             H.hoverInPlaceOf
-            (H.hoverBesideOptions env (H.hover env focusedSquare) anchor)
+            (H.hoverBesideOptions (H.hover focusedSquare env) anchor env)
             anchor
         anchor =
             square
             & W.takesFocus (const (pure "blah"))
-            & H.anchor env
+            & (`H.anchor` env)
 
 anchorPointTest :: TestTree
 anchorPointTest =
     assertEqual "unexpected anchor point" (widget ^. H.unHover . H.anchorPoint) (Vector2 0 1)
     & testCase "anchor-point"
     where
-        widget =
-            (H.hover ?? square) /-/ (H.anchor ?? square)
-            $ env
+        widget = env & H.hover square /-/ H.anchor square
 
 test :: TestTree
 test =

@@ -49,7 +49,7 @@ propGridSensibleSize viewConfs =
     where
         isFinite x = not (isNaN x || isInfinite x)
         views = viewsFromConf viewConfs
-        (alignments, grid) = GridView.make Dir.LeftToRight views
+        (alignments, grid) = GridView.make views Dir.LeftToRight
         (size, placements) = GridView.makePlacements views
         goodPlacement (Aligned alignment (place, view)) =
             vSize == place ^. Rect.size &&
@@ -103,14 +103,14 @@ gridStrollTest =
     where
         makeGrid :: Int -> Widget Identity
         makeGrid pos =
-            Grid.make env
+            Grid.make
             [ [ Aligned 0 (mkWidget pos 0)
               , Aligned 0 (mkWidget pos 1)
               ]
             , [ Aligned 0 (mkWidget pos 2)
               , Aligned 0 (mkWidget pos 3)
               ]
-            ] & snd
+            ] env & snd
         eventCtx = W.EventContext (VirtualCursor (Rect 0 0)) ""
         getEventMap :: Widget Identity -> E.EventMap (Identity State.Update)
         getEventMap w =
@@ -136,11 +136,11 @@ gridStrollTest =
                 pure (makeGrid idx)
         mkWidget :: Int -> Int -> Widget Identity
         mkWidget pos i =
-            W.makeFocusableView
+            W.makeFocusableView myId (View.make 1 mempty)
             GUIState
             { _sCursor = toCursor pos
             , _sWidgetStates = mempty
-            } myId (View.make 1 mempty)
+            }
             & W.takesStroll myId
             where
                 myId = toCursor i
@@ -164,12 +164,11 @@ verticalDisambigTest =
                     , Responsive._layoutNeedDisambiguation = needDisamb
                     }
                 box =
-                    Options.box env disambig [unitItem, unitItem]
+                    Options.box disambig [unitItem, unitItem] env
                     &
                         -- to avoid ambiguous type var
                         W.widget . W.wState . Lens.mapped %~ (<>[])
-        unitItem =
-            Element.pad Dir.LeftToRight 0 1 Element.empty
+        unitItem = Element.pad 0 1 Element.empty Dir.LeftToRight
         disambig =
             Options.disambiguationNone
-            & Options.disambVert .~ Element.pad Dir.LeftToRight (Vector2 0.5 0) 0
+            & Options.disambVert .~ (Element.pad (Vector2 0.5 0) 0 ?? Dir.LeftToRight)

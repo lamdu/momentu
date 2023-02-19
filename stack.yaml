@@ -9,7 +9,7 @@ extra-deps:
 - stb-image-0.2.1
 - unicode-properties-3.2.0.0
 - github: lamdu/bindings-freetype-gl
-  commit: abcb891cf2ed01edb2d02197ef2b354d6ff43db5
+  commit: 8d311d96c5fa7fcfb5b79d057c9c24944d5d234b
 - github: lamdu/graphics-drawingcombinators
   commit: 39500dd189b0676468848d1f452ac31c7f0ec461
 - github: lamdu/freetype2

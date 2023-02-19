@@ -227,7 +227,7 @@ basicSearchTermEdit searchTermId menuId rawAllowedSearchTerm textEditEmpty =
                             Just (Menu.resultsIdPrefix menuId) ^. Lens._Unwrapped
                         else id
         widget <-
-            TextEdit.makeWithElemId ?? textEditEmpty ?? searchTerm ?? searchTermId ?? searchTermEditId menuId
+            TextEdit.makeWithElemId textEditEmpty searchTerm searchTermId (searchTermEditId menuId)
             <&> Align.tValue . Widget.eventMapMaker . Lens.mapped %~
                 E.filter (_tcTextEdit . allowedSearchTerm . fst)
             <&> Align.tValue . Widget.updates %~ pure . onEvents
@@ -248,13 +248,12 @@ searchTermDoc env subtitle =
     E.toDoc env [has . MomentuTexts.edit, has . textSearchTerm, subtitle]
 
 addDelSearchTerm ::
-    ( MonadReader env m, State.HasState env, HasTexts env, Has (Config ModKey) env, Applicative f
-    ) =>
-    ElemId -> m (Term f -> Term f)
-addDelSearchTerm menuId =
+    (MonadReader env m, State.HasState env, HasTexts env, Has (Config ModKey) env, Applicative f) =>
+    ElemId -> Term f -> m (Term f)
+addDelSearchTerm menuId term =
     Lens.view id
     <&>
-    \env term ->
+    \env ->
     let searchTerm = readSearchTerm menuId env
         delSearchTerm
             | Text.null searchTerm = mempty
@@ -270,22 +269,19 @@ viewDoc :: HasTexts env => env -> Lens.ALens' env Text -> E.Doc
 viewDoc env subtitle = E.toDoc env [has . MomentuTexts.view, subtitle]
 
 addSearchTermBgColor ::
-    ( MonadReader env m, State.HasCursor env, Has TermStyle env, Functor f
-    ) => ElemId -> m (TextWidget f -> TextWidget f)
-addSearchTermBgColor menuId =
+    (MonadReader env m, State.HasCursor env, Has TermStyle env, Functor f) =>
+    ElemId -> TextWidget f -> m (TextWidget f)
+addSearchTermBgColor menuId widget =
     do
-        isActive <- State.isSubCursor ?? menuId
+        isActive <- State.isSubCursor menuId
         bgColor <-
-            Lens.view
-            (has . bgColors .
-                if isActive then TextEdit.focused else TextEdit.unfocused)
-        Draw.backgroundColor bgElemId bgColor & pure
+            Lens.view (has . bgColors . if isActive then TextEdit.focused else TextEdit.unfocused)
+        Draw.backgroundColor bgColor widget bgElemId & pure
     where
         bgElemId = menuId <> "hover background"
 
 addSearchTermEmptyColors ::
-    ( MonadReader env m, Has TermStyle env, Has TextEdit.Style env
-    ) =>
+    (MonadReader env m, Has TermStyle env, Has TextEdit.Style env) =>
     m a -> m a
 addSearchTermEmptyColors act =
     do
@@ -299,28 +295,23 @@ searchTermEdit ::
     ) =>
     ElemId -> (Text -> TermCtx Bool) -> Menu.PickFirstResult f -> m (Term f)
 searchTermEdit menuId allowedSearchTerm mPickFirst =
-    ( (.)
-        <$> addPickFirstResultEvent mPickFirst
-        <*> addSearchTermBgColor menuId
-        <&> (termWidget %~)
-    )
-    <*>
-        ( Lens.view (has . emptyStrings)
-            >>= basicSearchTermEdit (searchTermEditId menuId) menuId allowedSearchTerm
-            & (addDelSearchTerm menuId <*>)
-        )
+    Lens.view (has . emptyStrings)
+    >>= basicSearchTermEdit (searchTermEditId menuId) menuId allowedSearchTerm
+    >>= addDelSearchTerm menuId
+    >>= termWidget (addSearchTermBgColor menuId)
+    >>= termWidget (addPickFirstResultEvent mPickFirst)
     & addSearchTermEmptyColors
 
 -- Add events on search term to pick the first result.
 addPickFirstResultEvent ::
     (MonadReader env m, HasConfig env, HasTexts env, Applicative f) =>
     Menu.PickFirstResult f ->
-    m (TextWidget f -> TextWidget f)
-addPickFirstResultEvent mPickFirst =
+    TextWidget f -> m (TextWidget f)
+addPickFirstResultEvent mPickFirst widget =
     case mPickFirst of
     Menu.NoPickFirstResult -> emptyPickEventMap
-    Menu.PickFirstResult pickFirst -> Menu.makePickEventMap ?? pickFirst
-    <&> (Align.tValue %~) . Widget.weakerEvents
+    Menu.PickFirstResult pickFirst -> Menu.makePickEventMap pickFirst
+    <&> \eventMap -> widget & Align.tValue %~ Widget.weakerEvents eventMap
 
 assignCursor ::
     (MonadReader env m, HasState env) =>
@@ -344,15 +335,13 @@ assignCursor menuId resultIds action =
         -- but the cursor prefix signifies whether we should be on a result.
         -- When that is the case but is not currently on any of the existing results
         -- the cursor will be sent to the default one.
-        shouldBeOnResult <- sub (Menu.resultsIdPrefix menuId)
-        isOnResult <- traverse sub resultIds <&> or
+        shouldBeOnResult <- State.isSubCursor (Menu.resultsIdPrefix menuId)
+        isOnResult <- traverse State.isSubCursor resultIds <&> or
 
         action
             & if shouldBeOnResult && not isOnResult
             then Reader.local (State.cursor .~ destId)
             else State.assignCursor menuId destId
-    where
-        sub x = State.isSubCursor ?? x
 
 enterWithSearchTerm :: Text -> ElemId -> State.Update
 enterWithSearchTerm searchTerm menuId =
@@ -369,9 +358,9 @@ make ::
     (MonadReader env m, Applicative f, Deps env) =>
     (Menu.PickFirstResult f -> m (Term f)) ->
     (ResultsContext -> m (Menu.OptionList (Menu.Option m f))) ->
-    View -> ElemId ->
-    m (Menu.Placement -> TextWidget f)
-make makeSearchTerm makeOptions ann menuId =
+    View -> ElemId -> Menu.Placement ->
+    m (TextWidget f)
+make makeSearchTerm makeOptions ann menuId placement =
     do
         WidgetState searchTerm isOpen <- readState menuId
 
@@ -384,7 +373,7 @@ make makeSearchTerm makeOptions ann menuId =
                 setIsOpen True & pure
                 & E.keyPresses (openKeys env) (viewDoc env (has . textOpenResults))
 
-        isSelected <- State.isSubCursor ?? menuId
+        isSelected <- State.isSubCursor menuId
         (mPickFirst, toMenu, assignTheCursor) <-
             if isSelected
             then if isOpen
@@ -393,7 +382,7 @@ make makeSearchTerm makeOptions ann menuId =
                         ResultsContext searchTerm (Menu.resultsIdPrefix menuId) & makeOptions
                     let assignTheCursor = assignCursor menuId (options ^.. traverse . Menu.oId)
                     (mPickFirst, makeMenu) <- Menu.makeHovered menuId ann options & assignTheCursor
-                    let makeTheMenu term placement =
+                    let makeTheMenu term =
                             Widget.weakerEventsWithoutPreevents (closeEventMap mempty)
                             <&> makeMenu placement
                             ( Align.tValue %~
@@ -404,14 +393,14 @@ make makeSearchTerm makeOptions ann menuId =
                 else
                     pure
                     ( Menu.NoPickFirstResult
-                    , (const . const . Widget.strongerEventsWithoutPreevents) openEventMap
+                    , (const . Widget.strongerEventsWithoutPreevents) openEventMap
                     , assignCursor menuId []
                     )
             else
-                pure (Menu.NoPickFirstResult, const (const id), assignCursor menuId [])
+                pure (Menu.NoPickFirstResult, const id, assignCursor menuId [])
         makeSearchTerm mPickFirst
-            <&> (\term placement -> term ^. termWidget & Align.tValue %~ toMenu term placement)
-            <&> Lens.mapped . Lens.mapped . Widget.enterResultCursor .~ menuId
+            <&> (\term -> term ^. termWidget & Align.tValue %~ toMenu term)
+            <&> Lens.mapped . Widget.enterResultCursor .~ menuId
             & Reader.local (Element.elemIdPrefix .~ menuId)
             & assignTheCursor
     where

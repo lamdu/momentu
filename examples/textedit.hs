@@ -48,12 +48,8 @@ mkTextEdit ::
     IORef ioref -> Text -> Text -> M.ElemId -> Lens.ALens' ioref Text ->
     IO (env -> Widget.Widget IO)
 mkTextEdit textRef uempty fempty myId alens =
-    readIORef textRef
-    <&> (^# alens)
-    <&> \curText localEnv ->
-    TextEdit.make localEnv (TextEdit.Modes uempty fempty)
-    curText myId
+    readIORef textRef <&> (^# alens) <&>
+    \curText localEnv ->
+    TextEdit.make (TextEdit.Modes uempty fempty) curText myId localEnv
     & (^. M.tValue)
-    & Widget.updates %~
-    \(newText, update) ->
-        update <$ modifyIORef textRef (alens #~ newText)
+    & Widget.updates %~ \(newText, update) -> update <$ modifyIORef textRef (alens #~ newText)

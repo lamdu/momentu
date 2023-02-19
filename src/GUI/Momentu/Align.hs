@@ -156,7 +156,7 @@ glueHelper chooseAlign env orientation (aAbsAlign, aw) (bAbsAlign, bw) =
         aToB = bAbsAlign - aAbsAlign & l .~ 0
         bToA = -aToB
         syncAlign :: Element a => Vector2 R -> a -> a
-        syncAlign move = Element.pad env (max 0 move) 0
+        syncAlign move = Element.pad (max 0 move) 0 ?? env
 
 {-# INLINE asTuple #-}
 asTuple :: Lens.Iso (Aligned a) (Aligned b) (Vector2 R, a) (Vector2 R, b)
@@ -182,15 +182,15 @@ absAligned =
 
 boxAlign ::
     (MonadReader env m, SizedElement a, GluesTo env a a a, Glue.HasTexts env) =>
-    m (Dir.Orientation -> Widget.R -> [a] -> a)
-boxAlign = Glue.box <&> \box o r xs -> box o (xs <&> Aligned (pure r)) ^. value
+    Dir.Orientation -> Widget.R -> [a] -> m a
+boxAlign o r xs = Glue.box o (xs <&> Aligned (pure r)) <&> (^. value)
 
 vboxAlign ::
     (MonadReader env m, SizedElement a, GluesTo env a a a, Glue.HasTexts env) =>
-    m (Widget.R -> [a] -> a)
-vboxAlign = boxAlign ?? Dir.Vertical
+    Widget.R -> [a] -> m a
+vboxAlign = boxAlign Dir.Vertical
 
 hboxAlign ::
     (MonadReader env m, SizedElement a, GluesTo env a a a, Glue.HasTexts env) =>
-    m (Widget.R -> [a] -> a)
-hboxAlign = boxAlign ?? Dir.Horizontal
+    Widget.R -> [a] -> m a
+hboxAlign = boxAlign Dir.Horizontal

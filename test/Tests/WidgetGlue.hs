@@ -89,11 +89,10 @@ toWidgetFocused (FocusedGlue hoverMode glueOrder orientation foc unf) =
         focW = toWidgetFocused foc
         unfW = toWidgetUnfocused unf
         mkHover pop anc =
-            Hover.hoverInPlaceOf
-            [glueFocused glueOrder orientation (hov pop)
-                (Hover.anchor Dir.LeftToRight anc)]
-            (Hover.anchor Dir.LeftToRight anc)
-        hov = Hover.hover TestEnv.env
+            Hover.hoverInPlaceOf [glueFocused glueOrder orientation (hov pop) a] a
+            where
+                a = Hover.anchor anc Dir.LeftToRight
+        hov = (`Hover.hover` TestEnv.env)
 
 propFocusedWidgetHasFocus :: FocusedWidget () -> Bool
 propFocusedWidgetHasFocus tree =

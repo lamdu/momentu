@@ -16,6 +16,7 @@ module GUI.Momentu.Glue
 
 import qualified Control.Lens as Lens
 import qualified Data.Aeson.TH.Extended as JsonTH
+import           Data.Foldable (foldrM)
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Direction (Orientation(..), axis, perpendicular)
 import qualified GUI.Momentu.Direction as Dir
@@ -61,33 +62,39 @@ type GluesTo env a b c = (Glue env a b, Glue env b a, Glued a b ~ c)
 
 newtype Poly env = Poly { polyGlue :: forall a b. Glue env a b => a -> b -> Glued a b }
 
-mkPoly :: MonadReader env m => m (Orientation -> Poly env)
-mkPoly = Lens.view id <&> \env orientation -> Poly (glue env orientation)
+mkPoly :: MonadReader env m => Orientation -> m (Poly env)
+mkPoly orientation = Lens.view id <&> \env -> Poly (glue env orientation)
 
 mkGlue ::
     (MonadReader env m, Glue env a b) =>
-    m (Orientation -> a -> b -> Glued a b)
-mkGlue = Lens.view id <&> glue
+    Orientation -> a -> b -> m (Glued a b)
+mkGlue orientation l r = Lens.view id <&> glue ?? orientation ?? l ?? r
 
 -- Horizontal glue
 (/|/) ::
     (MonadReader env m, Glue env a b) =>
     m a -> m b -> m (Glued a b)
-l /|/ r = (mkGlue ?? Horizontal) <*> l <*> r
+mkL /|/ mkR =
+    do
+        l <- mkL
+        mkR >>= mkGlue Horizontal l
 
 -- Vertical glue
 (/-/) ::
     (MonadReader env m, Glue env a b) =>
     m a -> m b -> m (Glued a b)
-l /-/ r = (mkGlue ?? Vertical) <*> l <*> r
+mkL /-/ mkR =
+    do
+        l <- mkL
+        mkR >>= mkGlue Vertical l
 
 glueH ::
     (SizedElement a, SizedElement b, Has Dir.Layout env) =>
     (a -> b -> c) -> env -> Orientation -> a -> b -> c
 glueH f direction orientation v0 v1 =
     f
-    (Element.pad direction v0pre v0post v0)
-    (Element.pad direction v1pre v1post v1)
+    (Element.pad v0pre v0post v0 direction)
+    (Element.pad v1pre v1post v1 direction)
     where
         v0pre = 0
         v0post = v1s & perp -~ v0s ^. perp & perp %~ max 0
@@ -101,15 +108,15 @@ glueH f direction orientation v0 v1 =
 
 box ::
     (Element a, GluesTo env a a a, MonadReader env m, Foldable t) =>
-    m (Orientation -> t a -> a)
-box = mkGlue <&> \g orientation -> foldr (g orientation) Element.empty
+    Orientation -> t a -> m a
+box orientation = foldrM (mkGlue orientation) Element.empty
 
 hbox ::
     (Element a, GluesTo env a a a, MonadReader env m, Foldable t) =>
-    m (t a -> a)
-hbox = box ?? Horizontal
+    t a -> m a
+hbox = box Horizontal
 
 vbox ::
     (Element a, GluesTo env a a a, MonadReader env m, Foldable t) =>
-    m (t a -> a)
-vbox = box ?? Vertical
+    t a -> m a
+vbox = box Vertical

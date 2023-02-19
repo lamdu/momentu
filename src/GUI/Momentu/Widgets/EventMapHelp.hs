@@ -138,13 +138,12 @@ groupInputDocs :: [([Text], r)] -> [([Text], [r])]
 groupInputDocs = (^@.. Lens.itraversed) . Map.fromListWith (<>) . (Lens.traversed . _2 %~ (:[]))
 
 makeShortcutKeyView ::
-    ( MonadReader env m, Glue.HasTexts env, HasStyle env
-    , Element.HasElemIdPrefix env
-    ) => [(CallStack, E.InputDoc)] -> m (WithTextPos View)
+    (MonadReader env m, Glue.HasTexts env, HasStyle env, Element.HasElemIdPrefix env) =>
+    [(CallStack, E.InputDoc)] -> m (WithTextPos View)
 makeShortcutKeyView inputDocs =
     do
         inputDocColor <- Lens.view (has . styleInputDocColor)
-        (Align.vboxAlign ?? 1) <*> Lens.itraverse makeInputDoc inputDocs
+        Lens.itraverse makeInputDoc inputDocs >>= Align.vboxAlign 1
             & setColor inputDocColor
     where
         topOf callStack =
@@ -168,9 +167,8 @@ makeShortcutKeyView inputDocs =
         setColor color = Reader.local $ \env -> env & TextView.color .~ color
 
 makeTextViews ::
-    ( MonadReader env m, HasStyle env, Glue.HasTexts env
-    , Element.HasElemIdPrefix env
-    ) => Tree Text [(CallStack, E.InputDoc)] ->
+    (MonadReader env m, HasStyle env, Glue.HasTexts env, Element.HasElemIdPrefix env) =>
+    Tree Text [(CallStack, E.InputDoc)] ->
     m (Tree (WithTextPos View) (WithTextPos View))
 makeTextViews =
     go
@@ -199,13 +197,12 @@ make ::
     ) => Vector2 R -> EventMap a -> m View
 make size eventMap =
     do
-        mkTreeView <- makeTreeView ?? size
         docs <- E.emDocHandlers
         eventMap ^@.. docs
             <&> fromDocHandler . Tuple.swap
             & groupInputDocs & groupTree
             & traverse makeTextViews
-            <&> mkTreeView
+            >>= makeTreeView size
     where
         fromDocHandler (docHandler, inputDoc) =
             (docHandler ^. E.dhDoc . E.docStrs,
@@ -238,8 +235,9 @@ makeTooltip =
             <&> (^. Align.tValue)
 
 mkIndent ::
-    (Glue.GluesTo env View e r, MonadReader env m) => m (R -> e -> r)
-mkIndent = Glue.mkGlue <&> \glue -> glue Glue.Horizontal . Spacer.makeHorizontal
+    (Glue.GluesTo env View e r, MonadReader env m) =>
+    R -> e -> m r
+mkIndent = Glue.mkGlue Glue.Horizontal . Spacer.makeHorizontal
 
 fontHeight :: (MonadReader env m, Has TextView.Style env) => m R
 fontHeight =
@@ -247,50 +245,43 @@ fontHeight =
 
 makeFlatTreeView ::
     (MonadReader env m, Has TextView.Style env, Glue.HasTexts env) =>
-    m (Vector2 R -> [(View, View)] -> View)
-makeFlatTreeView =
-    (,,)
-    <$> Align.hboxAlign
-    <*> (fontHeight <&> Spacer.makeHorizontal)
-    <*> GridView.make
-    <&> \(box, space, mkGrid) size pairs ->
-    let colViews =
+    Vector2 R -> [(View, View)] -> m View
+makeFlatTreeView size pairs =
+    do
+        space <- fontHeight <&> Spacer.makeHorizontal
+        colViews <-
             pairs
             & columns (size ^. _2) pairHeight
             <&> map toRow
-            <&> mkGrid
-            <&> snd
-    in  List.intersperse space colViews & box 1
+            & traverse GridView.make
+            <&> Lens.mapped %~ snd
+        List.intersperse space colViews & Align.hboxAlign 1
     where
         toRow (titleView, docView) = [Aligned 0 titleView, Aligned (Vector2 1 0) docView]
         pairHeight (titleView, docView) = (max `on` (^. Element.height)) titleView docView
 
 makeTreeView ::
     (MonadReader env m, Has TextView.Style env, Glue.HasTexts env) =>
-    m (Vector2 R -> [Tree (WithTextPos View) (WithTextPos View)] -> View)
-makeTreeView =
+    Vector2 R -> [Tree (WithTextPos View) (WithTextPos View)] -> m View
+makeTreeView size trees =
     do
-        indent <- mkIndent
-        indentWidth <- fontHeight
-        box <- Align.vboxAlign
-        let go ts = ts <&> fromTree & mconcat
-            fromTree (Leaf inputDocsView) = ([], [inputDocsView])
+        let go ts = traverse fromTree ts <&> mconcat
+            fromTree (Leaf inputDocsView) = pure ([], [inputDocsView])
             fromTree (Branch titleView ts) =
-                ( (titleView, box 1 inputDocs) :
-                    (Lens.traversed . _1 %~ indent indentWidth) titles
-                , [] )
-                where
-                    (titles, inputDocs) = go ts
-        let handleResult (pairs, []) =
-                pairs <&> Lens.both %~ (^. Align.tValue)
+                do
+                    (titles, inputDocs) <- go ts
+                    b <- Align.vboxAlign 1 inputDocs
+                    h <- fontHeight
+                    t <- (traverse . _1) (mkIndent h) titles
+                    pure ((titleView, b) : t, [])
+        let handleResult (pairs, []) = pairs <&> Lens.both %~ (^. Align.tValue)
             handleResult _ = error "Leafs at root of tree!"
-        makeFlatTreeView
-            <&> \mk size trees -> mk size (handleResult (go trees))
+        go trees <&> handleResult >>= makeFlatTreeView size
 
 hoverEdge ::
     (MonadReader env m, Element.SizedElement a, Has Dir.Layout env) =>
-    Widget.Size -> m (a -> a)
-hoverEdge size = Element.padToSize ?? size ?? 1
+    Widget.Size -> a -> m a
+hoverEdge = (`Element.padToSize` 1)
 
 toggle :: IsHelpShown -> IsHelpShown
 toggle HelpShown = HelpNotShown
@@ -305,13 +296,11 @@ addHelpViewWith ::
     Widget.Focused (f a) -> m (Widget.Focused (f a))
 addHelpViewWith mkHelpView size focus =
     do
-        helpView <-
-            (.)
-            <$> (Element.tint <$> Lens.view (has . styleTint))
-            <*> (MDraw.backgroundColor helpElemId <$> Lens.view (has . styleBGColor))
-            <*> mkHelpView size focus
-        atEdge <- hoverEdge size ?? helpView
-        focus & Widget.fLayers %~ Element.layeredImageAbove (atEdge ^. vAnimLayers) & pure
+        tint <- Element.tint <$> Lens.view (has . styleTint)
+        bg <- Lens.view (has . styleBGColor) <&> \c -> MDraw.backgroundColor c ?? helpElemId
+        mkHelpView size focus <&> bg <&> tint
+    >>= hoverEdge size
+    <&> \helpView ->  focus & Widget.fLayers %~ Element.layeredImageAbove (helpView ^. vAnimLayers)
 
 addHelpView ::
     ( MonadReader env m, HasStyle env
@@ -352,16 +341,15 @@ toggledHelpAdder ::
     , Element.HasElemIdPrefix env
     , Has Config env, HasStyle env, HasTexts env
     ) =>
-    m (Property f IsHelpShown -> Widget.Size -> Widget f -> Widget f)
-toggledHelpAdder =
-    Lens.view id <&> \env prop size widget ->
+    Property f IsHelpShown -> Widget.Size -> Widget f -> m (Widget f)
+toggledHelpAdder prop size widget =
+    Lens.view id <&>
+    \env ->
     widget & Widget.wState %~
     \case
     Widget.StateUnfocused {} -> error "adding help to non-focused root widget!"
     Widget.StateFocused makeFocus ->
         makeFocus
-        <&> (addHelpViewWith
-                (helpViewForState (prop ^. Property.pVal)) size ?? env)
-        <&> Widget.fEventMap . Lens.mapped %~
-            (toggleEventMap prop env <>)
+        <&> (addHelpViewWith (helpViewForState (prop ^. Property.pVal)) size ?? env)
+        <&> Widget.fEventMap . Lens.mapped %~ (toggleEventMap prop env <>)
         & Widget.StateFocused

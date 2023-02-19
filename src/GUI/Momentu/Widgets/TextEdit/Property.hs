@@ -21,42 +21,28 @@ import           GUI.Momentu.Prelude
 
 make ::
     (MonadReader env m, Applicative f, TextEdit.Deps env) =>
-    m
-    (TextEdit.EmptyStrings -> Property f Text -> ElemId ->
-     TextWidget f)
-make =
-    TextEdit.make <&> f
+    TextEdit.EmptyStrings -> Property f Text -> ElemId -> m (TextWidget f)
+make empty textRef myId =
+    TextEdit.make empty (Property.value textRef) myId <&> Align.tValue . Widget.updates %~ setter
     where
-        f mk empty textRef myId =
-            mk empty (Property.value textRef) myId
-            & Align.tValue . Widget.updates %~ setter
-            where
-                setter (newText, eventRes) =
-                    eventRes <$
-                    when (newText /= Property.value textRef)
-                    (newText & textRef ^. Property.pSet)
+        setter (newText, eventRes) =
+            eventRes <$
+            when (newText /= Property.value textRef)
+            (newText & textRef ^. Property.pSet)
 
 deleteKeyEventHandler :: ModKey -> EventMap a -> EventMap a
 deleteKeyEventHandler = E.deleteKey . E.KeyEvent ModKey.KeyState'Pressed
 
 makeLineEdit ::
     (MonadReader env m, Applicative f, TextEdit.Deps env) =>
-    m
-    (TextEdit.EmptyStrings -> Property f Text -> ElemId ->
-     TextWidget f)
-makeLineEdit =
-    make
-    <&> \mk empty textRef myId ->
-    mk empty textRef myId
-    & Align.tValue . Widget.eventMapMaker . Lens.mapped %~
-    deleteKeyEventHandler (noMods ModKey.Key'Enter)
+    TextEdit.EmptyStrings -> Property f Text -> ElemId -> m (TextWidget f)
+makeLineEdit empty textRef myId =
+    make empty textRef myId
+    <&> Align.tValue . Widget.eventMapMaker . Lens.mapped %~ deleteKeyEventHandler (noMods ModKey.Key'Enter)
 
 makeWordEdit ::
     (MonadReader env m, Applicative f, TextEdit.Deps env) =>
-    m
-    (TextEdit.EmptyStrings -> Property f Text -> ElemId -> TextWidget f)
-makeWordEdit =
-    makeLineEdit
-    <&> \mk empty textRef myId -> mk empty textRef myId
-    & Align.tValue . Widget.eventMapMaker . Lens.mapped %~
-    deleteKeyEventHandler (noMods ModKey.Key'Space)
+    TextEdit.EmptyStrings -> Property f Text -> ElemId -> m (TextWidget f)
+makeWordEdit empty textRef myId =
+    makeLineEdit empty textRef myId
+    <&> Align.tValue . Widget.eventMapMaker . Lens.mapped %~ deleteKeyEventHandler (noMods ModKey.Key'Space)

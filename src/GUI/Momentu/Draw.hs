@@ -25,22 +25,19 @@ alphaChannel f (Draw.Color r g b a) = f a <&> Draw.Color r g b
 
 backgroundColor ::
     (MonadReader env m, Element.HasElemIdPrefix env, Element a) =>
-    m (Draw.Color -> a -> a)
-backgroundColor =
-    Element.subElemId ?? "bg" <&>
-    \animId color -> Element.setLayeredImage . Element.layers %@~ \sz ->
-    addBg (Anim.coloredRectangle animId color & Anim.scale sz)
+    Draw.Color -> a -> m a
+backgroundColor color w =
+    Element.subElemId "bg" <&>
+    \animId ->
+    w & Element.setLayeredImage . Element.layers %@~ \sz -> addBg (Anim.coloredRectangle animId color & Anim.scale sz)
     where
         addBg bg [] = [bg]
         addBg bg (x:xs) = x <> bg : xs
 
 addInnerFrame ::
     (MonadReader env m, Element.HasElemIdPrefix env, Element a) =>
-    m (Draw.Color -> Vector2 R -> a -> a)
-addInnerFrame =
-    Element.subElemId ?? "inner-frame" <&>
-    \animId color frameWidth -> Element.bottomLayer %@~ \sz ->
-    mappend
-    ( Anim.emptyRectangle frameWidth sz animId
-        & Anim.unitImages %~ Draw.tint color
-    )
+    Draw.Color -> Vector2 R -> a -> m a
+addInnerFrame color frameWidth w =
+    Element.subElemId "inner-frame" <&>
+    \animId ->
+    w & Element.bottomLayer %@~ \sz -> mappend (Anim.emptyRectangle frameWidth sz animId & Anim.unitImages %~ Draw.tint color)

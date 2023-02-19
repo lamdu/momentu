@@ -24,13 +24,10 @@ defaultConfig = Config Vertical
 
 make ::
     (MonadReader env m, Applicative f, Functor t, Foldable t, Glue.HasTexts env) =>
-    m ((childId -> f ()) -> t (childId, TextWidget f) -> Config -> TextWidget f)
-make =
-    Glue.box <&>
-    \box choose children config ->
-    let orientation = lbOrientation config
+    (childId -> f ()) -> t (childId, TextWidget f) -> Config -> m (TextWidget f)
+make choose children config =
+    Glue.box (lbOrientation config) (children <&> prependEntryAction)
+    where
         prependEntryAction (item, w) =
             w & Align.tValue . Widget.wState . Widget._StateUnfocused .
                 Widget.uMEnter . Lens._Just . Lens.mapped . Widget.enterResultEvent %~ (choose item *>)
-    in
-    children <&> prependEntryAction & box orientation

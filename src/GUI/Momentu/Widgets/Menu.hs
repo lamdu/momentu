@@ -21,7 +21,7 @@ module GUI.Momentu.Widgets.Menu
     ) where
 
 import qualified Control.Lens as Lens
-import qualified Control.Monad.Reader as Reader
+import qualified Control.Monad.Reader.Extended as Reader
 import qualified Data.Aeson.TH.Extended as JsonTH
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (WithTextPos, TextWidget, Aligned(..))
@@ -181,9 +181,9 @@ makeNoResults ::
     ) =>
     Bool -> m (WithTextPos View)
 makeNoResults isTruncated =
-    TextView.make
-    <*> (if isTruncated then pure "..." else Lens.view (has . noResults))
-    <*> (Element.subElemId ?? "no results")
+    do
+        txt <- if isTruncated then pure "..." else Lens.view (has . noResults)
+        Element.subElemId "no results" >>= TextView.make txt
 
 blockEvents ::
     ( Applicative f
@@ -215,9 +215,8 @@ makeSubmenuSymbol ::
 makeSubmenuSymbol isSelected =
     do
         color <- Lens.view (has . submenuSymbolColor)
-        TextView.make
-            <*> Lens.view (has . submenuSymbol)
-            <*> (Element.subElemId ?? "submenu sym")
+        txt <- Lens.view (has . submenuSymbol)
+        Element.subElemId "submenu sym" >>= TextView.make txt
             & Reader.local (TextView.color .~ color)
     where
         submenuSymbolColor
@@ -251,7 +250,7 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
     SubmenuEmpty -> padToWidth maxOptionWidth rendered
     SubmenuItems action ->
         do
-            isSelected <- State.isSubCursor ?? optionId
+            isSelected <- State.isSubCursor optionId
             submenuSym <- makeSubmenuSymbol isSelected
             base <-
                 padToWidth (maxOptionWidth - submenuSym ^. Element.width)
@@ -259,23 +258,21 @@ layoutOption maxOptionWidth (optionId, rendered, submenu) =
                 /|/ pure submenuSym
             if isSelected
                 then do
-                    hover <- Hover.hover
-                    anc <- Hover.anchor
-                    hoverBeside <- Hover.hoverBesideOptionsAxis
                     (_, submenus) <-
                         action <&> OptionList False
                         >>= make (optionId <> "submenu") 0
-                    let anchored = base & Align.tValue %~ anc
+                        >>= (_2 . traverse) Hover.hover
+                    anchored <- Align.tValue Hover.anchor base
+                    hoverBeside <-
+                        Hover.hoverBesideOptionsAxis Horizontal
+                        (submenus <&> Hover.sequenceHover) anchored
                     anchored
-                        & Align.tValue %~
-                        Hover.hoverInPlaceOf
-                        (hoverBeside Horizontal
-                         (submenus <&> hover <&> Hover.sequenceHover) anchored <&> (^. Align.tValue))
+                        & Align.tValue %~ Hover.hoverInPlaceOf (hoverBeside <&> (^. Align.tValue))
                         & pure
                 else pure base
     & Reader.local (Element.elemIdPrefix .~ optionId)
     where
-        padToWidth w r = Element.padToSize ?? Vector2 w 0 ?? 0 ?? r
+        padToWidth w = Element.padToSize (Vector2 w 0) 0
 
 instance Semigroup (OptionList a) where
     OptionList xtrunc xopts <> OptionList ytrunc yopts =
@@ -283,11 +280,11 @@ instance Semigroup (OptionList a) where
 
 makePickEventMap ::
     (MonadReader env m, Has (Config ModKey) env, Has (Texts Text) env, Applicative f) =>
-    m (Widget.PreEvent (f PickResult) -> EventMap (f State.Update))
-makePickEventMap =
+    Widget.PreEvent (f PickResult) -> m (EventMap (f State.Update))
+makePickEventMap pick =
     Lens.view id
     <&>
-    \env pick ->
+    \env ->
     let config = env ^. has
     in  E.keyPresses (config ^. configKeysPickOptionAndGotoNext)
         (E.Doc [pick ^. Widget.pDesc <> env ^. has . commaNextEntry])
@@ -306,22 +303,19 @@ makePickEventMap =
 
 addPickers ::
     (MonadReader env m, Has (Config ModKey) env, Applicative f, Has (Texts Text) env) =>
-    m ( Widget.PreEvent (f PickResult) ->
-        Widget f ->
-        Widget f
-      )
-addPickers =
-    makePickEventMap
+    Widget.PreEvent (f PickResult) -> Widget f -> m (Widget f)
+addPickers pick w =
+    makePickEventMap pick
     <&>
-    \pickEventMap pick w ->
-    let preEvent =
+    \pickEventMap ->
+    w
+    & Widget.addPreEvent preEvent
+    & Widget.eventMapMaker . Lens.mapped %~ mappend pickEventMap
+    where
+        preEvent =
             pick
             <&> fmap (^. pickDest)
             <&> fmap State.updateCursor
-    in
-    w
-    & Widget.addPreEvent preEvent
-    & Widget.eventMapMaker . Lens.mapped %~ mappend (pickEventMap pick)
 
 -- | All search menu results must start with a common prefix.
 -- This is used to tell when cursor was on a result that got filtered out
@@ -341,24 +335,25 @@ make ::
     ElemId -> Widget.R -> OptionList (Option m f) ->
     m (PickFirstResult f, Hover.Ordered (TextWidget f))
 make myId _ (OptionList isTruncated []) =
-    (Widget.makeFocusableView ?? noResultsId myId <&> (Align.tValue %~))
-    <*> makeNoResults isTruncated
+    makeNoResults isTruncated
+    >>= Align.tValue (Widget.makeFocusableView (noResultsId myId))
     <&> pure
     <&> (,) NoPickFirstResult
 make _ minWidth (OptionList isTruncated opts) =
     do
         submenuSymbolWidth <-
-            TextView.drawText <*> Lens.view (has . submenuSymbol)
+            Lens.view (has . submenuSymbol) >>= TextView.drawText
             <&> (^. TextView.renderedTextSize . TextView.bounding . _1)
         let optionMinWidth (_, (_, w, submenu)) =
                 w ^. Element.width +
                 case submenu of
                 SubmenuEmpty -> 0
                 SubmenuItems {} -> submenuSymbolWidth
-        addPick <- addPickers
         let render (Option optionId optRender submenu) =
-                optRender <&>
-                \r -> (r ^. rPick, (optionId, r ^. rWidget <&> addPick (r ^. rPick), submenu))
+                do
+                    r <- optRender
+                    w <- traverse (addPickers (r ^. rPick)) (r ^. rWidget)
+                    pure (r ^. rPick, (optionId, w, submenu))
         rendered <- traverse render opts
         let mPickFirstResult = rendered ^? Lens.ix 0 . _1
         let maxOptionWidth = rendered <&> optionMinWidth & maximum & max minWidth
@@ -370,17 +365,16 @@ make _ minWidth (OptionList isTruncated opts) =
             if isTruncated
             then Label.make "..." <&> Align.tValue %~ Widget.fromView
             else pure Element.empty
-        vbox <- Glue.vbox
+        boxed <-
+            Hover.Ordered
+            { _forward = id
+            , _backward = reverse
+            } ?? laidOutOptions ++ [hiddenOptionsWidget]
+            & traverse Glue.vbox
         env <- Lens.view id
         pure
             ( maybe NoPickFirstResult PickFirstResult mPickFirstResult
-            , (blockEvents env <&> (Align.tValue %~)) <*>
-                ( Hover.Ordered
-                    { _forward = id
-                    , _backward = reverse
-                    } ?? laidOutOptions ++ [hiddenOptionsWidget]
-                    <&> vbox
-                )
+            , (blockEvents env <&> (Align.tValue %~)) <*> boxed
             )
 
 -- | You may want to limit the placement of hovering pop-up menus,
@@ -391,54 +385,49 @@ hoverOptions ::
     ( MonadReader env m, Applicative f, Has Hover.Style env
     , Element.HasElemIdPrefix env, Glue.HasTexts env
     ) =>
-    m ( Placement ->
-        View ->
-        Hover.Ordered (TextWidget f) ->
-        Hover.AnchoredWidget f ->
-        [Hover (Hover.AnchoredWidget f)]
-      )
-hoverOptions =
-    (,,) <$> (Glue.mkPoly ?? Glue.Horizontal) <*> (Glue.mkPoly ?? Glue.Vertical) <*> Hover.hover
-    <&> \(Glue.Poly (|||), Glue.Poly (|---|), hover) pos ann results searchTerm ->
-    let resultsAbove alignment =
-            results ^. Hover.backward
-            & Align.tValue %~ hover
-            & Align.fromWithTextPos alignment
-        annotatedTerm alignment = searchTerm |---| ann & Aligned alignment
-        aboveRight = resultsAbove 0 |---| annotatedTerm 0
-        aboveLeft = resultsAbove 1 |---| annotatedTerm 1
-        annotatedResultsBelow =
+    Placement -> View -> Hover.Ordered (TextWidget f) -> Hover.AnchoredWidget f ->
+    m [Hover (Hover.AnchoredWidget f)]
+hoverOptions pos ann results searchTerm =
+    do
+        Glue.Poly (|||) <- Glue.mkPoly Glue.Horizontal
+        Glue.Poly (|---|) <- Glue.mkPoly Glue.Vertical
+        let annotatedTerm alignment = searchTerm |---| ann & Aligned alignment
+        h <- results ^. Hover.backward & Align.tValue Hover.hover
+        let resultsAbove alignment = Align.fromWithTextPos alignment h
+            aboveRight = resultsAbove 0 |---| annotatedTerm 0
+            aboveLeft = resultsAbove 1 |---| annotatedTerm 1
+        annotatedResultsBelow <-
             (results ^. Hover.forward) |---| ann
-            & Align.tValue %~ hover
-        belowRight =
-            Aligned 0 searchTerm
-            |---|
-            Align.fromWithTextPos 0 annotatedResultsBelow
-        belowLeft =
-            Aligned 1 searchTerm
-            |---|
-            Align.fromWithTextPos 1 annotatedResultsBelow
-        rightAbove = annotatedTerm 1 ||| resultsAbove 1
-        leftAbove = resultsAbove 1 ||| annotatedTerm 1
-    in
-    case pos of
-    Above ->
-        [ aboveRight
-        , aboveLeft
-        ]
-    AnyPlace ->
-        [ belowRight
-        , aboveRight
-        , belowLeft
-        , aboveLeft
-        ]
-    Below ->
-        [ belowRight
-        , belowLeft
-        , rightAbove
-        , leftAbove
-        ]
-    <&> (^. Align.value)
+            & Align.tValue Hover.hover
+        let belowRight =
+                Aligned 0 searchTerm
+                |---|
+                Align.fromWithTextPos 0 annotatedResultsBelow
+            belowLeft =
+                Aligned 1 searchTerm
+                |---|
+                Align.fromWithTextPos 1 annotatedResultsBelow
+            rightAbove = annotatedTerm 1 ||| resultsAbove 1
+            leftAbove = resultsAbove 1 ||| annotatedTerm 1
+        pure $
+            case pos of
+            Above ->
+                [ aboveRight
+                , aboveLeft
+                ]
+            AnyPlace ->
+                [ belowRight
+                , aboveRight
+                , belowLeft
+                , aboveLeft
+                ]
+            Below ->
+                [ belowRight
+                , belowLeft
+                , rightAbove
+                , leftAbove
+                ]
+            <&> (^. Align.value)
 
 makeHovered ::
     ( Applicative f, State.HasCursor env, Has (Config ModKey) env
@@ -454,10 +443,11 @@ makeHovered ::
     )
 makeHovered myId ann options =
     do
-        mkHoverOptions <- hoverOptions
-        anc <- Hover.anchor
-        make myId (ann ^. Element.width) options
-            <&> _2 %~ \menu placement postProc term ->
-                let a = anc term
-                in
-                Hover.hoverInPlaceOf (mkHoverOptions placement ann (menu <&> postProc) a) a
+        env <- Lens.view id
+        make myId (ann ^. Element.width) options <&> _2 %~
+            \menu placement postProc term ->
+            env &
+            do
+                a <- Hover.anchor term
+                hoverOptions placement ann (menu <&> postProc) a
+                    <&> (`Hover.hoverInPlaceOf` a)

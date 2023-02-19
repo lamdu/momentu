@@ -10,6 +10,7 @@ module GUI.Momentu.Responsive.Expression
     ) where
 
 import qualified Control.Lens as Lens
+import           Control.Monad.Reader.Extended (pushToReader)
 import qualified Data.Aeson.TH.Extended as JsonTH
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (TextWidget)
@@ -40,48 +41,42 @@ disambiguators ::
     ( MonadReader env m, Functor f, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (ElemId -> Options.Disambiguators f)
-disambiguators =
-    do
-        h <- addParens
-        v <- indent
-        Options.Disambiguators <$> h <*> v & pure
+    ElemId -> m (Options.Disambiguators f)
+disambiguators i = Options.Disambiguators <$> pushToReader (addParens i) <*> pushToReader (indent i)
 
 mDisambiguators ::
     ( MonadReader env m, Functor f, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (Maybe ElemId -> Options.Disambiguators f)
-mDisambiguators = disambiguators <&> maybe Options.disambiguationNone
+    Maybe ElemId -> m (Options.Disambiguators f)
+mDisambiguators = maybe (pure Options.disambiguationNone) disambiguators
 
 addParens ::
     ( MonadReader env m, Has TextView.Style env, Functor f, Has Dir.Layout env
     ) =>
-    m (ElemId -> TextWidget f -> TextWidget f)
-addParens =
+    ElemId -> TextWidget f -> m (TextWidget f)
+addParens i w =
     Lens.view id <&>
-    \env myId w ->
-    let paren t = TextView.make env t (myId <> asElemId t)
+    \env ->
+    let paren t = TextView.make t (i <> asElemId t) env
     in  paren "(" ||| w ||| paren ")"
     where
-        Glue.Poly (|||) = Glue.mkPoly Dir.LeftToRight Glue.Horizontal
+        Glue.Poly (|||) = Glue.mkPoly Glue.Horizontal Dir.LeftToRight
 
 indent ::
     ( MonadReader env m, Functor f, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (ElemId -> Responsive f -> Responsive f)
-indent =
+    ElemId -> Responsive f -> m (Responsive f)
+indent i r =
     do
         bWidth <- totalBarWidth
-        let reduceWidth =
-                Responsive.rNarrow . Lens.argument .
-                Responsive.layoutWidth
-                -~ bWidth
-        makeBar <- indentBar
-        (|||) <- Glue.mkGlue ?? Glue.Horizontal
-        let f myId w = makeBar (w ^. Element.height) myId ||| w
-        pure $ \myId -> (Responsive.alignedWidget %~ f myId) . reduceWidth
+        env <- Lens.view id
+        let f w = (indentBar i (w ^. Element.height) Glue./|/ pure w) env
+        r
+            & Responsive.rNarrow . Lens.argument . Responsive.layoutWidth -~ bWidth
+            & Responsive.alignedWidget %~ f
+            & pure
 
 totalBarWidth :: (MonadReader env m, Has Style env, Spacer.HasStdSpacing env) => m Double
 totalBarWidth =
@@ -94,24 +89,21 @@ indentBar ::
     ( MonadReader env m, Has Style env, Spacer.HasStdSpacing env
     , Has Dir.Layout env
     ) =>
-    m (Widget.R -> ElemId -> View)
-indentBar =
+    ElemId -> Widget.R -> m View
+indentBar myId height =
     do
         s <- Lens.view has
         stdSpace <- Spacer.getSpaceSize <&> (^. _1)
-        (|||) <- Glue.mkGlue ?? Glue.Horizontal
-        pure $ \height myId ->
-            let bar =
-                    Spacer.make (Vector2 barWidth height)
-                    & Draw.backgroundColor bgElemId (s ^. indentBarColor)
-                barWidth = stdSpace * s ^. indentBarWidth
-                gapWidth = stdSpace * s ^. indentBarGap
-                bgElemId = myId <> "("
-            in  bar ||| Spacer.make (Vector2 gapWidth 0)
+        let bar = Draw.backgroundColor (s ^. indentBarColor) (Spacer.make (Vector2 barWidth height)) bgElemId
+            barWidth = stdSpace * s ^. indentBarWidth
+            gapWidth = stdSpace * s ^. indentBarGap
+        Glue.mkGlue Glue.Horizontal bar (Spacer.make (Vector2 gapWidth 0))
+    where
+        bgElemId = myId <> "("
 
 boxSpacedMDisamb ::
     ( MonadReader env m, Applicative f, Has Style env, Spacer.HasStdSpacing env
     , Glue.HasTexts env
     ) =>
-    m (Maybe ElemId -> [Responsive f] -> Responsive f)
-boxSpacedMDisamb = (.) <$> Options.boxSpaced <*> mDisambiguators
+    Maybe ElemId -> [Responsive f] -> m (Responsive f)
+boxSpacedMDisamb i r = mDisambiguators i >>= (`Options.boxSpaced` r)

@@ -1,5 +1,5 @@
 -- | A vertical-expand (combo-like) choice widget
-{-# LANGUAGE TemplateHaskell, DerivingVia #-}
+{-# LANGUAGE TemplateHaskell, DerivingVia, NamedFieldPuns #-}
 module GUI.Momentu.Widgets.DropDownList
     ( make
     , defaultFdConfig
@@ -44,9 +44,9 @@ englishTexts = Texts
 
 defaultFdConfig ::
     (MonadReader env m, Has (Texts Text) env, Has (MomentuTexts.Texts Text) env) =>
-    m (Text -> FocusDelegator.Config)
-defaultFdConfig =
-    Lens.view id <&> \txt helpCategory ->
+    Text -> m FocusDelegator.Config
+defaultFdConfig helpCategory =
+    Lens.view id <&> \txt ->
     FocusDelegator.Config
     { FocusDelegator.focusChildKeys = [noMods ModKey.Key'Enter]
     , FocusDelegator.focusChildDoc = E.Doc [helpCategory, txt ^. has . MomentuTexts.choose]
@@ -61,11 +61,12 @@ data Config = Config
 
 defaultConfig ::
     (MonadReader env m, Has (Texts Text) env, Has (MomentuTexts.Texts Text) env) =>
-    m (Text -> Config)
-defaultConfig =
-    defaultFdConfig <&> \defFd helpCategory ->
+    Text -> m Config
+defaultConfig helpCategory =
+    defaultFdConfig helpCategory <&>
+    \ddFDConfig ->
     Config
-    { ddFDConfig = defFd helpCategory
+    { ddFDConfig
     , ddListBox = ListBox.defaultConfig
     }
 
@@ -74,26 +75,23 @@ make ::
     , State.HasCursor env, Has Hover.Style env, Element.HasElemIdPrefix env
     , Glue.HasTexts env
     ) =>
-    m (Property f childId -> t (childId, TextWidget f) -> Config -> ElemId -> TextWidget f)
-make =
-    (,,,,)
-    <$> Element.padToSize
-    <*> ListBox.make
-    <*> Hover.hover
-    <*> Hover.anchor
-    <*> FocusDelegator.make
-    <&> \(padToSize, listbox, hover, anc, fd)
-         (Property curChild choose) children config myId ->
-    let perp :: Lens' (Vector2 a) a
-        perp = axis (perpendicular (ListBox.lbOrientation (ddListBox config)))
-        maxDim = children <&> (^. _2 . Element.size . perp) & maximum
-        hoverAsClosed open = [hover (anc open)] `Hover.hoverInPlaceOf` anc (closed ^. Align.tValue)
-        closed = children ^?! Lens.folded . Lens.filteredBy (_1 . Lens.only curChild) . _2
-        anyChildFocused = Lens.has (Lens.folded . _2 . Align.tValue . Lens.filtered Widget.isFocused) children
+    Property f childId -> t (childId, TextWidget f) -> Config -> ElemId -> m (TextWidget f)
+make (Property curChild choose) children config myId =
+    do
+        listbox <- ListBox.make choose children (ddListBox config)
+        let perp :: Lens' (Vector2 a) a
+            perp = axis (perpendicular (ListBox.lbOrientation (ddListBox config)))
+        let maxDim = children <&> (^. _2 . Element.size . perp) & maximum
+        let closed = children ^?! Lens.folded . Lens.filteredBy (_1 . Lens.only curChild) . _2
+        let anyChildFocused = Lens.has (Lens.folded . _2 . Align.tValue . Lens.filtered Widget.isFocused) children
+        widget <-
+            if anyChildFocused
+            then
+                do
+                    c <- closed ^. Align.tValue & Hover.anchor
+                    Hover.anchor (listbox ^. Align.tValue) >>= Hover.hover
+                        <&> \h -> listbox & Align.tValue .~ [h] `Hover.hoverInPlaceOf` c
+            else pure closed
         widget
-            | anyChildFocused = listbox choose children (ddListBox config) & Align.tValue %~ hoverAsClosed
-            | otherwise = closed
-    in
-    widget
-    & Align.tValue %~ fd (ddFDConfig config) FocusDelegator.FocusEntryParent myId
-    & padToSize (0 & perp .~ maxDim) 0
+            & Align.tValue (FocusDelegator.make (ddFDConfig config) FocusDelegator.FocusEntryParent myId)
+            >>= Element.padToSize (0 & perp .~ maxDim) 0

@@ -19,7 +19,7 @@ main =
 
 makeWidget :: (Float -> IO M.Font) -> M.DefaultEnvWithCursor -> IO (Widget IO)
 makeWidget _getFont env =
-    TextView.make env "Hello World!" "hello"
+    TextView.make "Hello World!" "hello" env
     ^. M.tValue
     & Widget.fromView
     & Widget.setFocused

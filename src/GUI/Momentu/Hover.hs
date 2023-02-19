@@ -162,11 +162,10 @@ hoverBesideOptionsAxis ::
     ( MonadReader env m, GluesTo env a b c, Has Dir.Layout env
     , SizedElement a, SizedElement b, SizedElement c
     ) =>
-    m (Orientation -> Ordered a -> b -> [c])
-hoverBesideOptionsAxis =
-    Glue.mkPoly <&> \poly o (Ordered fwd bwd) src ->
+    Orientation -> Ordered a -> b -> m [c]
+hoverBesideOptionsAxis o (Ordered fwd bwd) src =
+    Glue.mkPoly o <&> \(Glue.Poly glue) ->
     do
-        let Glue.Poly glue = poly o
         x <- [0, 1]
         let aSrc = Aligned x src
         [ glue aSrc (Aligned x fwd)
@@ -175,10 +174,11 @@ hoverBesideOptionsAxis =
 
 anchor ::
     (MonadReader env m, Has Dir.Layout env) =>
-    m (Widget a -> AnchoredWidget a)
-anchor =
+    Widget a -> m (AnchoredWidget a)
+anchor w =
     Lens.view has
-    <&> \dir w -> case dir of
+    <&>
+    \case
     Dir.LeftToRight -> AnchoredWidget 0 w
     Dir.RightToLeft -> AnchoredWidget (Vector2 (w ^. Widget.wSize . _1) 0) w
 
@@ -186,31 +186,35 @@ hoverBesideOptions ::
     ( MonadReader env m, GluesTo env a b c, Has Dir.Layout env
     , SizedElement a, SizedElement b, SizedElement c
     ) =>
-    m (a -> b -> [c])
-hoverBesideOptions =
-    hoverBesideOptionsAxis <&> \doHover h src ->
+    a -> b -> m [c]
+hoverBesideOptions h src =
+    Lens.view id <&>
+    \env ->
     do
         o <- [Vertical, Horizontal]
-        doHover o (Ordered h h) src
+        hoverBesideOptionsAxis o (Ordered h h) src env
 
 addFrame ::
     (MonadReader env m, Has Style env, SizedElement a, Element.HasElemIdPrefix env) =>
-    m (a -> a)
-addFrame =
-    (,) <$> Lens.view has <*> Element.subElemId
-    <&> \(s, subElemId) gui ->
-    if gui ^. Element.size == 0 then gui
-    else
-    gui
-    & Element.padAround (s ^. bgPadding)
-    & Draw.backgroundColor (subElemId "hover bg") (s ^. bgColor)
-    & Element.padAround (s ^. framePadding)
-    & Draw.backgroundColor (subElemId "hover frame") (s ^. frameColor)
+    a -> m a
+addFrame gui
+    | gui ^. Element.size == 0 = pure gui
+    | otherwise =
+        do
+            s <- Lens.view has
+            bgId <- Element.subElemId "hover bg"
+            frameId <- Element.subElemId "hover frame"
+            pure $
+                gui
+                & Element.padAround (s ^. bgPadding)
+                & (Draw.backgroundColor (s ^. bgColor) ?? bgId)
+                & Element.padAround (s ^. framePadding)
+                & (Draw.backgroundColor (s ^. frameColor) ?? frameId)
 
 hover ::
     (MonadReader env m, SizedElement a, Has Style env, Element.HasElemIdPrefix env) =>
-    m (a -> Hover a)
-hover = addFrame <&> ((Hover . Element.hoverLayeredImage) .)
+    a -> m (Hover a)
+hover widget = addFrame widget <&> Element.hoverLayeredImage <&> Hover
 
 sequenceHover :: Functor f => Hover (f a) -> f (Hover a)
 sequenceHover (Hover x) = x <&> Hover
@@ -276,14 +280,11 @@ hoverBeside ::
     , Element.HasElemIdPrefix env, Has Style env, Has Dir.Layout env
     ) =>
     (forall a b. Lens (t a) (t b) a b) ->
-    m
-    ( t (Widget f) ->
-      w -> t (Widget f)
-    )
-hoverBeside lens =
-    (,,) <$> hoverBesideOptions <*> hover <*> anchor
-    <&> \(doHoverBesides, mkHover, anc) layout h ->
-    let a = layout & lens %~ anc
-    in  a & lens %~
-        hoverInPlaceOf
-        (doHoverBesides (mkHover h) (a ^. lens))
+    t (Widget f) ->
+    w ->
+    m (t (Widget f))
+hoverBeside lens layout h =
+    do
+        a <- lens anchor layout
+        b <- hover h >>= (`hoverBesideOptions` (a ^. lens))
+        a & lens %~ hoverInPlaceOf b & pure

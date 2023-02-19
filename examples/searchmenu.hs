@@ -59,14 +59,11 @@ resultId = "result"
 makeResultWidget ::
     Applicative f => Text -> M.DefaultEnvWithCursor -> M.WithTextPos (Widget.Widget f)
 makeResultWidget text =
-    do
-        toFocusable <- Widget.makeFocusableView
-        TextView.make ?? text ?? resultId <&> M.tValue %~ toFocusable resultId
+    TextView.make text resultId >>= M.tValue (Widget.makeFocusableView resultId)
 
 makeMenu :: Applicative f => (Text -> f M.ElemId) -> [Text] -> M.ElemId -> M.DefaultEnvWithCursor -> M.TextWidget f
 makeMenu pickText opts menuId =
-    SearchMenu.make makeSearchTerm makeResults Element.empty menuId
-    ?? SearchMenu.AnyPlace
+    SearchMenu.make makeSearchTerm makeResults Element.empty menuId SearchMenu.AnyPlace
     where
         makeSearchTerm = SearchMenu.searchTermEdit menuId (const (pure True))
         makeResults (SearchMenu.ResultsContext searchTerm resultIdPrefix) _ =
@@ -91,7 +88,7 @@ makeMenu pickText opts menuId =
                     , Widget._pTextRemainder = ""
                     }
                 , SearchMenu._rWidget =
-                    Label.make text e <&> Widget.makeFocusableView e widgetId
+                    (Label.make text >>= traverse (Widget.makeFocusableView widgetId)) e
                 }
             }
             where

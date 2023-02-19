@@ -244,7 +244,7 @@ mkView ::
     (Has Dir.Layout env, Has TextView.Style env, Has Style s) =>
     s -> ElemId -> Text -> (s -> env) -> WithTextPos View
 mkView env animId displayStr setColor =
-    TextView.make (setColor env) displayStr animId
+    TextView.make displayStr animId (setColor env)
     & Element.padAround (Vector2 (env ^. has . sCursorWidth / 2) 0)
 
 -- A debugging facility, showing all the potential locations of all cursors
@@ -366,7 +366,7 @@ mkCursorRect env cursor str =
         cursorSize = Vector2 cursorWidth lineHeight
         cursorWidth = env ^. has . sCursorWidth
         totalWidth = draw str ^. TextView.renderedTextSize . Font.bounding . _1
-        draw = TextView.drawText env
+        draw = (`TextView.drawText` env)
         cursorPosX =
             draw (last beforeCursorLines) ^.
             TextView.renderedTextSize . Font.advance . _1
@@ -532,28 +532,23 @@ eventMap env cursor str myId _eventContext =
 
 getCursor ::
     (MonadReader env m, State.HasCursor env) =>
-    m (Text -> ElemId -> Maybe Int)
-getCursor =
-    State.subId <&> f
+    Text -> ElemId -> m (Maybe Int)
+getCursor str myId =
+    State.subId myId <&> Lens.mapped %~ decodeCursor
     where
-        f sub str myId =
-            sub myId <&> decodeCursor
-            where
-                decodeCursor (ElemId [x]) = min (Text.length str) $ Binary.decodeS x
-                decodeCursor _ = Text.length str
+        decodeCursor (ElemId [x]) = min (Text.length str) $ Binary.decodeS x
+        decodeCursor _ = Text.length str
 
 make ::
     (MonadReader env m, Deps env) =>
-    m ( EmptyStrings -> Text -> ElemId ->
-        TextWidget ((,) Text)
-      )
-make = makeWithElemId <&> Lens.mapped . Lens.mapped %~ join
+    EmptyStrings -> Text -> ElemId -> m (TextWidget ((,) Text))
+make = makeWithElemId <&> Lens.mapped %~ join
 
 align ::
     (Element.SizedElement a, Has Dir.Layout env) =>
     env -> Modes (WithTextPos View) -> Align.WithTextPos a -> Align.WithTextPos a
 align env emptyViews widget =
-    widget & Align.tValue %~ Element.padToSize env emptySize 0
+    widget & Align.tValue %~ Element.padToSize emptySize 0 ?? env
     where
         emptySize :: Widget.Size
         emptySize =
@@ -563,19 +558,15 @@ align env emptyViews widget =
 
 makeWithElemId ::
     (MonadReader env m, Deps env) =>
-    m ( EmptyStrings -> Text -> Anim.ElemId -> ElemId ->
-        TextWidget ((,) Text)
-      )
-makeWithElemId =
+    EmptyStrings -> Text -> ElemId -> ElemId -> m (TextWidget ((,) Text))
+makeWithElemId emptyStr str animId myId =
     do
-        get <- getCursor
         env <- Lens.view id
-        pure $ \emptyStr str animId myId ->
-            do
-                let mkEmptyView color = mkView env animId ?? TextView.color .~ color
-                let emptyColors = env ^. has . sEmptyStringsColors
-                let emptyViews = mkEmptyView <$> emptyColors <*> emptyStr
-                case get str myId of
-                    Nothing -> makeInternal env unfocused str emptyViews animId myId
-                    Just pos -> makeFocused env str emptyStr emptyViews pos animId  myId
-                    & align env emptyViews
+        let mkEmptyView color = mkView env animId ?? TextView.color .~ color
+        let emptyColors = env ^. has . sEmptyStringsColors
+        let emptyViews = mkEmptyView <$> emptyColors <*> emptyStr
+        c <- getCursor str myId
+        case c of
+            Nothing -> makeInternal env unfocused str emptyViews animId myId
+            Just pos -> makeFocused env str emptyStr emptyViews pos animId  myId
+            & align env emptyViews & pure

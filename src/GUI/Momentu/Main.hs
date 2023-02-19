@@ -173,7 +173,7 @@ defaultOptions os env =
                 , _cPostProcess =
                     \_zoom size widget ->
                     helpProp ^. Property.mkProperty <&>
-                    \prop -> EventMapHelp.toggledHelpAdder env prop size widget
+                    \prop -> EventMapHelp.toggledHelpAdder prop size widget env
                 , _cInvalidCursorOverlayColor = pure (Draw.Color 1.0 0 0 0.3)
                 }
             , _oStateStorage = stateStorage

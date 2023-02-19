@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, TypeFamilies #-}
 
 module GUI.Momentu.Responsive.TaggedList
     ( TaggedItem(..), tagPre, taggedItem, tagPost
@@ -6,6 +6,7 @@ module GUI.Momentu.Responsive.TaggedList
     ) where
 
 import qualified Control.Lens as Lens
+import           Control.Monad.Reader.Extended (pushToReader, pushToReaderExt)
 import           Data.Functor.Compose (Compose(..))
 import qualified Data.List as List
 import           Data.Vector.Vector2 (Vector2(..))
@@ -33,10 +34,10 @@ taggedListTable ::
     ( MonadReader env m, Spacer.HasStdSpacing env, Applicative f
     , Glue.HasTexts env
     ) =>
-    m ([TaggedItem f] -> Responsive f)
-taggedListTable =
-    makeRenderTable <&>
-    \renderItems items ->
+    [TaggedItem f] -> m (Responsive f)
+taggedListTable items =
+    Lens.view id <&>
+    \env ->
     let idx =
             NarrowLayoutParams
             { _layoutWidth = partWidth (tagPre . Lens._Just) items + partWidth (tagPost . Lens._Just) items
@@ -46,10 +47,12 @@ taggedListTable =
     prepItems items
     & verticalLayout VerticalLayout
     { _vContexts = Lens.reindexed (const idx) Lens.traversed
-    , _vLayout = (^. lWide) . (WideMultiLine &) . renderItems
+    , _vLayout = \xs -> makeRenderTable xs WideMultiLine env ^. lWide
     }
 
-prepItems :: [TaggedItem f] -> Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (Responsive f)
+prepItems ::
+    [TaggedItem f] ->
+    Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (Responsive f)
 prepItems =
     Compose . map prepItem
     where
@@ -57,77 +60,85 @@ prepItems =
 
 makeOneLiner ::
     (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
-    m (Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (TextWidget f) -> WideLayoutForm -> Maybe (WideLayouts f))
-makeOneLiner =
-    do
-        hboxed <- makeHboxSpaced
-        hspace <- Spacer.stdHSpace <&> Widget.fromView <&> WithTextPos 0
-        (/|/) <- Glue.mkGlue ?? Glue.Horizontal
-        let renderItem ((mPre, mPost), item) =
+    Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (TextWidget f) ->
+    WideLayoutForm ->
+    m (Maybe (WideLayouts f))
+makeOneLiner _ WideMultiLine = pure Nothing
+makeOneLiner (Compose xs) WideOneLiner =
+    traverse renderItem xs >>= makeHboxSpaced
+    <&> (join WideLayouts ?? WideOneLiner) <&> Just
+    where
+        renderItem ((mPre, mPost), item) =
+            do
+                rest <-
+                    case mPost of
+                    Nothing -> pure item
+                    Just post -> pure item Glue./|/ pure post
                 case mPre of
-                Nothing -> rest
-                Just pre -> pre /|/ hspace /|/ rest
-                where
-                    rest =
-                        case mPost of
-                        Nothing -> item
-                        Just post -> item /|/ post
-        let result _ WideMultiLine = Nothing
-            result (Compose xs) WideOneLiner =
-                join WideLayouts (hboxed (xs <&> renderItem)) WideOneLiner & Just
-        pure result
+                    Nothing -> pure rest
+                    Just pre -> pure pre Glue./|/ Spacer.stdHSpace Glue./|/ pure rest
 
 makeRenderTable ::
     (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
-    m (Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (TextWidget f) -> WideLayoutForm -> WideLayouts f)
-makeRenderTable =
+    Compose [] ((,) (Maybe (TextWidget f), Maybe (TextWidget f))) (TextWidget f) ->
+    WideLayoutForm ->
+    m (WideLayouts f)
+makeRenderTable (Compose xs) partsForm =
     do
-        doPad <- Element.pad
-        (/|/) <- Glue.mkGlue ?? Glue.Horizontal
-        vboxed <- makeVboxSpaced
         hspace <- Spacer.getSpaceSize <&> (^. _2)
-        pure (
-            \(Compose xs) partsForm ->
-            let items = xs <&> addPre
-                addPre ((Nothing, post), item) = (item, post)
-                addPre ((Just pre, post), item) =
-                    ( doPad
-                        (Vector2 (preWidth - pre ^. Element.width - hspace) 0)
-                        (Vector2 hspace 0) pre
-                        /|/ item
-                    , post
-                    )
-                preWidth = partWidth (_1 . _1 . Lens._Just) xs + hspace
-                itemWidth = partWidth (Lens.filteredBy (_2 . Lens._Just) . _1) items
-                renderRow (item, Nothing) = item
-                renderRow (item, Just post) =
-                    item /|/
-                    doPad (Vector2 (itemWidth - item ^. Element.width) 0) 0 post
-                res = items <&> renderRow & vboxed
-                form =
-                    case items of
-                    (_:_:_) -> WideMultiLine
-                    _ -> partsForm
-            in WideLayouts res res form)
+        let preWidth = partWidth (_1 . _1 . Lens._Just) xs + hspace
+        items <- traverse (addTableRowPre preWidth) xs
+        let itemWidth = partWidth (Lens.filteredBy (_2 . Lens._Just) . _1) items
+        res <- traverse (renderTableRow itemWidth) items >>= makeVboxSpaced
+        WideLayouts res res form & pure
+    where
+        form =
+            case xs of
+            (_:_:_) -> WideMultiLine
+            _ -> partsForm
+
+addTableRowPre ::
+    (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
+    Double -> ((Maybe (TextWidget f), Maybe (TextWidget f)), TextWidget f) ->
+    m (TextWidget f, Maybe (TextWidget f))
+addTableRowPre preWidth ((mPre, post), item) =
+    case mPre of
+    Nothing -> pure item
+    Just pre ->
+        do
+            hspace <- Spacer.getSpaceSize <&> (^. _2)
+            Element.pad
+                (Vector2 (preWidth - pre ^. Element.width - hspace) 0)
+                (Vector2 hspace 0) pre
+                Glue./|/ pure item
+    <&> ((,) ?? post)
+
+renderTableRow ::
+    (MonadReader env m, Glue.HasTexts env, Applicative f) =>
+    Double -> (TextWidget f, Maybe (TextWidget f)) -> m (TextWidget f)
+renderTableRow itemWidth (item, mPost) =
+    case mPost of
+    Nothing -> pure item
+    Just post ->
+        pure item Glue./|/
+        Element.pad (Vector2 (itemWidth - item ^. Element.width) 0) 0 post
 
 -- TODO: This should be generic and in spacer? If Element had a fromView it could be
 makeVboxSpaced ::
     (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
-    m ([TextWidget f] -> TextWidget f)
-makeVboxSpaced =
+    [TextWidget f] -> m (TextWidget f)
+makeVboxSpaced widgets =
     do
-        vboxed <- Glue.vbox
         vspace <- Spacer.stdVSpace <&> Widget.fromView <&> WithTextPos 0
-        vboxed . List.intersperse vspace & pure
+        List.intersperse vspace widgets & Glue.vbox
 
 makeHboxSpaced ::
     (MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Applicative f) =>
-    m ([TextWidget f] -> TextWidget f)
-makeHboxSpaced =
+    [TextWidget f] -> m (TextWidget f)
+makeHboxSpaced widgets =
     do
-        hboxed <- Glue.hbox
         hspace <- Spacer.stdHSpace <&> Widget.fromView <&> WithTextPos 0
-        hboxed . List.intersperse hspace & pure
+        List.intersperse hspace widgets & Glue.hbox
 
 partWidth :: (Traversable t, Functor f) => Lens.ATraversal' a (TextWidget f) -> t a -> Widget.R
 partWidth l = foldl max 0 . (^.. traverse . Lens.cloneTraversal l . Element.width)
@@ -139,42 +150,34 @@ taggedListIndent ::
     ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasElemIdPrefix env
     , Has Expression.Style env, Applicative f
     ) =>
-    m ([TaggedItem f] -> Responsive f)
-taggedListIndent =
+    [TaggedItem f] -> m (Responsive f)
+taggedListIndent items =
     do
-        vboxed <- vboxSpaced
-        mkItem <- indentedListItem
-        table <- makeRenderTable
-        oneLiner <- makeOneLiner
-        let tryWideLayout f =
-                Options.tryWideLayout Options.WideLayoutOption
-                { Options._wContexts = traverse . Options.wideUnambiguous
-                , Options._wLayout = f
-                }
-        pure (
-            \items ->
-            let p = prepItems items
-            in
-            Lens.imap mkItem items & vboxed
-            & tryWideLayout (table <&> Lens.mapped %~ Just) p
-            & tryWideLayout oneLiner p
-            )
+        table <- pushToReaderExt pushToReader makeRenderTable
+        oneLiner <- pushToReaderExt pushToReader makeOneLiner
+        Lens.imapM indentedListItem items >>= vboxSpaced
+            <&> tryWideLayout (table <&> Lens.mapped %~ Just)
+            <&> tryWideLayout oneLiner
+    where
+        p = prepItems items
+        tryWideLayout f =
+            Options.tryWideLayout Options.WideLayoutOption
+            { Options._wContexts = traverse . Options.wideUnambiguous
+            , Options._wLayout = f
+            } p
 
 indentedListItem ::
     ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env, Element.HasElemIdPrefix env
     , Has Expression.Style env, Applicative f
     ) =>
-    m (Int -> TaggedItem f -> Responsive f)
-indentedListItem =
+    Int -> TaggedItem f -> m (Responsive f)
+indentedListItem idx (TaggedItem pre item post) =
     do
-        box <- Options.boxSpaced ?? Options.disambiguationNone
-        (/|/) <- Glue.mkGlue ?? Glue.Horizontal
         indentPrefix <- Lens.view Element.elemIdPrefix <&> (<> "tagged-item")
-        indent <- Expression.indent
-        pure (
-            \idx (TaggedItem pre item post) ->
-            (pre ^.. Lens._Just <&> fromWithTextPos)
-            <> [vertLayoutMaybeDisambiguate (indent (indentPrefix <> Anim.asElemId idx))
-                (maybe id (flip (/|/)) post item)]
-            & box
-            )
+        indent <- Expression.indent (indentPrefix <> Anim.asElemId idx) & pushToReader
+        i <-
+            case post of
+            Nothing -> pure item
+            Just p -> pure item Glue./|/ pure p
+        (pre ^.. Lens._Just <&> fromWithTextPos) <> [vertLayoutMaybeDisambiguate indent i]
+            & Options.boxSpaced Options.disambiguationNone

@@ -234,38 +234,28 @@ setFocusedWith rect eventMap =
 
 respondToCursorBy ::
     (MonadReader env m, HasCursor env, HasWidget w) =>
-    m ((ElemId -> Bool) -> w a -> w a)
-respondToCursorBy =
-    Lens.view cursor
-    <&> \c f -> if f c then setFocused else id
+    (ElemId -> Bool) -> w a -> m (w a)
+respondToCursorBy f w = Lens.view cursor <&> \c -> if f c then setFocused w else w
 
 respondToCursorPrefix ::
     (MonadReader env m, HasCursor env, HasWidget w) =>
-    m (ElemId -> w a -> w a)
-respondToCursorPrefix =
-    respondToCursorBy
-    <&> \respond myIdPrefix -> respond (Lens.has Lens._Just . ElemId.subId myIdPrefix)
+    ElemId -> w a -> m (w a)
+respondToCursorPrefix myIdPrefix =
+    respondToCursorBy (Lens.has Lens._Just . ElemId.subId myIdPrefix)
 
 makeFocusableView ::
     (MonadReader env m, HasCursor env, Applicative f) =>
-    m (ElemId -> View -> Widget f)
-makeFocusableView = makeFocusableWidget <&> Lens.mapped . Lens.argument %~ fromView
+    ElemId -> View -> m (Widget f)
+makeFocusableView = makeFocusableWidget <&> Lens.argument %~ fromView
 
 -- TODO: Describe why makeFocusableView is to be usually preferred
 makeFocusableWidget ::
     (MonadReader env m, HasCursor env, Applicative f) =>
-    m (ElemId -> Widget f -> Widget f)
-makeFocusableWidget =
-    makeFocusableWidgetWith
-    <&> \makeFocusableWith myIdPrefix ->
-            makeFocusableWith myIdPrefix (const (pure myIdPrefix))
+    ElemId -> Widget f -> m (Widget f)
+makeFocusableWidget myIdPrefix = makeFocusableWidgetWith myIdPrefix (const (pure myIdPrefix))
 
 makeFocusableWidgetWith ::
     (MonadReader env m, HasCursor env, Applicative f) =>
-    m (ElemId -> (FocusDirection -> f ElemId) -> Widget f -> Widget f)
-makeFocusableWidgetWith =
-    respondToCursorPrefix
-    <&> \respond myIdPrefix enter w ->
-    w
-    & respond myIdPrefix
-    & takesFocus enter
+    ElemId -> (FocusDirection -> f ElemId) -> Widget f -> m (Widget f)
+makeFocusableWidgetWith myIdPrefix enter w =
+    respondToCursorPrefix myIdPrefix w <&> takesFocus enter

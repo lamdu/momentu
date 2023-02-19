@@ -55,13 +55,13 @@ class Element a where
 
 pad ::
     (MonadReader env m, Element a, Has Dir.Layout env) =>
-    m (Vector2 R -> Vector2 R -> a -> a)
-pad =
+    Vector2 R -> Vector2 R -> a -> m a
+pad p0@(Vector2 r t) p1@(Vector2 l b) w =
     Lens.view has <&>
     \case
-    Dir.LeftToRight -> padImpl
-    Dir.RightToLeft ->
-        \(Vector2 r t) (Vector2 l b) -> padImpl (Vector2 l t) (Vector2 r b)
+    Dir.LeftToRight -> padImpl p0 p1
+    Dir.RightToLeft -> padImpl (Vector2 l t) (Vector2 r b)
+    ?? w
 
 -- Different `SetLayeredImage`s do additional things when padding
 -- (Moving focal points, alignments, etc)
@@ -92,13 +92,13 @@ locallyAugmented ::
     (HasElemIdPrefix env, MonadReader env m, Show t) => t -> m a -> m a
 locallyAugmented x = Lens.locally elemIdPrefix (<> asElemId x)
 
-subElemId :: (MonadReader env m, HasElemIdPrefix env) => m (ElemId -> ElemId)
-subElemId = Lens.view elemIdPrefix <&> (<>)
+subElemId :: (MonadReader env m, HasElemIdPrefix env) => ElemId -> m ElemId
+subElemId i = Lens.view elemIdPrefix <&> (<> i)
 
 padToSize ::
     (MonadReader env m, SizedElement a, Has Dir.Layout env) =>
-    m (Size -> Vector2 R -> a -> a)
-padToSize =
-    pad <&> \p newSize alignment x ->
-    let sizeDiff = max <$> 0 <*> newSize - x ^. size
-    in  p (sizeDiff * alignment) (sizeDiff * (1 - alignment)) x
+    Size -> Vector2 R -> a -> m a
+padToSize newSize alignment x =
+    pad (sizeDiff * alignment) (sizeDiff * (1 - alignment)) x
+    where
+        sizeDiff = max <$> 0 <*> newSize - x ^. size

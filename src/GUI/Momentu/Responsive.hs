@@ -48,6 +48,7 @@ module GUI.Momentu.Responsive
     ) where
 
 import qualified Control.Lens as Lens
+import           Control.Monad.Reader.Extended (pushToReader)
 import qualified Data.List as List
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Align (Aligned(..), WithTextPos(..), TextWidget)
@@ -242,13 +243,14 @@ verticalLayout vert items =
 -- | Vertical box with the alignment point from the top widget
 vbox ::
     (MonadReader env m, Applicative f, Glue.HasTexts env) =>
-    m ([Responsive f] -> Responsive f)
-vbox =
-    Glue.vbox <&> \vert ->
+    [Responsive f] -> m (Responsive f)
+vbox widgets =
+    pushToReader Glue.vbox <&>
+    \vert ->
     verticalLayout VerticalLayout
     { _vContexts = Lens.reindexed (const idx) Lens.traversed
     , _vLayout = vert
-    }
+    } widgets
     where
         idx =
             NarrowLayoutParams
@@ -260,37 +262,35 @@ vboxSpaced ::
     ( MonadReader env m, Spacer.HasStdSpacing env, Glue.HasTexts env
     , Applicative f
     ) =>
-    m ([Responsive f] -> Responsive f)
-vboxSpaced =
-    (,) <$> vbox <*> Spacer.stdVSpace
-    <&>
-    (\(vert, space) -> List.intersperse (fromView space) <&> vert)
+    [Responsive f] -> m (Responsive f)
+vboxSpaced widgets =
+    do
+        space <- Spacer.stdVSpace
+        List.intersperse (fromView space) widgets & vbox
 
 vboxWithSeparator ::
     (MonadReader env m, Applicative f, Glue.HasTexts env) =>
-    m
-    (Bool -> (Widget.R -> View) ->
-     Responsive f -> Responsive f ->
-     Responsive f)
-vboxWithSeparator =
-    Glue.mkPoly ?? Vertical
-    <&> \(Glue.Poly (|---|)) needDisamb makeSeparator top bottom ->
-    let idx =
+    Bool -> (Widget.R -> View) -> Responsive f -> Responsive f -> m (Responsive f)
+vboxWithSeparator needDisamb makeSeparator top bottom =
+    Glue.mkPoly Vertical <&>
+    \(Glue.Poly (|---|)) ->
+    Vector2 top bottom &
+    verticalLayout VerticalLayout
+    { _vContexts = Lens.reindexed (const idx) Lens.traversed
+    , _vLayout =
+        \(Vector2 t b) ->
+        t
+        |---|
+        makeSeparator (max (t ^. Element.width) (b ^. Element.width))
+        |---|
+        b
+    }
+    where
+        idx =
             NarrowLayoutParams
             { _layoutWidth = 0
             , _layoutNeedDisambiguation = needDisamb
             }
-    in  Vector2 top bottom
-        & verticalLayout VerticalLayout
-        { _vContexts = Lens.reindexed (const idx) Lens.traversed
-        , _vLayout =
-            \(Vector2 t b) ->
-            t
-            |---|
-            makeSeparator (max (t ^. Element.width) (b ^. Element.width))
-            |---|
-            b
-        }
 
 -- | Apply a given vertical disambiguator (such as indentation) when necessary,
 -- according to the layout context.

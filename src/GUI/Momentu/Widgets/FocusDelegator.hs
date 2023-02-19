@@ -62,10 +62,12 @@ modifyEntry myId fullChildRect target mChildEnter =
 
 make ::
     (HasCallStack, MonadReader env m, State.HasCursor env, Applicative f, Widget.HasWidget w) =>
-    m (Config -> FocusEntryTarget -> ElemId -> w f -> w f)
-make =
+    Config -> FocusEntryTarget -> ElemId -> w f -> m (w f)
+make config focusEntryTarget myId widget =
     Lens.view State.cursor <&>
-    \cursor config focusEntryTarget myId -> Widget.widget %~ \childWidget ->
+    \cursor ->
+    widget & Widget.widget %~
+    \childWidget ->
     case () of
     ()
         | selfIsFocused && childIsFocused ->

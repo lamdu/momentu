@@ -19,7 +19,7 @@ make ::
     , Has Dir.Layout env
     ) =>
     Text -> m (WithTextPos View)
-make text = (TextView.make ?? text) <*> (Element.subElemId ?? asElemId text)
+make text = Element.subElemId (asElemId text) >>= TextView.make text
 
 makeFocusable ::
     ( MonadReader env m, Applicative f, State.HasCursor env
@@ -29,6 +29,5 @@ makeFocusable ::
     Text -> m (TextWidget f)
 makeFocusable text =
     do
-        toFocusable <- Widget.makeFocusableView
-        widgetId <- Element.subElemId ?? asElemId text
-        make text <&> Align.tValue %~ toFocusable widgetId
+        i <- Element.subElemId (asElemId text)
+        make text >>= Align.tValue (Widget.makeFocusableView i)

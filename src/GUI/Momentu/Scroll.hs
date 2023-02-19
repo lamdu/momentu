@@ -16,9 +16,9 @@ focusAreaInto ::
     Functor f =>
     Widget.Size -> Widget f -> Widget f
 focusAreaInto regionSize widget =
-    Element.pad Dir.LeftToRight translation2d
+    Element.pad translation2d
     (regionSize - widget ^. Element.size - translation2d)
-    widget
+    widget Dir.LeftToRight
     where
         translation2d =
             translation1d <$> widget ^. Element.size <*> regionSize <*> focalCenter

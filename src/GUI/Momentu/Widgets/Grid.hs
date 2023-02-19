@@ -202,10 +202,10 @@ addNavEventmap env navDests eMap =
 
 make ::
     (Traversable vert, Traversable horiz, MonadReader env m, Deps env, Applicative f) =>
-    m (vert (horiz (Aligned (Widget f))) -> (vert (horiz (Aligned ())), Widget f))
-make =
+    vert (horiz (Aligned (Widget f))) -> m (vert (horiz (Aligned ())), Widget f)
+make children =
     Lens.view id <&>
-    \env children ->
+    \env ->
     let (size, content) = GridView.makePlacements children
     in  ( content & each2d %~ void
         , toList content <&> toList
@@ -292,9 +292,10 @@ toWidget env size sChildren =
             -- Each child is set to the size of the entire grid and
             -- then translated to its place in order to fix the
             -- Surrounding parameters of all children
-            Element.pad dir
+            Element.pad
             (rect ^. Rect.topLeft)
             (size - rect ^. Rect.bottomRight) widget
+            env
         translatedChildren = sChildren & each2d %~ translateChildWidget
         unfocused =
             translatedChildren

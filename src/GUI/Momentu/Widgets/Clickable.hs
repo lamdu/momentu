@@ -30,21 +30,17 @@ Lens.makeLenses ''Config
 
 make ::
     (MonadReader env m, Applicative f, State.HasCursor env) =>
-    m (ElemId -> Config f -> WithTextPos View -> TextWidget f)
-make =
-    Widget.makeFocusableWidgetWith
-    <&> \mkFocusableWith myId config view ->
-    let enter (Dir.Point _) = config ^. action
+    ElemId -> Config f -> WithTextPos View -> m (TextWidget f)
+make myId config view =
+    Align.tValue (Widget.makeFocusableWidgetWith myId enter . Widget.fromView) view
+    <&> Align.tValue %~ Widget.weakerEvents eventMap
+    where
+        enter (Dir.Point _) = config ^. action
         enter _ = pure myId
         eventMap =
             config ^. action
             <&> State.updateCursor
             & E.keyPresses (config ^. keys) (config ^. doc)
-        toButton w =
-            Widget.fromView w
-            & mkFocusableWith myId enter
-            & Widget.weakerEvents eventMap
-    in  view & Align.tValue %~ toButton
 
 makeText ::
     ( MonadReader env m, Applicative f, State.HasCursor env
@@ -52,5 +48,4 @@ makeText ::
     , Has TextView.Style env
     ) =>
     ElemId -> Config f -> Text -> m (TextWidget f)
-makeText myId config text =
-    (make ?? myId ?? config) <*> (TextView.make ?? text ?? myId)
+makeText myId config text = TextView.make text myId >>= make myId config

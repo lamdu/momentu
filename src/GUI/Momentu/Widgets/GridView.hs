@@ -71,21 +71,17 @@ makePlacements rows =
 --- Displays:
 
 make ::
-    ( MonadReader env m, Has Dir.Layout env
-    , Traversable horiz, Traversable vert
-    ) =>
-    m
-    (vert (horiz (Aligned View)) ->
-     (vert (horiz (Aligned ())), View))
-make =
-    Element.pad
-    <&> \pad views ->
-    let (size, placements) = makePlacements views
-        translate (Aligned _ (rect, view)) =
-            pad
-            (rect ^. Rect.topLeft)
-            (size - rect ^. Rect.bottomRight)
-            view ^. View.vAnimLayers
-    in  ( placements <&> Lens.mapped %~ void
-        , View size (placements ^. traverse . traverse . Lens.to translate)
-        )
+    (MonadReader env m, Has Dir.Layout env, Traversable horiz, Traversable vert) =>
+    vert (horiz (Aligned View)) -> m (vert (horiz (Aligned ())), View)
+make views =
+    do
+        env <- Lens.view id
+        let translate (Aligned _ (rect, view)) =
+                Element.pad (rect ^. Rect.topLeft) (size - rect ^. Rect.bottomRight) view env
+                ^. View.vAnimLayers
+        pure
+            ( placements <&> Lens.mapped %~ void
+            , View size (placements ^. traverse . traverse . Lens.to translate)
+            )
+    where
+        (size, placements) = makePlacements views
