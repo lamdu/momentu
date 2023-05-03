@@ -199,8 +199,7 @@ setNewDest destFrame interpolations =
                 [(img ^. iElemId, img ^. iRect)]
             & Map.fromList
         sortedDestIds = destFrame ^.. images . iElemId & List.sort
-        duplicateDestIds =
-            List.group sortedDestIds <&> tail & concat & Set.fromAscList
+        duplicateDestIds = List.group sortedDestIds >>= tail & Set.fromAscList
         destIds = Set.fromAscList sortedDestIds
 
 unitX :: Draw.Image ()

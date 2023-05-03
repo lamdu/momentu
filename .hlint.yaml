@@ -1,0 +1,3 @@
+- ignore: { name: Functor law }
+- ignore: { name: Redundant <&> }
+- ignore: { name: Fuse traverse/<&> }
