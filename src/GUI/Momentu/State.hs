@@ -78,7 +78,7 @@ class HasCursor env where
 instance HasCursor GUIState where cursor = sCursor
 
 subId :: (MonadReader env m, HasCursor env) => ElemId -> m (Maybe ElemId)
-subId i = Lens.view cursor <&> (`ElemId.subId` i)
+subId i = Lens.view cursor <&> ElemId.subId i
 
 isSubCursor :: (MonadReader env m, HasCursor env) => ElemId -> m Bool
 isSubCursor i = subId i <&> Lens.has Lens._Just
