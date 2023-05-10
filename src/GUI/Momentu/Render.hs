@@ -1,3 +1,9 @@
+{-# LANGUAGE CPP #-}
+
+#ifdef darwin_HOST_OS
+{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+#endif
+
 -- | Render images to windows
 
 module GUI.Momentu.Render
@@ -15,6 +21,12 @@ import           System.TimeIt (timeItT)
 
 import           GUI.Momentu.Prelude
 
+#ifdef darwin_HOST_OS
+import qualified Language.C.Inline as C
+
+C.include "<OpenGL/OpenGL.h>"
+#endif
+
 data PerfCounters = PerfCounters
     { renderTime :: Double
     , swapBuffersTime :: Double
@@ -23,6 +35,11 @@ data PerfCounters = PerfCounters
 render :: GLFW.Window -> Draw.Image a -> IO PerfCounters
 render win image =
     do
+
+#ifdef darwin_HOST_OS
+        [C.exp| void { CGLLockContext(CGLGetCurrentContext()); } |]
+#endif
+
         Vector2 sizeX sizeY <- GLFW.Utils.framebufferSize win
         GL.viewport $=
             (GL.Position 0 0,
@@ -32,6 +49,11 @@ render win image =
         GL.ortho 0 sizeX sizeY 0 (-1) 1
         (timedRender, ()) <- timeItT (Draw.clearRender image)
         (timedSwapBuffers, ()) <- timeItT (GLFW.swapBuffers win)
+
+#ifdef darwin_HOST_OS
+        [C.exp| void { CGLUnlockContext(CGLGetCurrentContext()); } |]
+#endif
+
         pure PerfCounters
             { renderTime = timedRender
             , swapBuffersTime = timedSwapBuffers

@@ -139,6 +139,9 @@ library
     , unicode-properties
     , vector
   default-language: Haskell2010
+  if os(osx)
+    build-depends:
+        inline-c
 
 executable dropDownList
   main-is: dropdownlist.hs
