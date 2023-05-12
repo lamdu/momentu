@@ -3,6 +3,7 @@ module GUI.Momentu.Animation.Engine
     ( Config(..), acTimePeriod, acRemainingRatioInPeriod, acSpiral
     , SpiralAnimConf(..), sTan, sThreshold
     , currentFrame
+    , Dest(..)
     , State
     , initialState
     , AdvancedAnimation(..), _AnimationComplete, _NewState
@@ -51,6 +52,16 @@ interpolationImage :: Lens' Interpolation Image
 interpolationImage f (Deleting img) = f img <&> Deleting
 interpolationImage f (Modifying curImg destRect) = f curImg <&> (`Modifying` destRect)
 interpolationImage f (Final img) = f img <&> Final
+
+-- | Destination: where the animation is going to.
+data Dest = Dest
+    { _dTime :: UTCTime
+        -- ^ Time of queueing the destination.
+        -- If for any reason the engine didn't get to react immediately it should jump ahead in animation,
+        -- or even skip animation, instead (to preserve proper response times).
+    , _dFrame :: Frame
+    }
+Lens.makeLenses ''Dest
 
 data State = State
     { _asCurSpeedHalfLife :: !NominalDiffTime
@@ -131,15 +142,15 @@ desiredFrameRate :: Double
 desiredFrameRate = 60
 
 clockedAdvanceAnimation ::
-    Config -> Maybe (UTCTime, Frame) -> State -> IO AdvancedAnimation
+    Config -> Maybe Dest -> State -> IO AdvancedAnimation
 clockedAdvanceAnimation (Config timePeriod ratio spiral) mNewFrame animState =
     getCurrentTime <&>
     \curTime ->
     case mNewFrame of
-    Just (userEventTime, newDestFrame) ->
+    Just dest ->
         animState
         & asCurSpeedHalfLife .~ timeRemaining / realToFrac (logBase 0.5 ratio)
-        & advanceAnimation spiral elapsed (Just newDestFrame) curTime
+        & advanceAnimation spiral elapsed (Just (dest ^. dFrame)) curTime
         where
             -- Retroactively pretend animation started a little bit
             -- sooner so there's already a change in the first frame
@@ -147,7 +158,7 @@ clockedAdvanceAnimation (Config timePeriod ratio spiral) mNewFrame animState =
             timeRemaining =
                 max 0 $
                 diffUTCTime
-                (addUTCTime timePeriod userEventTime)
+                (addUTCTime timePeriod (dest ^. dTime))
                 curTime
     Nothing ->
         advanceAnimation spiral (curTime `diffUTCTime` (animState ^. asCurTime))

@@ -36,7 +36,7 @@ data Handlers = Handlers
 
 eventThreadLoop ::
     IORef (Maybe UTCTime) ->
-    (Maybe (UTCTime, Anim.Frame) -> IO ()) -> GLFW.Window -> Handlers -> IO ()
+    (Maybe Anim.Dest -> IO ()) -> GLFW.Window -> Handlers -> IO ()
 eventThreadLoop lastTimestampRef sendNewFrame win handlers =
     EventLoop.eventLoop win EventLoop.Handlers
     { EventLoop.eventHandler = updateTimestamp . eventHandler handlers
@@ -56,17 +56,16 @@ eventThreadLoop lastTimestampRef sendNewFrame win handlers =
                     (writeIORef lastTimestampRef (Just preTimestamp))
                 pure didAnything
         sendStampedFrame timestamp =
-            makeFrame handlers <&> (,) timestamp <&> Just
+            makeFrame handlers <&> Anim.Dest timestamp <&> Just
             >>= sendNewFrame
 
-animThreadLoop :: STM (Maybe (UTCTime, Anim.Frame)) -> Handlers -> GLFW.Window -> IO ()
+animThreadLoop :: STM (Maybe Anim.Dest) -> Handlers -> GLFW.Window -> IO ()
 animThreadLoop recvNewFrame handlers win =
     do
         GLFW.makeContextCurrent (Just win)
         GLFW.swapInterval 1
-        initialFrame <- makeFrame handlers
-        initialTime <- getCurrentTime
-        Anim.initialState >>= loop (Just (initialTime, initialFrame))
+        initDest <- Anim.Dest <$> getCurrentTime <*> makeFrame handlers
+        Anim.initialState >>= loop (Just initDest)
     where
         waitNewFrame = STM.atomically $ recvNewFrame >>= maybe STM.retry pure
         pollNewFrame = STM.atomically recvNewFrame
