@@ -70,13 +70,13 @@ data State = State
     }
 Lens.makeLenses ''State
 
-initialState :: IO State
-initialState =
+initialState :: Frame -> IO State
+initialState initFrame =
     getCurrentTime <&>
     \curTime -> State
     { _asCurSpeedHalfLife = 0
     , _asCurTime = curTime
-    , _asInterpolations = []
+    , _asInterpolations = initFrame ^. frameImages <&> Final
     }
 
 data AdvancedAnimation = AnimationComplete | NewState State

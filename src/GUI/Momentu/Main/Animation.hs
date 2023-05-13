@@ -64,8 +64,7 @@ animThreadLoop recvNewFrame handlers win =
     do
         GLFW.makeContextCurrent (Just win)
         GLFW.swapInterval 1
-        initDest <- Anim.Dest <$> getCurrentTime <*> makeFrame handlers
-        Anim.initialState >>= loop (Just initDest)
+        makeFrame handlers >>= Anim.initialState >>= loop Nothing
     where
         waitNewFrame = STM.atomically $ recvNewFrame >>= maybe STM.retry pure
         pollNewFrame = STM.atomically recvNewFrame
