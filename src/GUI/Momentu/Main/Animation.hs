@@ -64,21 +64,18 @@ animThreadLoop recvNewFrame handlers win =
     do
         GLFW.makeContextCurrent (Just win)
         GLFW.swapInterval 1
-        makeFrame handlers >>= Anim.initialState >>= loop Nothing
+        makeFrame handlers >>= Anim.initialState >>= loop
     where
         waitNewFrame = STM.atomically $ recvNewFrame >>= maybe STM.retry pure
         pollNewFrame = STM.atomically recvNewFrame
-        loop frameReq animState =
+        loop animState =
             do
-                Anim.currentFrame animState & Anim.draw & render win
-                    >>= reportPerfCounters handlers
+                Anim.currentFrame animState & Anim.draw & render win >>= reportPerfCounters handlers
+                frameReq <- if Anim.isAnimating animState then pollNewFrame else waitNewFrame <&> Just
                 animConfig <- getConfig handlers
-                (nextAnimState, nextFrameReq) <-
-                    Anim.clockedAdvanceAnimation animConfig frameReq animState
-                    >>= \case
-                    Anim.AnimationComplete -> waitNewFrame <&> Just <&> (,) animState
-                    Anim.NewState nextAnimState -> pollNewFrame <&> (,) nextAnimState
-                loop nextFrameReq nextAnimState
+                Anim.clockedAdvanceAnimation animConfig frameReq animState
+                    <&> fromMaybe animState . (^? Anim._NewState)
+                    >>= loop
 
 data MainLoop handlers = MainLoop
     { wakeUp :: IO ()

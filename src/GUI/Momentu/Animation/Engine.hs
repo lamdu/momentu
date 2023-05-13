@@ -5,7 +5,7 @@ module GUI.Momentu.Animation.Engine
     , currentFrame
     , Dest(..)
     , State
-    , initialState
+    , initialState, isAnimating
     , AdvancedAnimation(..), _AnimationComplete, _NewState
     , advanceAnimation, clockedAdvanceAnimation
     ) where
@@ -81,6 +81,9 @@ initialState initFrame =
 
 data AdvancedAnimation = AnimationComplete | NewState State
 Lens.makePrisms ''AdvancedAnimation
+
+isAnimating :: State -> Bool
+isAnimating = Lens.has (asInterpolations . traverse . Lens.filtered (Lens.nullOf _Final))
 
 rot90 :: Num a => Vector2 a -> Vector2 a
 rot90 (Vector2 x y) = Vector2 y (negate x)
