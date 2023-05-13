@@ -8,7 +8,6 @@ module GUI.Momentu.Main.Animation
     ) where
 
 import           Control.Concurrent.Extended (rtsSupportsBoundThreads, forwardSynchronuousExceptions, withForkedOS)
-import           Control.Concurrent.STM (STM)
 import qualified Control.Concurrent.STM as STM
 import           Control.Exception (onException)
 import           Data.IORef
@@ -34,48 +33,56 @@ data Handlers = Handlers
         -- 2. Do not pass event to further processing (e.g: input managers)
     }
 
-eventThreadLoop ::
-    IORef (Maybe UTCTime) ->
-    (Maybe Anim.Dest -> IO ()) -> GLFW.Window -> Handlers -> IO ()
-eventThreadLoop lastTimestampRef sendNewFrame win handlers =
-    EventLoop.eventLoop win EventLoop.Handlers
-    { EventLoop.eventHandler = updateTimestamp . eventHandler handlers
-    , EventLoop.iteration =
-        do
-            lastTimestamp <- readIORef lastTimestampRef
-            writeIORef lastTimestampRef Nothing
-            traverse_ sendStampedFrame lastTimestamp
-            pure EventLoop.NextWait
-    }
-    where
-        updateTimestamp act =
-            do
-                preTimestamp <- getCurrentTime
-                didAnything <- act
-                when didAnything
-                    (writeIORef lastTimestampRef (Just preTimestamp))
-                pure didAnything
-        sendStampedFrame timestamp =
-            makeFrame handlers <&> Anim.Dest timestamp <&> Just
-            >>= sendNewFrame
-
-animThreadLoop :: STM (Maybe Anim.Dest) -> Handlers -> GLFW.Window -> IO ()
-animThreadLoop recvNewFrame handlers win =
+eventAnimLoop ::
+    (IO () -> IO ()) -> IORef (Maybe UTCTime) -> GLFW.Window -> Handlers -> IO ()
+eventAnimLoop queueAction lastTimestampRef win handlers =
     do
-        GLFW.makeContextCurrent (Just win)
         GLFW.swapInterval 1
-        makeFrame handlers >>= Anim.initialState >>= loop
-    where
-        waitNewFrame = STM.atomically $ recvNewFrame >>= maybe STM.retry pure
-        pollNewFrame = STM.atomically recvNewFrame
-        loop animState =
-            do
-                Anim.currentFrame animState & Anim.draw & render win >>= reportPerfCounters handlers
-                frameReq <- if Anim.isAnimating animState then pollNewFrame else waitNewFrame <&> Just
-                animConfig <- getConfig handlers
-                Anim.clockedAdvanceAnimation animConfig frameReq animState
-                    <&> fromMaybe animState . (^? Anim._NewState)
-                    >>= loop
+        animStateRef <- makeFrame handlers >>= Anim.initialState >>= newIORef
+        let iteration frameReq =
+                do
+                    writeIORef lastTimestampRef Nothing
+                    prevAnimState <- readIORef animStateRef
+                    animConfig <- getConfig handlers
+                    animRes <- readIORef animStateRef >>= Anim.clockedAdvanceAnimation animConfig frameReq
+                    let animState = fromMaybe prevAnimState (animRes ^? Anim._NewState)
+                    writeIORef animStateRef animState
+                    Anim.currentFrame animState & Anim.draw & render win >>= reportPerfCounters handlers
+                    case animRes of
+                        Anim.AnimationComplete -> EventLoop.NextWait
+                        _ -> EventLoop.NextPoll
+                        & pure
+        let mkFrameReq timestamp = makeFrame handlers <&> Anim.Dest timestamp
+        fbSizeRef <- GLFW.getFramebufferSize win >>= newIORef
+        EventLoop.eventLoop win EventLoop.Handlers
+            { EventLoop.eventHandler =
+                \case
+                EventLoop.EventWindowRefresh ->
+                    do
+                        prevFbSize <- readIORef fbSizeRef
+                        curFbSize <- GLFW.getFramebufferSize win
+                        if curFbSize == prevFbSize
+                            then iteration Nothing & void
+                            else
+                                do
+                                    writeIORef fbSizeRef curFbSize
+                                    getCurrentTime >>= mkFrameReq <&> Just >>= iteration & void
+                        pure True
+                EventLoop.EventFramebufferSize{} -> pure False
+                event ->
+                    do
+                        preTimestamp <- getCurrentTime
+                        do
+                            didAnything <- eventHandler handlers event
+                            when didAnything $
+                                do
+                                    writeIORef lastTimestampRef (Just preTimestamp)
+                                    EventLoop.wakeUp
+                            & queueAction
+                        pure True
+            , EventLoop.iteration =
+                readIORef lastTimestampRef >>= traverse mkFrameReq >>= iteration
+            }
 
 data MainLoop handlers = MainLoop
     { wakeUp :: IO ()
@@ -91,17 +98,13 @@ mainLoop =
         do
             getCurrentTime <&> Just >>= writeIORef lastTimestampRef
             EventLoop.wakeUp
-    , run = \win handlers ->
+    , run =
+        \win handlers ->
         do
             unless rtsSupportsBoundThreads (error "mainLoop requires threaded runtime")
-            GLFW.makeContextCurrent Nothing
-            newFrameReq <- STM.newTVarIO Nothing
-            let recvFrameReq = STM.swapTVar newFrameReq Nothing
-            let sendFrameReq = STM.atomically . STM.writeTVar newFrameReq
-            animThread <-
-                animThreadLoop recvFrameReq handlers win
-                & forwardSynchronuousExceptions
+            eventsQueue <- STM.newTQueueIO
+            eventWorkerThread <- STM.readTQueue eventsQueue & STM.atomically & join & forever & forwardSynchronuousExceptions
             withForkedOS
-                (animThread `onException` EventLoop.wakeUp)
-                (eventThreadLoop lastTimestampRef sendFrameReq win handlers)
+                (eventWorkerThread `onException` EventLoop.wakeUp)
+                (eventAnimLoop (STM.atomically . STM.writeTQueue eventsQueue) lastTimestampRef win handlers)
     }
