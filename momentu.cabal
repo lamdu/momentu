@@ -142,6 +142,7 @@ library
   if os(osx)
     build-depends:
         inline-c
+      , inline-c-objc
 
 executable dropDownList
   main-is: dropdownlist.hs

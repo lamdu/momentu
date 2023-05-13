@@ -1,5 +1,11 @@
 -- | Low-level event-loop
 
+{-# LANGUAGE CPP #-}
+
+#ifdef darwin_HOST_OS
+{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+#endif
+
 module GUI.Momentu.Main.Events.Loop
     ( Event(..)
     , Next(..)
@@ -17,6 +23,14 @@ import qualified Graphics.UI.GLFW as GLFW
 import qualified Graphics.UI.GLFW.Utils as GLFW.Utils
 
 import           GUI.Momentu.Prelude
+
+#ifdef darwin_HOST_OS
+import qualified Language.C.Inline.ObjC as C
+
+C.context C.objcCtx
+
+C.include "<Cocoa/Cocoa.h>"
+#endif
 
 -- | The output of the event handler back to the event-loop.
 data Next
@@ -94,6 +108,23 @@ eventLoop win handlers =
         setCallback GLFW.setWindowRefreshCallback $ vhandler EventWindowRefresh
         setCallback GLFW.setFramebufferSizeCallback $ framebufferSizeEvent vhandler
         setCallback GLFW.setWindowCloseCallback $ vhandler EventWindowClose
+
+#ifdef darwin_HOST_OS
+        cocoaWin <- GLFW.getCocoaWindow win
+        [C.block| void {
+            // Enable animations during resize (when user set up a refresh callback).
+            // Based on https://developer.apple.com/library/archive/qa/qa1385/_index.html
+            [[NSRunLoop currentRunLoop]
+                addTimer:
+                    [NSTimer
+                        timerWithTimeInterval:0.001 // ms
+                        target:[(id) $(void* cocoaWin) contentView]
+                        selector:@selector(setNeedsDisplay:)
+                        userInfo:@YES
+                        repeats:YES]
+                forMode:NSEventTrackingRunLoopMode];
+        } |]
+#endif
 
         vhandler EventWindowRefresh
 

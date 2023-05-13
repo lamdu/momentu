@@ -67,6 +67,7 @@ library:
   - condition: os(osx)
     dependencies:
     - inline-c
+    - inline-c-objc
 
 tests:
   momentu-test:
