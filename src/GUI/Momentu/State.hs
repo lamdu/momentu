@@ -68,7 +68,7 @@ update u s =
         & has . sWidgetStates %~ Map.filterWithKey f
         where
             f k _v = ElemId.subId k c & Lens.has Lens._Just
-    & has . sWidgetStates %~ mappend (u ^. uWidgetStateUpdates)
+    & has . sWidgetStates %~ (<>) (u ^. uWidgetStateUpdates)
 
 class HasCursor env where
     cursor :: Lens' env ElemId

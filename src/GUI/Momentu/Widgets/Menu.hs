@@ -310,7 +310,7 @@ addPickers pick w =
     \pickEventMap ->
     w
     & Widget.addPreEvent preEvent
-    & Widget.eventMapMaker . Lens.mapped %~ mappend pickEventMap
+    & Widget.eventMapMaker . Lens.mapped %~ (<>) pickEventMap
     where
         preEvent =
             pick

@@ -40,4 +40,4 @@ addInnerFrame ::
 addInnerFrame color frameWidth w =
     Element.subElemId "inner-frame" <&>
     \animId ->
-    w & Element.bottomLayer %@~ \sz -> mappend (Anim.emptyRectangle frameWidth sz animId & Anim.unitImages %~ Draw.tint color)
+    w & Element.bottomLayer %@~ \sz -> (<>) (Anim.emptyRectangle frameWidth sz animId & Anim.unitImages %~ Draw.tint color)

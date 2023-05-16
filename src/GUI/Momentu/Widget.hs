@@ -139,7 +139,7 @@ addPreEvent preEvent =
             ctx
             & ePrevTextRemainder %~ (preEvent ^. pTextRemainder <>)
             & mk
-            & addPreEventToEventMap (liftA2 mappend) preEvent
+            & addPreEventToEventMap (liftA2 (<>)) preEvent
 
 addEventsWithContext ::
     (Applicative f, HasWidget w) =>
@@ -155,7 +155,7 @@ addEventsWithContext append mkEvents =
                     ctx
                     & ePrevTextRemainder <>~ es ^. traverse . pTextRemainder
                     & mkEvents
-                    & (foldr (addPreEventToEventMap (liftA2 mappend)) ?? es)
+                    & (foldr (addPreEventToEventMap (liftA2 (<>))) ?? es)
                     & append
                 es = f ^. fPreEvents
 
@@ -167,16 +167,16 @@ addEvents append = addEventsWithContext append . const
 
 strongerEvents ::
     (Applicative f, HasWidget w) => EventMap (f State.Update) -> w f -> w f
-strongerEvents = addEvents mappend
+strongerEvents = addEvents (<>)
 
 weakerEvents ::
     (Applicative f, HasWidget w) => EventMap (f State.Update) -> w f -> w f
-weakerEvents = addEvents (flip mappend)
+weakerEvents = addEvents (flip (<>))
 
 weakerEventsWithContext ::
     (Applicative f, HasWidget w) =>
     (EventContext -> EventMap (f State.Update)) -> w f -> w f
-weakerEventsWithContext = addEventsWithContext (flip mappend)
+weakerEventsWithContext = addEventsWithContext (flip (<>))
 
 strongerEventsWithoutPreevents ::
     HasWidget w => EventMap (f State.Update) -> w f -> w f

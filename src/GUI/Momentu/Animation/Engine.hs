@@ -203,7 +203,7 @@ setNewDest destFrame interpolations =
             where
                 rImg
                     | duplicateDestIds ^. Lens.contains (destImage ^. iElemId)
-                        = destImage & iUnitImage %~ mappend redX
+                        = destImage & iUnitImage %~ (<>) redX
                     | otherwise = destImage
                 redX = Draw.tint red unitX
         curFrame = frameOfInterpolations interpolations
