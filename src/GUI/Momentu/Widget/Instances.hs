@@ -109,6 +109,43 @@ glueStates env orientation order strollOrder w0 w1 =
     & wState .~
         combineStates env orientation order strollOrder (w0 ^. wState) (w1 ^. wState)
 
+applyStrollPreference ::
+    (Functor f, Functor eventMap) =>
+    Order ->
+    Maybe (Semigroup.First Anim.ElemId, a) ->
+    eventMap (f State.Update) -> eventMap (f State.Update)
+applyStrollPreference strollOrder mStroll events =
+    -- If the unfocused one has a stroll destination for us
+    -- Use it in each event that prefers the stroll position
+    case mStroll of
+    Just (Semigroup.First fwd, _) | strollOrder == Forward ->
+        events <&> Lens.mapped %~
+        \e ->
+        if e ^. State.uPreferStroll . Lens._Wrapped
+        then
+            e
+            & State.uCursor .~ Just fwd ^. Lens._Unwrapped
+            & State.uPreferStroll .~ mempty
+        else
+            e
+    _ -> events
+
+strollEvents ::
+    ( Has (Dir.Texts Text) env, Has (Glue.Texts Text) env
+    , Has (MomentuTexts.Texts Text) env, Has Dir.Layout env, Applicative f
+    ) =>
+    env
+    -> Order
+    -> (Semigroup.First Anim.ElemId, Semigroup.Last Anim.ElemId)
+    -> EventMap (f State.Update)
+strollEvents env strollOrder (Semigroup.First fwd, Semigroup.Last bwd)
+    | strollOrder == Backward =
+        EventMap.keysEventMapMovesCursor strollBackKeys
+        (Glue.strollDoc env MomentuTexts.backward) (pure bwd)
+    | otherwise =
+        EventMap.keysEventMapMovesCursor strollAheadKeys
+        (Glue.strollDoc env MomentuTexts.forward) (pure fwd)
+
 combineStates ::
     (Applicative f, Glue.HasTexts env) =>
     env -> Orientation -> Order -> Order ->
@@ -135,44 +172,20 @@ combineStates env orientation order strollOrder (StateFocused f) (StateUnfocused
             case orientation of
             Horizontal -> Rect.verticalRange
             Vertical   -> Rect.horizontalRange
-        applyStrollPreference events =
-            -- If the unfocused one has a stroll destination for us
-            -- Use it in each event that prefers the stroll position
-            case u ^. uMStroll of
-            Just (Semigroup.First fwd, _) | strollOrder == Forward ->
-                events <&> Lens.mapped %~
-                \e ->
-                if e ^. State.uPreferStroll . Lens._Wrapped
-                then
-                    e
-                    & State.uCursor .~ Just fwd ^. Lens._Unwrapped
-                    & State.uPreferStroll .~ mempty
-                else
-                    e
-            _ -> events
         addEvents eventContext events =
-            applyStrollPreference events
+            applyStrollPreference strollOrder (u ^. uMStroll) events
             <> foldMap (enterEvents eventContext) (u ^. uMEnter)
-            <> foldMap strollEvents (u ^. uMStroll)
+            <> foldMap (strollEvents env strollOrder) (u ^. uMStroll)
         enterEvents eventContext enter =
-            eventContext ^. eVirtualCursor . State.vcRect . chooseRange
-            & dirCons
-            & enter
-            & (^. enterResultEvent)
+            (enter . dirCons) (eventContext ^. eVirtualCursor . State.vcRect . chooseRange)
+            ^. enterResultEvent
             & EventMap.keyPresses
                 (stdDirKeys ^# dirKey dir orientation order <&> noMods)
-            (EventMap.Doc
-                [ env ^. has . MomentuTexts.navigation
-                , env ^. has . MomentuTexts.move
-                , env ^. has . Dir.textLens orientation order])
+                (EventMap.Doc
+                    [ env ^. has . MomentuTexts.navigation
+                    , env ^. has . MomentuTexts.move
+                    , env ^. has . Dir.textLens orientation order])
         dir = env ^. has
-        strollEvents (Semigroup.First fwd, Semigroup.Last bwd)
-            | strollOrder == Backward =
-                EventMap.keysEventMapMovesCursor strollBackKeys
-                (Glue.strollDoc env MomentuTexts.backward) (pure bwd)
-            | otherwise =
-                EventMap.keysEventMapMovesCursor strollAheadKeys
-                (Glue.strollDoc env MomentuTexts.forward) (pure fwd)
         dirCons =
             case (dir, orientation, order) of
             (_, Vertical  , Backward) -> FromBelow

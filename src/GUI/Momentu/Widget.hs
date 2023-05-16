@@ -126,7 +126,7 @@ enterFuncAddVirtualCursor destRect =
             Point p     -> Rect p 0 & Just
             <&> VirtualCursor
 
--- | Take a manual `mappend` function to avoid needing "Monoid (f a)"
+-- | Takes a manual `mappend` function to avoid needing "Monoid (f a)"
 -- constraint in callers, who can give the Applicative-Monoid instance
 -- for a generic Applicative without requiring a cumbersome
 -- "Applicative (f a)" constraint
