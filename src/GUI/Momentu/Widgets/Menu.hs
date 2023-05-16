@@ -301,6 +301,9 @@ makePickEventMap pick =
         (E.Doc [pick ^. Widget.pDesc])
         (pick ^. Widget.pAction <&> (^. pickDest))
 
+makePreEvent :: Functor f => Widget.PreEvent (f PickResult) -> Widget.PreEvent (f State.Update)
+makePreEvent = (<&> Lens.mapped %~ State.updateCursor . (^. pickDest))
+
 addPickers ::
     (MonadReader env m, Has (Config ModKey) env, Applicative f, Has (Texts Text) env) =>
     Widget.PreEvent (f PickResult) -> Widget f -> m (Widget f)
@@ -309,13 +312,8 @@ addPickers pick w =
     <&>
     \pickEventMap ->
     w
-    & Widget.addPreEvent preEvent
+    & Widget.addPreEvent (makePreEvent pick)
     & Widget.eventMapMaker . Lens.mapped %~ (<>) pickEventMap
-    where
-        preEvent =
-            pick
-            <&> fmap (^. pickDest)
-            <&> fmap State.updateCursor
 
 -- | All search menu results must start with a common prefix.
 -- This is used to tell when cursor was on a result that got filtered out

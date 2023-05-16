@@ -30,6 +30,7 @@ module GUI.Momentu.Widget
     , weakerEvents
     , weakerEventsWithContext
     , addPreEvent
+    , addPreEventToEventMapMaker
     , eventMapMaker
 
     -- Operations:
@@ -134,12 +135,17 @@ addPreEvent preEvent =
         onFocused f =
             f
             & fPreEvents %~ (preEvent :)
-            & fEventMap %~ onMkEventMap
-        onMkEventMap mk ctx =
-            ctx
-            & ePrevTextRemainder %~ (preEvent ^. pTextRemainder <>)
-            & mk
-            & addPreEventToEventMap (liftA2 (<>)) preEvent
+            & fEventMap %~ addPreEventToEventMapMaker preEvent
+
+-- TODO: Better name
+addPreEventToEventMapMaker ::
+    (Applicative f, Semigroup a) =>
+    PreEvent (f a) -> (EventContext -> EventMap (f a)) -> EventContext -> EventMap (f a)
+addPreEventToEventMapMaker preEvent mk ctx =
+    ctx
+    & ePrevTextRemainder %~ (preEvent ^. pTextRemainder <>)
+    & mk
+    & addPreEventToEventMap (liftA2 (<>)) preEvent
 
 addEventsWithContext ::
     (Applicative f, HasWidget w) =>
