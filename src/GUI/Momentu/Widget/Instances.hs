@@ -9,6 +9,7 @@ module GUI.Momentu.Widget.Instances
     , strollAheadKeys, strollBackKeys
     ) where
 
+import           Control.Applicative (Applicative(..))
 import           Control.Lens (LensLike)
 import qualified Control.Lens as Lens
 import           Data.Maybe.Extended (unionMaybeWith)
@@ -33,7 +34,7 @@ import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
 import qualified GUI.Momentu.View as View
-import           GUI.Momentu.Widget.Events (combineEnterPoints, combineMEnters)
+import           GUI.Momentu.Widget.Events (combineEnterPoints, combineMEnters, addPreEventToEventMap)
 import           GUI.Momentu.Widget.Types
 import           GUI.Momentu.Widgets.StdKeys (stdDirKeys, dirKey)
 
@@ -163,7 +164,7 @@ combineStates env orientation order strollOrder (StateFocused f) (StateUnfocused
     f
     <&> fMEnterPoint %~
         unionMaybeWith combineEnterPoints (u ^. uMEnter <&> (. Point))
-    <&> fEventMap . Lens.imapped %@~ addEvents
+    <&> Lens.filteredBy fPreEvents <.> fEventMap . Lens.imapped %@~ addEvents
     <&> fLayers <>~ u ^. uLayers
     & StateFocused
     where
@@ -171,10 +172,12 @@ combineStates env orientation order strollOrder (StateFocused f) (StateUnfocused
             case orientation of
             Horizontal -> Rect.verticalRange
             Vertical   -> Rect.horizontalRange
-        addEvents eventContext events =
-            applyStrollPreference strollOrder (u ^. uMStroll) events
-            <> foldMap (enterEvents eventContext) (u ^. uMEnter)
-            <> foldMap (strollEvents env strollOrder) (u ^. uMStroll)
+        addEvents (preEvents, eventContext) events =
+            applyStrollPreference strollOrder (u ^. uMStroll) events <>
+            foldr (addPreEventToEventMap (liftA2 mappend))
+            (foldMap (enterEvents eventContext) (u ^. uMEnter) <>
+                foldMap (strollEvents env strollOrder) (u ^. uMStroll))
+            preEvents
         enterEvents eventContext enter =
             (enter . dirCons) (eventContext ^. eVirtualCursor . State.vcRect . chooseRange)
             ^. enterResultEvent
