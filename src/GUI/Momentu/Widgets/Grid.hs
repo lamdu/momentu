@@ -35,7 +35,7 @@ import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.Widget (R, Widget(Widget))
 import qualified GUI.Momentu.Widget as Widget
-import qualified GUI.Momentu.Widget.Instances as WidgetGlue
+import qualified GUI.Momentu.Widget.Events as Events
 import qualified GUI.Momentu.Widgets.GridView as GridView
 import           GUI.Momentu.Widgets.StdKeys (DirKeys(..))
 import qualified GUI.Momentu.Widgets.StdKeys as StdKeys
@@ -140,7 +140,7 @@ mkNavDests dir (Cursor (Vector2 cursorX cursorY)) virtCursor rows =
         prevArea = virtCursor ^. State.vcRect
         enterFrom orientation axis cons lns =
             lns
-            <&> foldl' (WidgetGlue.combineMEnters dir orientation) Nothing
+            <&> foldl' (Events.combineMEnters dir orientation) Nothing
             & msum
             ?? cons (prevArea ^# axis)
             <&> setVirt axis
@@ -277,7 +277,7 @@ toWidget env size sChildren =
             , Widget._fPreEvents = focusedChild ^. Widget.fPreEvents
             , Widget._fMEnterPoint =
                 focusedChild ^. Widget.fMEnterPoint
-                & unionMaybeWith Widget.combineEnterPoints (unfocusedMEnter <&> (. Point))
+                & unionMaybeWith Events.combineEnterPoints (unfocusedMEnter <&> (. Point))
             , Widget._fEventMap =
                 focusedChild ^. Widget.fEventMap
                 <&> addEventStroll

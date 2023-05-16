@@ -34,7 +34,7 @@ module GUI.Momentu.Widget
 
     -- Operations:
     , translate
-    , translateFocused, combineEnterPoints
+    , translateFocused
 
     , makeFocusableView
     , makeFocusableWidget
@@ -51,12 +51,10 @@ module GUI.Momentu.Widget
 
 import           Control.Applicative (liftA2)
 import qualified Control.Lens as Lens
-import qualified Data.Text as Text
 import           Data.Vector.Vector2 (Vector2(..))
 import           GUI.Momentu.Animation (R, Size)
 import qualified GUI.Momentu.Element as Element
 import           GUI.Momentu.EventMap (EventMap)
-import qualified GUI.Momentu.EventMap as E
 import           GUI.Momentu.FocusDirection (FocusDirection(..))
 import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.Rect as Rect
@@ -65,6 +63,7 @@ import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
 import           GUI.Momentu.Element.Id (ElemId(..))
 import qualified GUI.Momentu.Element.Id as ElemId
+import           GUI.Momentu.Widget.Events (addPreEventToEventMap)
 import           GUI.Momentu.Widget.Instances
 import           GUI.Momentu.Widget.Types as Types
 
@@ -125,19 +124,6 @@ enterFuncAddVirtualCursor destRect =
             FromOutside -> Nothing
             Point p     -> Rect p 0 & Just
             <&> VirtualCursor
-
--- | Takes a manual `mappend` function to avoid needing "Monoid (f a)"
--- constraint in callers, who can give the Applicative-Monoid instance
--- for a generic Applicative without requiring a cumbersome
--- "Applicative (f a)" constraint
-addPreEventToEventMap :: (a -> a -> a) -> PreEvent a -> EventMap a -> EventMap a
-addPreEventToEventMap append preEvent e =
-    e
-    & actionText %~ concatDescs (preEvent ^. pDesc)
-    <&> append (preEvent ^. pAction)
-    where
-        actionText = E.emHandlerDocHandlers . E.dhDoc . E.docStrs . Lens.reversed . Lens.element 0
-        concatDescs x y = filter (not . Text.null) [x, y] & Text.intercalate ", "
 
 addPreEvent ::
     Applicative f =>

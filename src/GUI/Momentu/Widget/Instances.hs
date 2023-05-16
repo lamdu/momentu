@@ -5,7 +5,6 @@ module GUI.Momentu.Widget.Instances
     , glueStates
     , translateFocusedGeneric, translateUpdate
     , translate, fromView
-    , combineEnterPoints, combineMEnters
     , eventMapMaker
     , strollAheadKeys, strollBackKeys
     ) where
@@ -30,11 +29,11 @@ import qualified GUI.Momentu.Glue as Glue
 import qualified GUI.Momentu.I18N as MomentuTexts
 import           GUI.Momentu.ModKey (ModKey(..), noMods)
 import qualified GUI.Momentu.ModKey as ModKey
-import           GUI.Momentu.Rect (Rect(..))
 import qualified GUI.Momentu.Rect as Rect
 import qualified GUI.Momentu.State as State
 import           GUI.Momentu.View (View(..))
 import qualified GUI.Momentu.View as View
+import           GUI.Momentu.Widget.Events (combineEnterPoints, combineMEnters)
 import           GUI.Momentu.Widget.Types
 import           GUI.Momentu.Widgets.StdKeys (stdDirKeys, dirKey)
 
@@ -200,60 +199,6 @@ strollAheadKeys = [noMods ModKey.Key'Tab]
 
 strollBackKeys :: [ModKey]
 strollBackKeys = [ModKey.shift ModKey.Key'Tab]
-
-combineMEnters ::
-    Has Dir.Layout env =>
-    env -> Orientation ->
-    Maybe (FocusDirection -> EnterResult a) ->
-    Maybe (FocusDirection -> EnterResult a) ->
-    Maybe (FocusDirection -> EnterResult a)
-combineMEnters env = unionMaybeWith . combineEnters (env ^. has)
-
-combineEnters ::
-    Dir.Layout -> Orientation ->
-    (FocusDirection -> EnterResult a) ->
-    (FocusDirection -> EnterResult a) ->
-    FocusDirection -> EnterResult a
-combineEnters ldir o e0 e1 dir = chooseEnter ldir o dir (e0 dir) (e1 dir)
-
-combineEnterPoints ::
-    (Vector2 R -> EnterResult a) -> (Vector2 R -> EnterResult a) ->
-    Vector2 R -> EnterResult a
-combineEnterPoints e0 e1 p = closerGeometric p (e0 p) (e1 p)
-
-closerGeometric :: Vector2 R -> EnterResult a -> EnterResult a -> EnterResult a
-closerGeometric p r0 r1
-    | Rect.sqrPointDistance p (r0 ^. enterResultRect) <=
-      Rect.sqrPointDistance p (r1 ^. enterResultRect) = r0
-    | otherwise = r1
-
-closer ::
-    Lens.ALens' Rect (Rect.Range R) -> Rect.Range R ->
-    EnterResult a -> EnterResult a -> EnterResult a
-closer axis r r0 r1
-    | Rect.rangeDistance r (r0 ^# enterResultRect . axis) <=
-      Rect.rangeDistance r (r1 ^# enterResultRect . axis) = r0
-    | otherwise = r1
-
-chooseEnter ::
-    Dir.Layout -> Orientation -> FocusDirection ->
-    EnterResult a -> EnterResult a -> EnterResult a
-chooseEnter _ _          FromOutside r0 _  = r0 -- left-biased
-chooseEnter _ _          (Point p) r0 r1 = closerGeometric p r0 r1
-chooseEnter _ Vertical   FromAbove{} r0 _  = r0
-chooseEnter _ Vertical   FromBelow{} _  r1 = r1
-chooseEnter _ Horizontal (FromAbove r) r0 r1 =
-    closer Rect.horizontalRange r r0 r1
-chooseEnter _ Horizontal (FromBelow r) r0 r1 =
-    closer Rect.horizontalRange r r0 r1
-chooseEnter _ Vertical (FromLeft r) r0 r1 =
-    closer Rect.verticalRange r r0 r1
-chooseEnter _ Vertical (FromRight r) r0 r1 =
-    closer Rect.verticalRange r r0 r1
-chooseEnter Dir.LeftToRight Horizontal FromLeft{}  r0 _  = r0
-chooseEnter Dir.LeftToRight Horizontal FromRight{} _  r1 = r1
-chooseEnter Dir.RightToLeft Horizontal FromLeft{}  _  r1 = r1
-chooseEnter Dir.RightToLeft Horizontal FromRight{} r0 _  = r0
 
 stateLayers :: Lens.Setter' (State a) Element.LayeredImage
 stateLayers = stateLens uLayers (Lens.mapped . fLayers)
