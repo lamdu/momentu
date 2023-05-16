@@ -400,7 +400,9 @@ make makeSearchTerm makeOptions ann menuId placement =
                 pure (Menu.NoPickActiveResult, const id, assignCursor menuId [])
         makeSearchTerm mPickResult
             <&> (\term -> term ^. termWidget & Align.tValue %~ toMenu term)
-            <&> Lens.mapped . Widget.enterResultCursor .~ menuId
+            <&> Align.tValue . Widget.wFocused . Widget.fPreEvents %~
+                (<>) (mPickResult ^.. Menu._PickActiveResult <&> Menu.makePreEvent)
+            <&> Align.tValue . Widget.enterResultCursor .~ menuId
             & Reader.local (Element.elemIdPrefix .~ menuId)
             & assignTheCursor
     where

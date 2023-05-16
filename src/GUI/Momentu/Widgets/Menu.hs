@@ -8,12 +8,12 @@ module GUI.Momentu.Widgets.Menu
     , OptionList(..), olOptions, olIsTruncated
       , mkOptionList
     , PickResult(..), pickDest, pickMNextEntry
-    , PickActiveResult(..)
+    , PickActiveResult(..), _PickActiveResult, _NoPickActiveResult
     , RenderedOption(..), rWidget, rPick
     , Option(..), oId, oRender, oSubmenuWidgets
     , optionWidgets
     , Placement(..)
-    , make, makeHovered, hoverOptions, makePickEventMap
+    , make, makeHovered, hoverOptions, makePickEventMap, makePreEvent
     , noResultsId
     , HasTexts, Texts(..), downBlocked, upBlocked, submenuSymbol, commaNextEntry, noResults
     , englishTexts
@@ -109,6 +109,7 @@ Lens.makeLenses ''PickResult
 data PickActiveResult f
     = NoPickActiveResult
     | PickActiveResult (Widget.PreEvent (f PickResult))
+Lens.makePrisms ''PickActiveResult
 
 data RenderedOption f = RenderedOption
     { _rWidget :: TextWidget f
@@ -312,7 +313,7 @@ addPickers pick w =
     <&>
     \pickEventMap ->
     w
-    & Widget.addPreEvent (makePreEvent pick)
+    & Widget.wFocused . Widget.fEventMap %~ Widget.addPreEventToEventMapMaker (makePreEvent pick)
     & Widget.eventMapMaker . Lens.mapped %~ (<>) pickEventMap
 
 -- | All search menu results must start with a common prefix.
@@ -370,7 +371,12 @@ make _ minWidth (OptionList isTruncated opts) =
             & traverse Glue.vbox
         env <- Lens.view id
         pure
-            ( maybe NoPickActiveResult PickActiveResult (rendered ^? Lens.ix 0 . _1)
+            ( rendered ^?
+                ( traverse .
+                    Lens.filteredBy (_2 . _2 . Align.tValue . Widget.wState . Widget._StateFocused)
+                    <> Lens.ix 0
+                ) . _1
+                & maybe NoPickActiveResult PickActiveResult
             , (blockEvents env <&> (Align.tValue %~)) <*> boxed
             )
 
