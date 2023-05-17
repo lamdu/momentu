@@ -301,8 +301,8 @@ makePickEventMap pick =
         (E.Doc [pick ^. Widget.pDesc])
         (pick ^. Widget.pAction <&> (^. pickDest))
 
-makePreEvent :: Functor f => Widget.PreEvent (f PickResult) -> Widget.PreEvent (f State.Update)
-makePreEvent = (<&> Lens.mapped %~ State.updateCursor . (^. pickDest))
+makePreEvent :: (Functor f, Functor preEvent) => preEvent (f PickResult) -> preEvent (f State.Update)
+makePreEvent = Lens.mapped . Lens.mapped %~ State.updateCursor . (^. pickDest)
 
 addPickers ::
     (MonadReader env m, Has (Config ModKey) env, Applicative f, Has (Texts Text) env) =>
@@ -353,7 +353,6 @@ make _ minWidth (OptionList isTruncated opts) =
                     w <- traverse (addPickers (r ^. rPick)) (r ^. rWidget)
                     pure (r ^. rPick, (optionId, w, submenu))
         rendered <- traverse render opts
-        let mPickFirstResult = rendered ^? Lens.ix 0 . _1
         let maxOptionWidth = rendered <&> optionMinWidth & maximum & max minWidth
         laidOutOptions <-
             rendered
@@ -371,7 +370,7 @@ make _ minWidth (OptionList isTruncated opts) =
             & traverse Glue.vbox
         env <- Lens.view id
         pure
-            ( maybe NoPickFirstResult PickFirstResult mPickFirstResult
+            ( maybe NoPickFirstResult PickFirstResult (rendered ^? Lens.ix 0 . _1)
             , (blockEvents env <&> (Align.tValue %~)) <*> boxed
             )
 
