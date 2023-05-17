@@ -7,7 +7,7 @@ module GUI.Momentu.Widgets.Menu.Search
 
     , basicSearchTermEdit
     , defaultEmptyStrings
-    , addPickFirstResultEvent
+    , addPickActiveResultEvent
     , addSearchTermBgColor, addSearchTermEmptyColors
     , addDelSearchTerm
     , searchTermEdit
@@ -205,7 +205,7 @@ defaultEmptyStrings = TextEdit.Modes "  " "  "
 --   * no bg color --> use addSearchTermBgColor to add it
 --   * no empty colors --> use addSearchTermEmptyColors to add it
 --   * no pick of first result / no Has Menu.Config needed --> use
---     addPickFirstResultEvent to add it
+--     addPickActiveResultEvent to add it
 basicSearchTermEdit ::
     ( MonadReader env m, Applicative f, HasTexts env
     , TextEdit.Deps env, HasState env
@@ -293,24 +293,24 @@ searchTermEdit ::
     , TextEdit.Deps env, HasConfig env, State.HasState env
     , HasTexts env
     ) =>
-    ElemId -> (Text -> TermCtx Bool) -> Menu.PickFirstResult f -> m (Term f)
-searchTermEdit menuId allowedSearchTerm mPickFirst =
+    ElemId -> (Text -> TermCtx Bool) -> Menu.PickActiveResult f -> m (Term f)
+searchTermEdit menuId allowedSearchTerm mPickResult =
     Lens.view (has . emptyStrings)
     >>= basicSearchTermEdit (searchTermEditId menuId) menuId allowedSearchTerm
     >>= addDelSearchTerm menuId
     >>= termWidget (addSearchTermBgColor menuId)
-    >>= termWidget (addPickFirstResultEvent mPickFirst)
+    >>= termWidget (addPickActiveResultEvent mPickResult)
     & addSearchTermEmptyColors
 
 -- Add events on search term to pick the first result.
-addPickFirstResultEvent ::
+addPickActiveResultEvent ::
     (MonadReader env m, HasConfig env, HasTexts env, Applicative f) =>
-    Menu.PickFirstResult f ->
+    Menu.PickActiveResult f ->
     TextWidget f -> m (TextWidget f)
-addPickFirstResultEvent mPickFirst widget =
-    case mPickFirst of
-    Menu.NoPickFirstResult -> emptyPickEventMap
-    Menu.PickFirstResult pickFirst -> Menu.makePickEventMap pickFirst
+addPickActiveResultEvent mPickResult widget =
+    case mPickResult of
+    Menu.NoPickActiveResult -> emptyPickEventMap
+    Menu.PickActiveResult pick -> Menu.makePickEventMap pick
     <&> \eventMap -> widget & Align.tValue %~ Widget.weakerEvents eventMap
 
 assignCursor ::
@@ -356,7 +356,7 @@ type Deps env =
 
 make ::
     (MonadReader env m, Applicative f, Deps env) =>
-    (Menu.PickFirstResult f -> m (Term f)) ->
+    (Menu.PickActiveResult f -> m (Term f)) ->
     (ResultsContext -> m (Menu.OptionList (Menu.Option m f))) ->
     View -> ElemId -> Menu.Placement ->
     m (TextWidget f)
@@ -374,14 +374,14 @@ make makeSearchTerm makeOptions ann menuId placement =
                 & E.keyPresses (openKeys env) (viewDoc env (has . textOpenResults))
 
         isSelected <- State.isSubCursor menuId
-        (mPickFirst, toMenu, assignTheCursor) <-
+        (mPickResult, toMenu, assignTheCursor) <-
             if isSelected
             then if isOpen
                 then do
                     options <-
                         ResultsContext searchTerm (Menu.resultsIdPrefix menuId) & makeOptions
                     let assignTheCursor = assignCursor menuId (options ^.. traverse . Menu.oId)
-                    (mPickFirst, makeMenu) <- Menu.makeHovered menuId ann options & assignTheCursor
+                    (mPickResult, makeMenu) <- Menu.makeHovered menuId ann options & assignTheCursor
                     let makeTheMenu term =
                             Widget.weakerEventsWithoutPreevents (closeEventMap mempty)
                             <&> makeMenu placement
@@ -389,16 +389,16 @@ make makeSearchTerm makeOptions ann menuId placement =
                                 Widget.weakerEventsWithoutPreevents (closeEventMap gotoSearchTerm) .
                                 Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap)
                             ) <&> assertFocused
-                    pure (mPickFirst, makeTheMenu, assignTheCursor)
+                    pure (mPickResult, makeTheMenu, assignTheCursor)
                 else
                     pure
-                    ( Menu.NoPickFirstResult
+                    ( Menu.NoPickActiveResult
                     , (const . Widget.strongerEventsWithoutPreevents) openEventMap
                     , assignCursor menuId []
                     )
             else
-                pure (Menu.NoPickFirstResult, const id, assignCursor menuId [])
-        makeSearchTerm mPickFirst
+                pure (Menu.NoPickActiveResult, const id, assignCursor menuId [])
+        makeSearchTerm mPickResult
             <&> (\term -> term ^. termWidget & Align.tValue %~ toMenu term)
             <&> Lens.mapped . Widget.enterResultCursor .~ menuId
             & Reader.local (Element.elemIdPrefix .~ menuId)

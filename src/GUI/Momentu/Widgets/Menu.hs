@@ -8,7 +8,7 @@ module GUI.Momentu.Widgets.Menu
     , OptionList(..), olOptions, olIsTruncated
       , mkOptionList
     , PickResult(..), pickDest, pickMNextEntry
-    , PickFirstResult(..)
+    , PickActiveResult(..)
     , RenderedOption(..), rWidget, rPick
     , Option(..), oId, oRender, oSubmenuWidgets
     , optionWidgets
@@ -106,9 +106,9 @@ data PickResult = PickResult
     }
 Lens.makeLenses ''PickResult
 
-data PickFirstResult f
-    = NoPickFirstResult
-    | PickFirstResult (Widget.PreEvent (f PickResult))
+data PickActiveResult f
+    = NoPickActiveResult
+    | PickActiveResult (Widget.PreEvent (f PickResult))
 
 data RenderedOption f = RenderedOption
     { _rWidget :: TextWidget f
@@ -331,12 +331,12 @@ make ::
     , State.HasCursor env, Has (Texts Text) env, Glue.HasTexts env
     ) =>
     ElemId -> Widget.R -> OptionList (Option m f) ->
-    m (PickFirstResult f, Hover.Ordered (TextWidget f))
+    m (PickActiveResult f, Hover.Ordered (TextWidget f))
 make myId _ (OptionList isTruncated []) =
     makeNoResults isTruncated
     >>= Align.tValue (Widget.makeFocusableView (noResultsId myId))
     <&> pure
-    <&> (,) NoPickFirstResult
+    <&> (,) NoPickActiveResult
 make _ minWidth (OptionList isTruncated opts) =
     do
         submenuSymbolWidth <-
@@ -370,7 +370,7 @@ make _ minWidth (OptionList isTruncated opts) =
             & traverse Glue.vbox
         env <- Lens.view id
         pure
-            ( maybe NoPickFirstResult PickFirstResult (rendered ^? Lens.ix 0 . _1)
+            ( maybe NoPickActiveResult PickActiveResult (rendered ^? Lens.ix 0 . _1)
             , (blockEvents env <&> (Align.tValue %~)) <*> boxed
             )
 
@@ -435,7 +435,7 @@ makeHovered ::
     ElemId -> View ->
     OptionList (Option m f) ->
     m
-    ( PickFirstResult f
+    ( PickActiveResult f
     , Placement -> (TextWidget f -> TextWidget f) -> Widget f -> Widget f
     )
 makeHovered myId ann options =
