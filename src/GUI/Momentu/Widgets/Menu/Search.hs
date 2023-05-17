@@ -69,6 +69,7 @@ import qualified GUI.Momentu.Widgets.TextEdit as TextEdit
 import qualified GUI.Momentu.Widgets.TextView as TextView
 
 import           GUI.Momentu.Prelude
+import qualified GUI.Momentu.Direction as Dir
 
 data WidgetState = WidgetState
     { _wSearchTermText :: !Text
@@ -120,6 +121,7 @@ englishTexts = Texts
 type HasTexts env =
     ( Has (Menu.Texts Text) env, Has (Texts Text) env
     , Has (MomentuTexts.Texts Text) env
+    , Has (Dir.Texts Text) env
     )
 
 -- | Context necessary for creation of menu items for a search.
@@ -416,13 +418,10 @@ make makeSearchTerm makeOptions ann menuId placement =
                 & error
 
 searchTermEditEventMap ::
-    (Applicative f, HasTexts env) =>
+    (Applicative f, HasTexts env, Has Dir.Layout env) =>
     env -> ElemId -> (Text -> Bool) -> Text -> EventMap (f State.Update)
 searchTermEditEventMap env menuId allowedTerms searchTerm =
-    appendCharEventMap <> deleteCharEventMap
-    <&> (`WidgetState` True)
-    <&> updateWidgetState menuId
-    <&> pure
+    appendCharEventMap <> deleteCharEventMap <> navBackwardsEventMap
     where
         appendCharEventMap =
             Text.snoc searchTerm
@@ -432,9 +431,21 @@ searchTermEditEventMap env menuId allowedTerms searchTerm =
             -- necessarily preserves any invariant we enforce in
             -- allowedTerms
             & E.filter allowedTerms
+            <&> editSearchTerm
+        editSearchTerm = pure . updateWidgetState menuId . (`WidgetState` True)
         deleteCharEventMap
             | Text.null searchTerm = mempty
             | otherwise =
-                Text.init searchTerm
-                & E.keyPress (noMods ModKey.Key'Backspace)
-                    (searchTermDoc env (has . textDeleteBackwards))
+                Text.init searchTerm & editSearchTerm
+                & E.keyPress (noMods ModKey.Key'Backspace) (searchTermDoc env (has . textDeleteBackwards))
+        navBackwardsEventMap
+            | Text.null searchTerm = mempty
+            | otherwise =
+                Text.length searchTerm - 1
+                & TextEdit.encodeCursor (searchTermEditId menuId)
+                & State.updateCursor & pure
+                & E.keyPress (noMods navBackwardsKey) (searchTermDoc env (has . navBackwardsDoc))
+        (navBackwardsKey, navBackwardsDoc) =
+            case env ^. has of
+            Dir.LeftToRight -> (ModKey.Key'Left, Dir.left)
+            Dir.RightToLeft -> (ModKey.Key'Right, Dir.right)
