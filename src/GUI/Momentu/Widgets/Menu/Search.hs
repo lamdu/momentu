@@ -262,7 +262,7 @@ addDelSearchTerm menuId term =
                 & E.keyPresses (env ^. has . configDelSearchTermKeys)
                 (searchTermDoc env (has . MomentuTexts.delete))
     in  term
-        & termWidget . Align.tValue %~ Widget.weakerEventsWithoutPreevents delSearchTerm
+        & termWidget . Align.tValue %~ Widget.weakerEvents delSearchTerm
         & termEditEventMap <>~ delSearchTerm
 
 viewDoc :: HasTexts env => env -> Lens.ALens' env Text -> E.Doc
@@ -383,17 +383,17 @@ make makeSearchTerm makeOptions ann menuId placement =
                     let assignTheCursor = assignCursor menuId (options ^.. traverse . Menu.oId)
                     (mPickResult, makeMenu) <- Menu.makeHovered menuId ann options & assignTheCursor
                     let makeTheMenu term =
-                            Widget.weakerEventsWithoutPreevents (closeEventMap mempty)
-                            <&> makeMenu placement
+                            Widget.weakerEvents (closeEventMap mempty) <&>
+                            makeMenu placement
                             ( Align.tValue %~
-                                Widget.weakerEventsWithoutPreevents (closeEventMap gotoSearchTerm) .
-                                Widget.strongerEventsWithoutPreevents (term ^. termEditEventMap)
+                                Widget.weakerEvents (closeEventMap gotoSearchTerm) .
+                                Widget.strongerEvents (term ^. termEditEventMap)
                             ) <&> assertFocused
                     pure (mPickResult, makeTheMenu, assignTheCursor)
                 else
                     pure
                     ( Menu.NoPickActiveResult
-                    , (const . Widget.strongerEventsWithoutPreevents) openEventMap
+                    , (const . Widget.strongerEvents) openEventMap
                     , assignCursor menuId []
                     )
             else
