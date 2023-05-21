@@ -8,6 +8,7 @@ extra-deps:
 - bitmap-opengl-0.0.1.5
 - stb-image-0.2.1
 - unicode-properties-3.2.0.0
+- inline-c-objc-0.1.0.0
 - github: lamdu/bindings-freetype-gl
   commit: 8d311d96c5fa7fcfb5b79d057c9c24944d5d234b
 - github: lamdu/graphics-drawingcombinators
@@ -16,9 +17,6 @@ extra-deps:
   commit: 046328d92312d65638440132c016a3081d9c32a4
 - github: lamdu/FreetypeGL
   commit: 18ca298d8fd48ad18f75264553b57714bf070c77
-- github: lamdu/inline-c
-  commit: 9af83f947acacc52f10a134fde3931dcbf3f845b
-  subdir: inline-c-objc
 
 allow-newer: true
 
