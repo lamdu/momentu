@@ -3,7 +3,7 @@
 module GUI.Momentu.ModKey
     ( ModifierKeys(..), mControl, mAlt, mShift, mSuper
     , fromGLFWModifiers
-    , ModKey(..), ctrlMods, altMods, shiftMods, superMods
+    , ModKey(..), modifiers, key, ctrlMods, altMods, shiftMods, superMods
     , GLFW.KeyState(..), GLFW.Key(..), GLFWUtils.charOfKey
     , noMods, ctrl, alt, shift, super
     , prettyKey
@@ -78,6 +78,7 @@ data ModKey = ModKey
     , _key :: GLFW.Key
     }
     deriving stock (Generic, Show, Eq, Ord)
+Lens.makeLenses ''ModKey
 
 prettyKey :: GLFW.Key -> Text
 prettyKey k
@@ -98,4 +99,4 @@ prettyModKeys ms =
             | otherwise = "⌘+"
 
 pretty :: ModKey -> Text
-pretty (ModKey ms key) = prettyModKeys ms <> prettyKey key
+pretty (ModKey ms k) = prettyModKeys ms <> prettyKey k
