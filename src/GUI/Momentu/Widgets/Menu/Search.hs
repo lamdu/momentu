@@ -400,13 +400,17 @@ make makeSearchTerm makeOptions ann menuId placement =
                     )
             else
                 pure (Menu.NoPickActiveResult, const id, assignCursor menuId [])
-        makeSearchTerm mPickResult
-            <&> (\term -> term ^. termWidget & Align.tValue %~ toMenu term)
-            <&> Align.tValue . Widget.wFocused . Widget.fPreEvents %~
-                (<>) (mPickResult ^.. Menu._PickActiveResult <&> Menu.makePreEvent)
-            <&> Align.tValue . Widget.enterResultCursor .~ menuId
-            & Reader.local (Element.elemIdPrefix .~ menuId)
-            & assignTheCursor
+        makeSearchTerm mPickResult & Reader.local (Element.elemIdPrefix .~ menuId) & assignTheCursor
+            <&>
+            \term ->
+            term ^. termWidget
+            & Align.tValue %~ toMenu term
+            & Align.tValue . Widget.wFocused . Widget.fPreEvents %~
+                ( if Widget.isFocused (term ^. termWidget . Align.tValue) && searchTerm == ""
+                    then id
+                    else (<>) (mPickResult ^.. Menu._PickActiveResult <&> Menu.makePreEvent)
+                )
+            & Align.tValue . Widget.enterResultCursor .~ menuId
     where
         openKeys env = env ^. has . configOpenKeys
         closeKeys env = env ^. has . configCloseKeys
