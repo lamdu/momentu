@@ -62,7 +62,7 @@ mouseButtonEvent win handler button buttonState modKeys =
             , mbPositionInWindowCoords = p
             } & handler
 
-keyEvent :: (Event -> a) -> GLFW.Key -> Int -> GLFW.KeyState -> GLFW.ModifierKeys -> a
+keyEvent :: (Event -> IO Bool) -> GLFW.Key -> Int -> GLFW.KeyState -> GLFW.ModifierKeys -> IO Bool
 keyEvent handler key scanCode keyState modKeys =
     EventKey KeyEvent
     { keKey = key
@@ -102,7 +102,7 @@ eventLoop win handlers =
         validateMasksingState
         let setCallback f cb = f win $ Just $ const cb
         setCallback GLFW.setCharCallback (charEvent vhandler)
-        setCallback GLFW.setKeyCallback (keyEvent vhandler)
+        setCallback GLFW.setKeyCallback (keyEvent handler)
         setCallback GLFW.setMouseButtonCallback (mouseButtonEvent win vhandler)
         setCallback GLFW.setDropCallback (vhandler . EventDropPaths)
         setCallback GLFW.setWindowRefreshCallback $ vhandler EventWindowRefresh
