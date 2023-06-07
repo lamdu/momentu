@@ -27,7 +27,7 @@ data Handlers = Handlers
     , getFPSFont :: IO (Maybe Font)
     , getConfig :: IO Anim.Config
     , makeFrame :: IO Anim.Frame
-    , eventHandler :: Event -> IO Bool
+    , eventHandler :: Event -> IO (Maybe (IO ()))
         -- ^ Returns whether the event was handled, meaning two things:
         -- 1. A new frame will be generated
         -- 2. Do not pass event to further processing (e.g: input managers)
@@ -72,14 +72,17 @@ eventAnimLoop queueAction lastTimestampRef win handlers =
                 event ->
                     do
                         preTimestamp <- getCurrentTime
-                        do
-                            didAnything <- eventHandler handlers event
-                            when didAnything $
+                        mEvent <- eventHandler handlers event
+                        case mEvent of
+                            Nothing -> pure False
+                            Just eventAction ->
                                 do
-                                    writeIORef lastTimestampRef (Just preTimestamp)
-                                    EventLoop.wakeUp
-                            & queueAction
-                        pure True
+                                    do
+                                        eventAction
+                                        writeIORef lastTimestampRef (Just preTimestamp)
+                                        EventLoop.wakeUp
+                                        & queueAction
+                                    pure True
             , EventLoop.iteration =
                 readIORef lastTimestampRef >>= traverse mkFrameReq >>= iteration
             }

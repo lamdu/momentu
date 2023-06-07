@@ -375,20 +375,17 @@ runInner refreshAction run win handlers =
                 do
                     size <- GLFW.Utils.framebufferSize win
                     (_, mEnter, mFocus) <- renderWidget size
-                    mWidgetRes <-
-                        handleEvent (opts ^. oDebug) lookupModeRef getClipboard
+                    handleEvent (opts ^. oDebug) lookupModeRef getClipboard
                         virtCursorRef mEnter mFocus event
-                    mRes <- sequenceA mWidgetRes
-                    case mRes of
-                        Nothing -> pure ()
-                        Just res ->
-                            do
-                                Property.modP (opts ^. oStateStorage) (State.update res)
-                                writeIORef virtCursorRef (res ^. State.uVirtualCursor . Lens._Wrapped)
-                                res ^.. State.uSetSystemClipboard . Lens._Just &
-                                    traverse_ (GLFW.setClipboardString win . Text.unpack)
-                                newWidget
-                    pure (Lens.has Lens._Just mRes)
+                <&> Lens.mapped %~
+                \makeRes ->
+                do
+                    res <- makeRes
+                    Property.modP (opts ^. oStateStorage) (State.update res)
+                    writeIORef virtCursorRef (res ^. State.uVirtualCursor . Lens._Wrapped)
+                    res ^.. State.uSetSystemClipboard . Lens._Just &
+                        traverse_ (GLFW.setClipboardString win . Text.unpack)
+                    newWidget
             , MainAnim.makeFrame =
                 do
                     size <- GLFW.Utils.framebufferSize win
