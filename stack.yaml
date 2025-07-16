@@ -1,4 +1,4 @@
-resolver: lts-20.20
+resolver: lts-24.0
 
 packages:
 - '.'
@@ -9,12 +9,13 @@ extra-deps:
 - stb-image-0.2.1
 - unicode-properties-3.2.0.0
 - inline-c-objc-0.1.0.0
+- storable-offset-0.1.0.0
 - github: lamdu/bindings-freetype-gl
   commit: 8d311d96c5fa7fcfb5b79d057c9c24944d5d234b
 - github: lamdu/graphics-drawingcombinators
   commit: 39500dd189b0676468848d1f452ac31c7f0ec461
 - github: lamdu/freetype2
-  commit: 046328d92312d65638440132c016a3081d9c32a4
+  commit: f59a2ab94621364db78a50fdd23c2b11e773a503
 - github: lamdu/FreetypeGL
   commit: 18ca298d8fd48ad18f75264553b57714bf070c77
 - github: lamdu/GLFW-b
