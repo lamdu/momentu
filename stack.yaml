@@ -1,4 +1,4 @@
-resolver: lts-24.0
+resolver: lts-24.46
 
 packages:
 - '.'
@@ -21,7 +21,7 @@ extra-deps:
 - github: lamdu/GLFW-b
   commit: 506abf792cfd98f9a4e6d0bc526b74f848dc413e
 - github: lamdu/bindings-GLFW
-  commit: 4402c6b6fee81e59f5931fabe1724233cd0ca08c
+  commit: 28c1e5444367dd06f460af6604de96e4d795b019
 
 allow-newer: true
 
